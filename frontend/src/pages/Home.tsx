@@ -29,9 +29,9 @@ const Home = () => {
   ];
 
   const stats = [
-    { number: '10K+', label: 'Active Creators' },
-    { number: '500+', label: 'Brands Connected' },
-    { number: '95%', label: 'Success Rate' },
+    { number: '100+', label: 'Active Creators' },
+    { number: '20+', label: 'Brands Connected' },
+    { number: '99%', label: 'Success Rate' },
     { number: '24/7', label: 'Support' }
   ];
 
@@ -136,7 +136,7 @@ const Home = () => {
             <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
               <Link to="/filter">Browse Creators</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+            <Button asChild size="lg" className="bg-black text-white border-black hover:bg-gray-800">
               <Link to="/contact">Get in Touch</Link>
             </Button>
           </div>

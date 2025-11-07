@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Plus, Megaphone } from 'lucide-react';
+import { Plus, Megaphone, Sparkles, TrendingUp } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
 import { useToast } from '@/hooks/use-toast';
 
@@ -55,6 +55,10 @@ const CampaignPage = () => {
   });
 
   const [showForm, setShowForm] = useState(false);
+  const [showAIPricing, setShowAIPricing] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState<any>(null);
+  const [aiPricing, setAiPricing] = useState<any>(null);
+  const [isLoadingPricing, setIsLoadingPricing] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -108,6 +112,44 @@ const CampaignPage = () => {
       title: 'Application Submitted',
       description: `Your application for "${campaign.title}" has been sent to ${campaign.companyName}!`,
     });
+  };
+
+  const handleAIPricing = async (creator: any) => {
+    setSelectedCreator(creator);
+    setIsLoadingPricing(true);
+
+    try {
+      const response = await fetch('/api/ai/pricing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if needed
+        },
+        body: JSON.stringify({
+          creatorId: creator.id,
+          campaignType: 'social_media_promotion',
+          targetAudience: 'young_professionals',
+          expectedReach: 50000
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAiPricing(data);
+        setShowAIPricing(true);
+      } else {
+        throw new Error('Pricing calculation failed');
+      }
+    } catch (error) {
+      console.error('AI Pricing Error:', error);
+      toast({
+        title: 'Pricing Calculation Failed',
+        description: 'Unable to get AI pricing recommendation. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoadingPricing(false);
+    }
   };
 
   return (
@@ -244,14 +286,101 @@ const CampaignPage = () => {
           </Card>
         )}
 
+        {/* AI Pricing Modal */}
+        {showAIPricing && aiPricing && (
+          <Card className="mb-8 bg-gradient-card border-0 shadow-soft">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                  <h3 className="text-xl font-semibold text-foreground">AI Pricing Recommendation</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAIPricing(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-4">Creator: {selectedCreator?.username}</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Base Price:</span>
+                      <span className="font-semibold">₹{aiPricing.basePrice?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Recommended Price:</span>
+                      <span className="font-semibold text-primary">₹{aiPricing.recommendedPrice?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Followers:</span>
+                      <span className="font-semibold">{aiPricing.factors?.followers?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Engagement Rate:</span>
+                      <span className="font-semibold">{aiPricing.factors?.engagement?.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-4">AI Analysis</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {aiPricing.aiAnalysis || 'AI analysis not available'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`Recommended price for ${selectedCreator?.username}: ₹${aiPricing.recommendedPrice?.toLocaleString()}`);
+                    toast({
+                      title: 'Copied to Clipboard',
+                      description: 'Pricing recommendation copied successfully.',
+                    });
+                  }}
+                  variant="outline"
+                >
+                  Copy Recommendation
+                </Button>
+                <Button
+                  onClick={() => setShowAIPricing(false)}
+                  className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
+                >
+                  Close
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Campaigns Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaigns.map((campaign) => (
-            <CampaignCard
-              key={campaign.id}
-              campaign={campaign}
-              onApply={handleApply}
-            />
+            <div key={campaign.id} className="relative">
+              <CampaignCard
+                campaign={campaign}
+                onApply={handleApply}
+              />
+              {/* AI Pricing Button Overlay */}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md"
+                onClick={() => handleAIPricing({ id: campaign.id, username: campaign.companyName })}
+                disabled={isLoadingPricing}
+              >
+                {isLoadingPricing ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b border-primary"></div>
+                ) : (
+                  <TrendingUp className="w-3 h-3" />
+                )}
+              </Button>
+            </div>
           ))}
         </div>
 

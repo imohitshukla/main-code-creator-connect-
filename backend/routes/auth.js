@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { registerCreator, registerBrand, login } from '../controllers/authController.js';
+import { registerCreator, registerBrand, login, sendOtp, verifyOtp } from '../controllers/authController.js';
 
 const auth = new Hono();
 
@@ -23,8 +23,19 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const sendOtpSchema = z.object({
+  phone_number: z.string().min(10).max(15),
+});
+
+const verifyOtpSchema = z.object({
+  phone_number: z.string().min(10).max(15),
+  otp: z.string().length(6),
+});
+
 auth.post('/register/creator', zValidator('json', registerCreatorSchema), registerCreator);
 auth.post('/register/brand', zValidator('json', registerBrandSchema), registerBrand);
 auth.post('/login', zValidator('json', loginSchema), login);
+auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
+auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
 
 export default auth;

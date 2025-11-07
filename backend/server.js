@@ -5,8 +5,7 @@ import { logger } from 'hono/logger';
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
 import campaignRoutes from './routes/campaigns.js';
-// import aiRoutes from './routes/ai.js'; // TODO: Implement AI routes
-// import contactRoutes from './routes/contact.js'; // TODO: Implement contact routes
+import aiRoutes from './routes/ai.js';
 import messageRoutes from './routes/messages.js';
 import mediaKitRoutes from './routes/mediakits.js';
 import educationRoutes from './routes/education.js';
@@ -23,8 +22,7 @@ app.use('*', cors());
 app.route('/api/auth', authRoutes);
 app.route('/api/creators', creatorRoutes);
 app.route('/api/campaigns', campaignRoutes);
-// app.route('/api/ai', aiRoutes); // TODO: Implement AI routes
-// app.route('/api/contact', contactRoutes); // TODO: Implement contact routes
+app.route('/api/ai', aiRoutes);
 app.route('/api/messages', messageRoutes);
 app.route('/api/mediakits', mediaKitRoutes);
 app.route('/api/education', educationRoutes);

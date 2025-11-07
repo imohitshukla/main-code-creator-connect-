@@ -55,6 +55,10 @@ const initDB = async () => {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         role user_role NOT NULL,
+        phone_number VARCHAR(20),
+        phone_otp VARCHAR(6),
+        otp_expires_at TIMESTAMP,
+        is_phone_verified BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

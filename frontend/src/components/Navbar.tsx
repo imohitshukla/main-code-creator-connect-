@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +10,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/filter', label: 'Filter' },
+    { path: '/ai-match', label: 'AI Match' },
     { path: '/campaign', label: 'Campaign' },
     { path: '/messages', label: 'Messages' },
     { path: '/contact', label: 'Contact' },
@@ -48,12 +48,10 @@ const Navbar = () => {
                 {item.label}
               </Link>
             ))}
-            <ThemeToggle />
           </div>
 
-          {/* Mobile menu button and theme toggle */}
+          {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"

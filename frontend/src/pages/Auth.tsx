@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Building2 } from 'lucide-react';
-import ThemeToggle from '@/components/ThemeToggle';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -48,10 +47,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      {/* Theme Toggle - Fixed Position */}
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
 
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">

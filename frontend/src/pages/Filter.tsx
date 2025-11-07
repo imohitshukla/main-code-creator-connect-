@@ -153,6 +153,8 @@ const Filter = () => {
           </CardContent>
         </Card>
 
+
+
         {/* Results Counter */}
         <div className="mb-6">
           <p className="text-muted-foreground">
@@ -181,7 +183,7 @@ const Filter = () => {
               <p className="text-muted-foreground mb-4">
                 Try adjusting your search terms or filters to find more creators.
               </p>
-              <Button 
+              <Button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedNiche('');
