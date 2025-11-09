@@ -3,8 +3,8 @@
 export const getCampaigns = async (c) => {
   try {
     const campaigns = await client.query(`
-      SELECT c.id, c.title, c.description, c.budget, c.niche, c.status, c.created_at,
-             u.username as brand_name
+      SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
+             u.email as brand_name
       FROM campaigns c
       JOIN users u ON c.brand_id = u.id
     `);
@@ -18,13 +18,13 @@ export const getCampaigns = async (c) => {
 export const createCampaign = async (c) => {
   try {
     const userId = c.get('userId');
-    const { title, description, budget, niche } = await c.req.json();
+    const { title, description, budget_range, niche } = await c.req.json();
 
     const result = await client.query(`
-      INSERT INTO campaigns (brand_id, title, description, budget, niche)
+      INSERT INTO campaigns (brand_id, title, description, budget_range, niche)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, title, description, budget, niche, status, created_at
-    `, [userId, title, description, budget, niche]);
+      RETURNING id, title, description, budget_range, niche, status, created_at
+    `, [userId, title, description, budget_range, niche]);
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {

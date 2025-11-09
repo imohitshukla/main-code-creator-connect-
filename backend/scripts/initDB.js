@@ -48,9 +48,26 @@ const initDB = async () => {
       END $$;
     `);
 
+    // Drop tables if they exist to ensure schema is up to date
+    await appClient.query(`
+      DROP TABLE IF EXISTS payments CASCADE;
+      DROP TABLE IF EXISTS contracts CASCADE;
+      DROP TABLE IF EXISTS analytics CASCADE;
+      DROP TABLE IF EXISTS calendars CASCADE;
+      DROP TABLE IF EXISTS messages CASCADE;
+      DROP TABLE IF EXISTS conversations CASCADE;
+      DROP TABLE IF EXISTS notifications CASCADE;
+      DROP TABLE IF EXISTS contact_submissions CASCADE;
+      DROP TABLE IF EXISTS proposals CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS brand_profiles CASCADE;
+      DROP TABLE IF EXISTS creator_profiles CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Create tables
     await appClient.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
@@ -63,7 +80,7 @@ const initDB = async () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS creator_profiles (
+      CREATE TABLE creator_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
@@ -74,6 +91,7 @@ const initDB = async () => {
         followers INTEGER DEFAULT 0,
         engagement_rate DECIMAL(5,2),
         location VARCHAR(100),
+        verified BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -245,4 +263,4 @@ const initDB = async () => {
   }
 };
 
-initDB();
+initDB(); 

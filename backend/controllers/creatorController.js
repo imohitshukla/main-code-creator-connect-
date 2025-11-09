@@ -3,8 +3,8 @@ import client from '../config/database.js';
 export const getCreators = async (c) => {
   try {
     const creators = await client.query(`
-      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_url,
-             u.username, u.email
+      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
+             u.email
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
     `);
@@ -19,8 +19,8 @@ export const getCreatorById = async (c) => {
   try {
     const id = c.req.param('id');
     const creator = await client.query(`
-      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_url,
-             u.username, u.email
+      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
+             u.email
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.id = $1
@@ -38,13 +38,13 @@ export const getCreatorById = async (c) => {
 export const updateCreatorProfile = async (c) => {
   try {
     const userId = c.get('userId');
-    const { bio, niche, social_links, portfolio_url } = await c.req.json();
+    const { bio, niche, social_links, portfolio_links } = await c.req.json();
 
     await client.query(`
       UPDATE creator_profiles
-      SET bio = $1, niche = $2, social_links = $3, portfolio_url = $4, updated_at = NOW()
+      SET bio = $1, niche = $2, social_links = $3, portfolio_links = $4, updated_at = NOW()
       WHERE user_id = $5
-    `, [bio, niche, social_links, portfolio_url, userId]);
+    `, [bio, niche, social_links, portfolio_links, userId]);
 
     return c.json({ message: 'Profile updated successfully' });
   } catch (error) {
@@ -77,8 +77,8 @@ export const verifyCreator = async (c) => {
 export const getVerifiedCreators = async (c) => {
   try {
     const creators = await client.query(`
-      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_url,
-             u.username, u.email, cp.verified
+      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
+             u.email, cp.verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.verified = TRUE
