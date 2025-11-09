@@ -314,8 +314,16 @@ const CampaignPage = () => {
                       <span className="font-semibold">₹{aiPricing.basePrice?.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Recommended Price:</span>
+                      <span className="text-muted-foreground">AI Recommended Price:</span>
                       <span className="font-semibold text-primary">₹{aiPricing.recommendedPrice?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Market Position:</span>
+                      <span className="font-semibold">{aiPricing.marketPosition || 'medium'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">AI Confidence:</span>
+                      <span className="font-semibold">{((aiPricing.confidence || 0) * 100).toFixed(0)}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Followers:</span>
@@ -328,10 +336,17 @@ const CampaignPage = () => {
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-foreground mb-4">AI Analysis</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {aiPricing.aiAnalysis || 'AI analysis not available'}
-                  </p>
+                  <h4 className="font-semibold text-foreground mb-4">AI Pricing Analysis</h4>
+                  <div className="bg-primary/5 rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {aiPricing.aiAnalysis || 'AI analysis not available'}
+                    </p>
+                  </div>
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    <p>Campaign Type: {aiPricing.factors?.campaignType}</p>
+                    <p>Target Audience: {aiPricing.factors?.targetAudience}</p>
+                    <p>Expected Reach: {aiPricing.factors?.expectedReach?.toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-4 mt-6">

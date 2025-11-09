@@ -5,12 +5,13 @@ import { logger } from 'hono/logger';
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
 import campaignRoutes from './routes/campaigns.js';
-import aiRoutes from './routes/ai.js';
+import aiRoutes from './src/backend/routes/ai.js';
 import messageRoutes from './routes/messages.js';
 import mediaKitRoutes from './routes/mediakits.js';
 import educationRoutes from './routes/education.js';
 import analyticsRoutes from './routes/analytics.js';
 import paymentsRoutes from './routes/payments.js';
+import adminRoutes from './routes/admin.js';
 
 const app = new Hono();
 
@@ -28,6 +29,7 @@ app.route('/api/mediakits', mediaKitRoutes);
 app.route('/api/education', educationRoutes);
 app.route('/api/analytics', analyticsRoutes);
 app.route('/api/payments', paymentsRoutes);
+app.route('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {

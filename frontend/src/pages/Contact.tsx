@@ -83,7 +83,7 @@ const Contact = () => {
     {
       icon: Linkedin,
       name: 'LinkedIn',
-      url: 'https://linkedin.com/company/creatorconnect',
+      url: 'https://www.linkedin.com/company/creator-connect-m/',
       color: 'hover:text-blue-600'
     },
     {

@@ -223,36 +223,39 @@ const AIMatch = () => {
             </div>
 
             {aiMatches.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {aiMatches.map((match) => (
                   <Card key={match.id} className="bg-gradient-card border-0 shadow-soft hover:shadow-glow transition-all duration-300">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold">
-                          {match.username?.charAt(0).toUpperCase() || match.name?.charAt(0).toUpperCase()}
+                          {match.username?.charAt(0).toUpperCase() || match.name?.charAt(0).toUpperCase() || match.email?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground">{match.username || match.name}</h3>
+                          <h3 className="font-semibold text-foreground">{match.username || match.name || `Creator ${match.id}`}</h3>
                           <p className="text-sm text-muted-foreground">{match.niche}</p>
                         </div>
                       </div>
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Match Score:</span>
+                          <span className="text-muted-foreground">AI Match Score:</span>
                           <span className="font-semibold text-primary">{(match.matchScore * 100).toFixed(0)}%</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Followers:</span>
-                          <span className="font-semibold">{match.followers?.toLocaleString() || match.follower_count?.toLocaleString() || 'N/A'}</span>
+                          <span className="font-semibold">{match.followers?.toLocaleString() || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Engagement:</span>
                           <span className="font-semibold">{match.engagement_rate?.toFixed(1) || 'N/A'}%</span>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                        {match.explanation}
-                      </p>
+                      <div className="bg-primary/5 rounded-lg p-3 mb-4">
+                        <p className="text-sm text-foreground font-medium mb-1">AI Analysis:</p>
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {match.explanation}
+                        </p>
+                      </div>
                       <Button
                         onClick={() => handleContact(match)}
                         className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
