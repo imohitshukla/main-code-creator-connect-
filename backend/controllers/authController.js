@@ -1,6 +1,7 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
+import nodemailer from 'nodemailer';
 import client from '../config/database.js';
 
 // Initialize Twilio client
@@ -9,8 +10,17 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+// Initialize Nodemailer transporter
+const emailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 export const registerCreator = async (c) => {
-  const { name, email, password, portfolio_link } = c.req.valid('json');
+  const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
   
   try {
     // Check if user exists
@@ -31,8 +41,8 @@ export const registerCreator = async (c) => {
 
     // Create user
     const newUser = await client.query(
-      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id',
-      [email, hashedPassword, 'creator']
+      'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
+      [email, hashedPassword, 'creator', phone_number]
     );
 
     const userId = newUser.rows[0].id;
@@ -66,7 +76,7 @@ export const registerCreator = async (c) => {
 
 // Register Brand
 export const registerBrand = async (c) => {
-  const { company_name, email, password, website } = c.req.valid('json');
+  const { company_name, email, password, website, phone_number } = c.req.valid('json');
 
   try {
     // Check if user exists
@@ -87,8 +97,8 @@ export const registerBrand = async (c) => {
 
     // Create user
     const newUser = await client.query(
-      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id',
-      [email, hashedPassword, 'brand']
+      'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
+      [email, hashedPassword, 'brand', phone_number]
     );
 
     const userId = newUser.rows[0].id;
@@ -120,14 +130,14 @@ export const registerBrand = async (c) => {
   }
 };
 
-// Login
+// Login - Send OTP
 export const login = async (c) => {
   const { email, password } = c.req.valid('json');
 
   try {
     // Find user
     const userResult = await client.query(
-      'SELECT id, email, password, role FROM users WHERE email = $1',
+      'SELECT id, email, password, role, phone_number FROM users WHERE email = $1',
       [email]
     );
 
@@ -143,6 +153,92 @@ export const login = async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set expiration time (10 minutes from now)
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Update user with OTP and expiration
+    await client.query(
+      'UPDATE users SET phone_otp = $1, otp_expires_at = $2 WHERE id = $3',
+      [otp, expiresAt, user.id]
+    );
+
+    // Send OTP via email (primary) and SMS (if phone available)
+    try {
+      // Send email OTP
+      await emailTransporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Your Login OTP - Niche Connect',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Login Verification</h2>
+            <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
+            <p>This code expires in 10 minutes.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+          </div>
+        `
+      });
+
+      // Send SMS OTP if phone number exists
+      if (user.phone_number) {
+        await twilioClient.messages.create({
+          body: `Your login OTP for Niche Connect is: ${otp}. This code expires in 10 minutes.`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: user.phone_number,
+        });
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      // Log OTP for development/testing if sending fails
+      console.log(`Login OTP for ${user.email}: ${otp}`);
+    }
+
+    return c.json({
+      message: 'OTP sent to your email' + (user.phone_number ? ' and phone' : ''),
+      userId: user.id,
+      requiresOtp: true
+    });
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+};
+
+// Verify Login OTP
+export const verifyLoginOtp = async (c) => {
+  const { userId, otp } = c.req.valid('json');
+
+  try {
+    // Find user by ID
+    const userResult = await client.query(
+      'SELECT id, email, role, phone_otp, otp_expires_at FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if OTP matches and hasn't expired
+    if (user.phone_otp !== otp) {
+      return c.json({ error: 'Invalid OTP' }, 400);
+    }
+
+    if (new Date() > new Date(user.otp_expires_at)) {
+      return c.json({ error: 'OTP has expired' }, 400);
+    }
+
+    // Clear OTP fields
+    await client.query(
+      'UPDATE users SET phone_otp = NULL, otp_expires_at = NULL WHERE id = $1',
+      [user.id]
+    );
+
     // Generate JWT
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
@@ -156,7 +252,7 @@ export const login = async (c) => {
     });
   } catch (error) {
     console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
+    return c.json({ error: 'Failed to verify OTP' }, 500);
   }
 };
 
