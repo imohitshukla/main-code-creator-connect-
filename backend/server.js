@@ -47,18 +47,29 @@ app.onError((err, c) => {
   return c.json({ error: 'Something went wrong!' }, 500);
 });
 
-const port = process.env.PORT || 5000;
+// This line assumes you have a models/index.js file that exports your db object.
+// If your file is elsewhere (like config/database.js), change the path.
+const db = require('./models');
 
-import { serve } from '@hono/node-server';
+// Make sure PORT is defined.
+const PORT = process.env.PORT || 5000;
 
-serve({
-  fetch: app.fetch,
-  port
-}, (info) => {
-  console.log(`Listening on http://localhost:${info.port}`);
+// REPLACE your old "app.listen(PORT, ...)" with this new block:
+db.sequelize.sync().then(() => {
+  console.log('Database synced successfully.');
+  const { serve } = require('@hono/node-server');
+
+  serve({
+    fetch: app.fetch,
+    port: PORT
+  }, (info) => {
+    console.log(`Server is running on port ${info.port}`);
+  });
+}).catch(err => {
+  console.error('Unable to sync database:', err);
 });
 
 export default {
-  port,
+  port: PORT,
   fetch: app.fetch,
 };
