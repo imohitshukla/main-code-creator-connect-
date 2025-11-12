@@ -9,7 +9,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresOtp: boolean; userId?: number; message?: string }>;
+  verifyOtp: (userId: number, otp: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -52,6 +53,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
+
+      if (data.requiresOtp) {
+        // Return OTP requirement info
+        return {
+          requiresOtp: true,
+          userId: data.userId,
+          message: data.message
+        };
+      } else {
+        // Direct login (fallback)
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        return { requiresOtp: false };
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyOtp = async (userId: number, otp: string) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/verify-login-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, otp })
+      });
+
+      if (!response.ok) {
+        throw new Error('OTP verification failed');
+      }
+
+      const data = await response.json();
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
@@ -69,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     login,
+    verifyOtp,
     logout,
     isAuthenticated: !!user
   };
