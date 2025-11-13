@@ -1,4 +1,4 @@
-import { Client } from 'pg';
+const { Client } = require('pg');
 
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
@@ -6,5 +6,4 @@ const client = new Client({
 
 // Connect to database
 await client.connect();
-
-export default client;
+module.exports = client;;
