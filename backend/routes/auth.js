@@ -53,4 +53,4 @@ auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyL
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
 
-module.exports = authRoutes;
+module.exports = app;
