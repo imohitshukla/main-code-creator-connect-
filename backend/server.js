@@ -69,7 +69,7 @@ db.sequelize.sync().then(() => {
   console.error('Unable to sync database:', err);
 });
 
-export default {
+module  .exports = {
   port: PORT,
   fetch: app.fetch,
 };
