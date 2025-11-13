@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
-import { getCreators, getCreatorById, updateCreatorProfile, verifyCreator, getVerifiedCreators } from '../controllers/creatorController.js';
+const { Hono } = require('hono');
+const { authMiddleware } = require('../middleware/auth.js');
+const { getCreators, getCreatorById, updateCreatorProfile, verifyCreator, getVerifiedCreators } = require('../controllers/creatorController.js');
 
 const router = new Hono();
 
@@ -14,4 +14,4 @@ router.use('*', authMiddleware);
 router.put('/profile', updateCreatorProfile);
 router.put('/:id/verify', verifyCreator);
 
-export default router;
+module.exports = router;

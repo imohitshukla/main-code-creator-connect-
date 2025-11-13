@@ -20,16 +20,16 @@ app.use('*', logger());
 app.use('*', cors());
 
 // Routes
-app.route('/api/auth', authRoutes);
-app.route('/api/creators', creatorRoutes);
-app.route('/api/campaigns', campaignRoutes);
-app.route('/api/ai', aiRoutes);
-app.route('/api/messages', messageRoutes);
-app.route('/api/mediakits', mediaKitRoutes);
-app.route('/api/education', educationRoutes);
-app.route('/api/analytics', analyticsRoutes);
-app.route('/api/payments', paymentsRoutes);
-app.route('/api/admin', adminRoutes);
+app.use('/api/auth/*', authRoutes);
+app.use('/api/creators/*', creatorRoutes);
+app.use('/api/campaigns/*', campaignRoutes);
+app.use('/api/ai/*', aiRoutes);
+app.use('/api/messages/*', messageRoutes);
+app.use('/api/mediakits/*', mediaKitRoutes);
+app.use('/api/education/*', educationRoutes);
+app.use('/api/analytics/*', analyticsRoutes);
+app.use('/api/payments/*', paymentsRoutes);
+app.use('/api/admin/*', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {
@@ -47,26 +47,16 @@ app.onError((err, c) => {
   return c.json({ error: 'Something went wrong!' }, 500);
 });
 
-// This line assumes you have a models/index.js file that exports your db object.
-// If your file is elsewhere (like config/database.js), change the path.
-const db = require('./models');
-
 // Make sure PORT is defined.
 const PORT = process.env.PORT || 5000;
 
-// REPLACE your old "app.listen(PORT, ...)" with this new block:
-db.sequelize.sync().then(() => {
-  console.log('Database synced successfully.');
-  const { serve } = require('@hono/node-server');
+const { serve } = require('@hono/node-server');
 
-  serve({
-    fetch: app.fetch,
-    port: PORT
-  }, (info) => {
-    console.log(`Server is running on port ${info.port}`);
-  });
-}).catch(err => {
-  console.error('Unable to sync database:', err);
+serve({
+  fetch: app.fetch,
+  port: PORT
+}, (info) => {
+  console.log(`Server is running on port ${info.port}`);
 });
 
 module  .exports = {

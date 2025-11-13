@@ -1,11 +1,11 @@
-import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
-import {
+const { Hono } = require('hono');
+const { authMiddleware } = require('../middleware/auth.js');
+const {
   smartMatchCreators,
   detectFraud,
   getPricingRecommendation,
   analyzeContent
-} from '../controllers/aiController.js';
+} = require('../controllers/aiController.js');
 
 const router = new Hono();
 
@@ -52,4 +52,4 @@ router.post('/bulk-fraud-check', async (c) => {
   }
 });
 
-export default router;
+module.exports = router;

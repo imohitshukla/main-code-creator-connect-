@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
-import { createContract, signContract, createPaymentIntent, releaseEscrow, getPayments } from '../controllers/paymentController.js';
+const { Hono } = require('hono');
+const { authMiddleware } = require('../middleware/auth.js');
+const { createContract, signContract, createPaymentIntent, releaseEscrow, getPayments } = require('../controllers/paymentController.js');
 
 const payments = new Hono();
 
@@ -10,4 +10,4 @@ payments.post('/intent', authMiddleware, createPaymentIntent);
 payments.put('/escrow/:id/release', authMiddleware, releaseEscrow);
 payments.get('/', authMiddleware, getPayments);
 
-export default payments;
+module.exports = payments;

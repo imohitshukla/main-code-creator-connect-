@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
-import { getCampaigns, createCampaign, applyToCampaign, getCampaignDashboard, updateCampaignProgress } from '../controllers/campaignController.js';
+const { Hono } = require('hono');
+const { authMiddleware } = require('../middleware/auth.js');
+const { getCampaigns, createCampaign, applyToCampaign, getCampaignDashboard, updateCampaignProgress } = require('../controllers/campaignController.js');
 
 const router = new Hono();
 
@@ -14,4 +14,4 @@ router.post('/:id/apply', applyToCampaign);
 router.get('/dashboard', getCampaignDashboard);
 router.put('/:id/progress', updateCampaignProgress);
 
-export default router;
+module.exports = router;
