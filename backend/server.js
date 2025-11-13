@@ -17,7 +17,15 @@ const app = new Hono();
 
 // Middleware
 app.use('*', logger());
-app.use('*', cors());
+
+// Configure CORS to allow your Vercel frontend
+app.use('*', cors({
+  origin: [
+    'https://main-code-creator-connect-hyl6kkqpp.vercel.app', // Your production Vercel URL
+    'http://localhost:3000'                   // Your local computer (for testing)
+  ],
+  credentials: true // Allows cookies and authorization headers
+}));
 
 // Routes
 app.use('/api/auth/*', authRoutes);
