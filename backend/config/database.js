@@ -5,5 +5,7 @@ const client = new Client({
 });
 
 // Connect to database
-await client.connect();
-module.exports = client;;
+client.connect()
+  .then(() => console.log('Database connected successfully'))
+  .catch(err => console.error('Database connection error:', err));
+  module.exports = client;;
