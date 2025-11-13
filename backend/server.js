@@ -59,7 +59,7 @@ serve({
   console.log(`Server is running on port ${info.port}`);
 });
 
-module  .exports = {
+module.exports = {
   port: PORT,
   fetch: app.fetch,
 };
