@@ -1,8 +1,8 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import twilio from 'twilio';
-import nodemailer from 'nodemailer';
-import client from '../config/database.js';
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const twilio = require('twilio');
+const nodemailer = require('nodemailer');
+const client = require('../config/database.js');
 
 // Initialize Twilio client
 const twilioClient = twilio(
@@ -19,7 +19,7 @@ const emailTransporter = nodemailer.createTransport({
   }
 });
 
-export const registerCreator = async (c) => {
+const registerCreator = async (c) => {
   const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
   
   try {
@@ -75,7 +75,7 @@ export const registerCreator = async (c) => {
 };
 
 // Register Brand
-export const registerBrand = async (c) => {
+ const registerBrand = async (c) => {
   const { company_name, email, password, website, phone_number } = c.req.valid('json');
 
   try {
@@ -131,7 +131,7 @@ export const registerBrand = async (c) => {
 };
 
 // Login - Send OTP
-export const login = async (c) => {
+ const login = async (c) => {
   const { email, password } = c.req.valid('json');
 
   try {
@@ -208,7 +208,7 @@ export const login = async (c) => {
 };
 
 // Verify Login OTP
-export const verifyLoginOtp = async (c) => {
+const verifyLoginOtp = async (c) => {
   const { userId, otp } = c.req.valid('json');
 
   try {
@@ -257,7 +257,7 @@ export const verifyLoginOtp = async (c) => {
 };
 
 // Send OTP
-export const sendOtp = async (c) => {
+ const sendOtp = async (c) => {
   const { phone_number } = c.req.valid('json');
 
   try {
@@ -306,7 +306,7 @@ export const sendOtp = async (c) => {
 };
 
 // Verify OTP
-export const verifyOtp = async (c) => {
+ const verifyOtp = async (c) => {
   const { phone_number, otp } = c.req.valid('json');
 
   try {
@@ -330,6 +330,14 @@ export const verifyOtp = async (c) => {
     if (new Date() > new Date(user.otp_expires_at)) {
       return c.json({ error: 'OTP has expired' }, 400);
     }
+    module.exports = {
+  registerCreator,
+  registerBrand,
+  login,
+  verifyLoginOtp,
+  sendOtp,
+  verifyOtp
+};
 
     // Update user: set verified, clear OTP fields
     await client.query(
