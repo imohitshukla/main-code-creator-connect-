@@ -20,14 +20,38 @@ const app = new Hono();
 app.use('*', logger());
 
 // Configure CORS to allow your Vercel frontend
-app.use('*', cors({
-  origin: [
-    'https://main-code-creator-connect-hyl6kkqpp.vercel.app', // Your production Vercel URL
-    'http://localhost:3000',                  // Your local computer (for testing)
-    'http://localhost:8080'                   // Frontend dev server
-  ],
-  credentials: true // Allows cookies and authorization headers
-}));
+const allowedOrigins = [
+  'https://main-code-creator.vercel.app', // Your main production URL
+  'http://localhost:3000', // Your local development URL
+  /https:\/\/main-code-creator-.*\.vercel\.app/ // A regex for all Vercel preview URLs
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+
+    // Check if the origin matches any of our allowed origins
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use('*', cors(corsOptions));
 
 // Routes
 app.route('/api/auth', authRoutes);
