@@ -89,8 +89,13 @@ const Auth = () => {
 
   const handleCreatorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting creator registration:', {
+      name: creatorForm.name,
+      email: creatorForm.email,
+      phone_number: creatorForm.phone_number
+    });
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register/creator', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register/creator`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,8 +128,13 @@ const Auth = () => {
 
   const handleCompanySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting company registration:', {
+      company_name: companyForm.companyName,
+      email: companyForm.email,
+      phone_number: companyForm.phone_number
+    });
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register/brand', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register/brand`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

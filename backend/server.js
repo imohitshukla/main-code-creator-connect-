@@ -12,6 +12,7 @@ const educationRoutes = require('./routes/education.js');
 const analyticsRoutes = require('./routes/analytics.js');
 const paymentsRoutes = require('./routes/payments.js');
 const adminRoutes = require('./routes/admin.js');
+const contactRoutes = require('./routes/contact.js');
 
 const app = new Hono();
 
@@ -28,16 +29,17 @@ app.use('*', cors({
 }));
 
 // Routes
-app.use('/api/auth/*', authRoutes);
-app.use('/api/creators/*', creatorRoutes);
-app.use('/api/campaigns/*', campaignRoutes);
-app.use('/api/ai/*', aiRoutes);
-app.use('/api/messages/*', messageRoutes);
-app.use('/api/mediakits/*', mediaKitRoutes);
-app.use('/api/education/*', educationRoutes);
-app.use('/api/analytics/*', analyticsRoutes);
-app.use('/api/payments/*', paymentsRoutes);
-app.use('/api/admin/*', adminRoutes);
+app.route('/api/auth', authRoutes);
+app.route('/api/creators', creatorRoutes);
+app.route('/api/campaigns', campaignRoutes);
+app.route('/api/ai', require('./routes/ai.js'));
+app.route('/api/messages', messageRoutes);
+app.route('/api/mediakits', mediaKitRoutes);
+app.route('/api/education', educationRoutes);
+app.route('/api/analytics', analyticsRoutes);
+app.route('/api/payments', paymentsRoutes);
+app.route('/api/admin', adminRoutes);
+app.route('/api/contact', contactRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {

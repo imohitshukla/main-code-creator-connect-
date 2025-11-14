@@ -141,7 +141,6 @@ const CampaignPage = () => {
         throw new Error('Pricing calculation failed');
       }
     } catch (error) {
-      console.error('AI Pricing Error:', error);
       toast({
         title: 'Pricing Calculation Failed',
         description: 'Unable to get AI pricing recommendation. Please try again.',
