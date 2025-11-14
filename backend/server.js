@@ -54,6 +54,12 @@ app.notFound((c) => {
   return c.json({ error: 'Endpoint not found' }, 404);
 });
 
+// Global error handler for debugging
+app.onError((err, c) => {
+  console.error('Unhandled Server Error:', err);
+  return c.json({ error: 'Server crashed', message: err.message }, 500);
+});
+
 // Error handling
 app.onError((err, c) => {
   console.error(err);
