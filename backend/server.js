@@ -23,7 +23,8 @@ app.use('*', logger());
 app.use('*', cors({
   origin: [
     'https://main-code-creator-connect-hyl6kkqpp.vercel.app', // Your production Vercel URL
-    'http://localhost:3000'                   // Your local computer (for testing)
+    'http://localhost:3000',                  // Your local computer (for testing)
+    'http://localhost:8080'                   // Frontend dev server
   ],
   credentials: true // Allows cookies and authorization headers
 }));
