@@ -1,6 +1,7 @@
 {
   "name": "creator-connect-main-app-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "server.js",
   "scripts": {
