@@ -1,5 +1,5 @@
 const { Hono } = require('hono');
-const { authMiddleware } = require('../../../middleware/auth.js');
+const { authMiddleware } = require('../middleware/auth.js');
 const {
   smartMatchCreators,
   detectFraud,
