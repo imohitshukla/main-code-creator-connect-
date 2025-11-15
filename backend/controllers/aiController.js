@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import sharp from 'sharp';
-import client from '../config/database.js';
+import { client } from '../config/database.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-testing',
