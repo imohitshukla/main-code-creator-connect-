@@ -1,6 +1,6 @@
-const { Hono } = require('hono');
-const { authMiddleware } = require('../middleware/auth.js');
-const { getMessages, sendMessage, getConversations, createConversation } = require('../controllers/messagesController.js');
+import { Hono } from 'hono';
+import { authMiddleware } from '../middleware/auth.js';
+import { getMessages, sendMessage, getConversations, createConversation } from '../controllers/messagesController.js';
 
 const router = new Hono();
 
@@ -19,4 +19,4 @@ router.get('/:conversationId', getMessages);
 // Send a message
 router.post('/', sendMessage);
 
-module.exports = router;
+export default router;

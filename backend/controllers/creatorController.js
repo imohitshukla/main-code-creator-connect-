@@ -1,4 +1,4 @@
-import client from '../config/database.js';
+import { client } from '../config/database.js';
 
 export const getCreators = async (c) => {
   try {

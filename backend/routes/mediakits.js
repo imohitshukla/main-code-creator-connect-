@@ -1,6 +1,6 @@
-const { Hono } = require('hono');
-const { authMiddleware } = require('../middleware/auth.js');
-const { generateMediaKit, getMediaKitData } = require('../controllers/mediaKitController.js');
+import { Hono } from 'hono';
+import { authMiddleware } from '../middleware/auth.js';
+import { generateMediaKit, getMediaKitData } from '../controllers/mediaKitController.js';
 
 const router = new Hono();
 
@@ -9,4 +9,4 @@ router.use('*', authMiddleware);
 router.post('/generate', generateMediaKit);
 router.get('/data', getMediaKitData);
 
-module.exports = router;
+export default router;

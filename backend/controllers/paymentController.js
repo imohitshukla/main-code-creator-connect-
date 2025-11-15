@@ -1,4 +1,4 @@
-import db from '../config/database.js';
+import { client } from '../config/database.js';
 // import Stripe from 'stripe';
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

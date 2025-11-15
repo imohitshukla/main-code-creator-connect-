@@ -1,4 +1,4 @@
-const pool = require('../config/database');
+import { client } from '../config/database.js';
 
 const submitContactForm = async (c) => {
   try {
@@ -20,7 +20,7 @@ const submitContactForm = async (c) => {
     `;
 
     const values = [name, email, message];
-    const result = await pool.query(query, values);
+    const result = await client.query(query, values);
 
     return c.json({
       success: true,
@@ -45,7 +45,7 @@ const getContactSubmissions = async (c) => {
       ORDER BY submitted_at DESC
     `;
 
-    const result = await pool.query(query);
+    const result = await client.query(query);
 
     return c.json({
       success: true,
@@ -61,7 +61,7 @@ const getContactSubmissions = async (c) => {
   }
 };
 
-module.exports = {
+export {
   submitContactForm,
   getContactSubmissions
 };

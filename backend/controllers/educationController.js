@@ -1,4 +1,4 @@
-import client from '../config/database.js';
+import { client } from '../config/database.js';
 
 // Static educational resources
 const educationalResources = [

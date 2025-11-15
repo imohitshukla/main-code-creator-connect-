@@ -16,10 +16,6 @@ import contactRoutes from './routes/contact.js';
 
 const app = new Hono();
 
-// Middleware
-app.use('*', cors(corsOptions));
-app.use('*', logger());
-
 // Configure CORS to allow your Vercel frontend
 const corsOptions = {
   origin: [
@@ -30,13 +26,15 @@ const corsOptions = {
   credentials: true
 };
 
+// Middleware
 app.use('*', cors(corsOptions));
+app.use('*', logger());
 
 // Routes
 app.route('/api/auth', authRoutes);
 app.route('/api/creators', creatorRoutes);
 app.route('/api/campaigns', campaignRoutes);
-app.route('/api/ai', require('./routes/ai.js'));
+app.route('/api/ai', aiRoutes);
 app.route('/api/messages', messageRoutes);
 app.route('/api/mediakits', mediaKitRoutes);
 app.route('/api/education', educationRoutes);
@@ -79,7 +77,5 @@ serve({
   console.log(`Server is running on port ${info.port}`);
 });
 
-module.exports = {
-  port: PORT,
-  fetch: app.fetch,
-};
+export const port = PORT;
+export const fetch = app.fetch;
