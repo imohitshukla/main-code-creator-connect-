@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Hono } = require('hono');
 const { cors } = require('hono/cors');
 const { logger } = require('hono/logger');
+const { json } = require('hono/json');
 const authRoutes = require('./routes/auth.js');
 const creatorRoutes = require('./routes/creators.js');
 const campaignRoutes = require('./routes/campaigns.js');
@@ -17,6 +18,8 @@ const contactRoutes = require('./routes/contact.js');
 const app = new Hono();
 
 // Middleware
+app.use('*', cors(corsOptions));
+app.use('*', json());
 app.use('*', logger());
 
 // Configure CORS to allow your Vercel frontend
