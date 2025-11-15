@@ -1,14 +1,14 @@
-const { Hono } = require('hono');
-const { z } = require('zod');
-const { zValidator } = require('@hono/zod-validator');
-const {
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import {
   registerCreator,
   registerBrand,
   login,
   verifyLoginOtp,
   sendOtp,
   verifyOtp
-} = require('../controllers/authController.js');
+} from '../controllers/authController.js';
 
 const auth = new Hono();
 
@@ -53,4 +53,4 @@ auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyL
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
 
-module.exports = auth;
+export default auth;

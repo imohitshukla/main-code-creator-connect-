@@ -1,4 +1,4 @@
-import client from '../config/database.js';
+import { client } from '../config/database.js';
 
 // Get all creators for admin management
 export const getAllCreators = async (c) => {

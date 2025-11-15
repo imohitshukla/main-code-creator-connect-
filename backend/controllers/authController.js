@@ -1,8 +1,8 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const twilio = require('twilio');
-const nodemailer = require('nodemailer');
-const client = require('../config/database.js');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import twilio from 'twilio';
+import nodemailer from 'nodemailer';
+import { client } from '../config/database.js';
 
 // Initialize Twilio client
 const twilioClient = twilio(
@@ -330,15 +330,6 @@ const verifyLoginOtp = async (c) => {
     if (new Date() > new Date(user.otp_expires_at)) {
       return c.json({ error: 'OTP has expired' }, 400);
     }
-    module.exports = {
-  registerCreator,
-  registerBrand,
-  login,
-  verifyLoginOtp,
-  sendOtp,
-  verifyOtp
-};
-
     // Update user: set verified, clear OTP fields
     await client.query(
       'UPDATE users SET is_phone_verified = TRUE, phone_otp = NULL, otp_expires_at = NULL WHERE id = $1',
@@ -350,6 +341,15 @@ const verifyLoginOtp = async (c) => {
     console.error(error);
     return c.json({ error: 'Failed to verify OTP' }, 500);
   }
+};
+
+export {
+  registerCreator,
+  registerBrand,
+  login,
+  verifyLoginOtp,
+  sendOtp,
+  verifyOtp
 };
 
 

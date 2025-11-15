@@ -1,4 +1,4 @@
-import client from '../config/database.js';
+import { client } from '../config/database.js';
 import axios from 'axios';
 
 const INSTAGRAM_API_BASE = 'https://graph.instagram.com';

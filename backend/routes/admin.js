@@ -1,13 +1,13 @@
-const { Hono } = require('hono');
-const {
+import { Hono } from 'hono';
+import {
   getAllCreators,
   getAdminStats,
   updateCreatorVerification,
   getCreatorFraudHistory,
   bulkFraudCheck,
   getSystemHealth
-} = require('../controllers/adminController.js');
-const { authMiddleware } = require('../middleware/auth.js');
+} from '../controllers/adminController.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const adminRoutes = new Hono();
 
@@ -22,4 +22,4 @@ adminRoutes.get('/creators/:creatorId/fraud-history', getCreatorFraudHistory);
 adminRoutes.post('/fraud-check/bulk', bulkFraudCheck);
 adminRoutes.get('/health', getSystemHealth);
 
-module.exports = adminRoutes;
+export default adminRoutes;

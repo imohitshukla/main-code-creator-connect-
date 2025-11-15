@@ -1,6 +1,6 @@
-const { Hono } = require('hono');
-const { submitContactForm, getContactSubmissions } = require('../controllers/contactController');
-const { authMiddleware } = require('../middleware/auth');
+import { Hono } from 'hono';
+import { submitContactForm, getContactSubmissions } from '../controllers/contactController.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = new Hono();
 
@@ -10,4 +10,4 @@ router.post('/', submitContactForm);
 // Protected route - get all contact submissions (admin only)
 router.get('/', authMiddleware, getContactSubmissions);
 
-module.exports = router;
+export default router;
