@@ -1,18 +1,18 @@
-require('dotenv').config();
-const { Hono } = require('hono');
-const { cors } = require('hono/cors');
-const { logger } = require('hono/logger');
-const authRoutes = require('./routes/auth.js');
-const creatorRoutes = require('./routes/creators.js');
-const campaignRoutes = require('./routes/campaigns.js');
-const aiRoutes = require('./src/backend/routes/ai.js');
-const messageRoutes = require('./routes/messages.js');
-const mediaKitRoutes = require('./routes/mediakits.js');
-const educationRoutes = require('./routes/education.js');
-const analyticsRoutes = require('./routes/analytics.js');
-const paymentsRoutes = require('./routes/payments.js');
-const adminRoutes = require('./routes/admin.js');
-const contactRoutes = require('./routes/contact.js');
+import 'dotenv/config';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
+import authRoutes from './routes/auth.js';
+import creatorRoutes from './routes/creators.js';
+import campaignRoutes from './routes/campaigns.js';
+import aiRoutes from './src/backend/routes/ai.js';
+import messageRoutes from './routes/messages.js';
+import mediaKitRoutes from './routes/mediakits.js';
+import educationRoutes from './routes/education.js';
+import analyticsRoutes from './routes/analytics.js';
+import paymentsRoutes from './routes/payments.js';
+import adminRoutes from './routes/admin.js';
+import contactRoutes from './routes/contact.js';
 
 const app = new Hono();
 
@@ -70,7 +70,7 @@ app.onError((err, c) => {
 // Make sure PORT is defined.
 const PORT = process.env.PORT || 5000;
 
-const { serve } = require('@hono/node-server');
+import { serve } from '@hono/node-server';
 
 serve({
   fetch: app.fetch,
