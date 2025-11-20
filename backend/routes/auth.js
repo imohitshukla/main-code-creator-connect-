@@ -9,6 +9,7 @@ import {
   sendOtp,
   verifyOtp
 } from '../controllers/authController.js';
+import { signup } from '../controllers/authController.js';
 
 const auth = new Hono();
 
@@ -46,8 +47,14 @@ const verifyLoginOtpSchema = z.object({
   otp: z.string().length(6),
 });
 
+const signupSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
 auth.post('/register/creator', zValidator('json', registerCreatorSchema), registerCreator);
 auth.post('/register/brand', zValidator('json', registerBrandSchema), registerBrand);
+auth.post('/signup', zValidator('json', signupSchema), signup);
 auth.post('/login', zValidator('json', loginSchema), login);
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);

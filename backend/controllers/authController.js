@@ -343,9 +343,52 @@ const verifyLoginOtp = async (c) => {
   }
 };
 
+const signup = async (c) => {
+  const { email, password } = c.req.valid('json');
+
+  try {
+    // Check if user exists
+    const userExists = await client.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userExists.rows.length > 0) {
+      return c.json({ error: 'User already exists' }, 400);
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user with default role 'creator' (can be changed later)
+    const newUser = await client.query(
+      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id',
+      [email, hashedPassword, 'creator']
+    );
+
+    const userId = newUser.rows[0].id;
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: userId, email, role: 'creator' },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+    );
+
+    return c.json({
+      token,
+      user: { id: userId, email, role: 'creator' }
+    }, 201);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+};
+
 export {
   registerCreator,
   registerBrand,
+  signup,
   login,
   verifyLoginOtp,
   sendOtp,
