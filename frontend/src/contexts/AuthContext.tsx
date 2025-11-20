@@ -5,6 +5,7 @@ interface User {
   email: string;
   role: 'brand' | 'creator';
   username?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
@@ -73,6 +74,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signup = async (email: string, password: string) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        throw new Error('Signup failed');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const verifyOtp = async (userId: number, otp: string) => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/verify-login-otp', {
@@ -103,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     login,
+    signup,
     verifyOtp,
     logout,
     isAuthenticated: !!user
