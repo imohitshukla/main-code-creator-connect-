@@ -24,13 +24,6 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const scrollToMainContent = () => {
-    const mainContent = document.getElementById('main-content');
-    if (mainContent) {
-      mainContent.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <nav className="fixed top-0 w-full bg-card/95 backdrop-blur-sm border-b shadow-soft z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,14 +40,25 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={scrollToMainContent}
-              className="p-2"
-            >
-              <ChevronDown className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {navItems.map((item) => (
+                  <DropdownMenuItem key={item.path} asChild>
+                    <Link
+                      to={item.path}
+                      className={`w-full ${isActive(item.path) ? 'text-primary' : ''}`}
+                    >
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -82,6 +86,14 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2"
+            >
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -105,22 +117,6 @@ const Navbar = () => {
                 Sign Up / Login
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={scrollToMainContent}
-              className="p-2"
-            >
-              <ChevronDown className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2"
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
           </div>
         </div>
 
