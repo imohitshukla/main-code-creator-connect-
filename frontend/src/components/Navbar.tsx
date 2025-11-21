@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -24,6 +24,13 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const scrollToMainContent = () => {
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <nav className="fixed top-0 w-full bg-card/95 backdrop-blur-sm border-b shadow-soft z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,6 +47,14 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={scrollToMainContent}
+              className="p-2"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </Button>
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -93,6 +108,14 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="sm"
+              onClick={scrollToMainContent}
+              className="p-2"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsOpen(!isOpen)}
               className="p-2"
             >
@@ -130,3 +153,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
