@@ -107,11 +107,39 @@ const CampaignPage = () => {
     });
   };
 
-  const handleApply = (campaign: Campaign) => {
-    toast({
-      title: 'Application Submitted',
-      description: `Your application for "${campaign.title}" has been sent to ${campaign.companyName}!`,
-    });
+  const handleApply = async (campaign: Campaign) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign.id}/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          proposal_text: `I am interested in collaborating on "${campaign.title}". Please consider my application.`
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Application Submitted',
+          description: `Your application for "${campaign.title}" has been sent to ${campaign.companyName}!`,
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Application Failed',
+          description: errorData.error || 'Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Network Error',
+        description: 'Unable to submit application. Please check your connection.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleAIPricing = async (creator: any) => {
@@ -119,11 +147,11 @@ const CampaignPage = () => {
     setIsLoadingPricing(true);
 
     try {
-      const response = await fetch('/api/ai/pricing', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/pricing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add auth header if needed
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           creatorId: creator.id,
