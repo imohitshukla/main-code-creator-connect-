@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Megaphone, Sparkles, TrendingUp } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/utils';
 
 const CampaignPage = () => {
   const { toast } = useToast();
@@ -109,7 +110,7 @@ const CampaignPage = () => {
 
   const handleApply = async (campaign: Campaign) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign.id}/apply`, {
+      const response = await fetch(`${getApiUrl()}/api/campaigns/${campaign.id}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +148,7 @@ const CampaignPage = () => {
     setIsLoadingPricing(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/pricing`, {
+      const response = await fetch(`${getApiUrl()}/api/ai/pricing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

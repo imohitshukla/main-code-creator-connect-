@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Mail, Phone, MapPin, Send, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/utils';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -37,7 +38,7 @@ const Contact = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/contact', {
+      const response = await fetch(`${getApiUrl()}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

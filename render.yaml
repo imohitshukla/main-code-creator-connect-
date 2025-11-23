@@ -3,7 +3,7 @@ services:
     name: niche-connect-api
     env: node
     buildCommand: cd backend && npm install
-    startCommand: node api/server.js
+    startCommand: cd backend && node src/backend/server.js
     rootDir: .
     envVars:
       - key: NODE_ENV

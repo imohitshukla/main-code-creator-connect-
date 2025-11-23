@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { getApiUrl } from '@/lib/utils';
 
 interface Message {
   id: number;
@@ -25,7 +26,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ conversationId }) 
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/messages/${conversationId}`, {
+      const response = await fetch(`${getApiUrl()}/api/messages/${conversationId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -41,7 +42,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ conversationId }) 
     if (!newMessage.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/messages', {
+      const response = await fetch(`${getApiUrl()}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

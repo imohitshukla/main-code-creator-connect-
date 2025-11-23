@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ChatComponent } from '../components/ChatComponent';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { getApiUrl } from '@/lib/utils';
 
 interface Conversation {
   id: number;
@@ -21,7 +22,7 @@ const Messages: React.FC = () => {
     queryKey: ['conversations'],
     queryFn: async () => {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/messages/conversations', {
+      const response = await fetch(`${getApiUrl()}/api/messages/conversations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

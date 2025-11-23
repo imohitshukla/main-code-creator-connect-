@@ -8,6 +8,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, Building2, ArrowLeft } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -95,7 +96,7 @@ const Auth = () => {
       phone_number: creatorForm.phone_number
     });
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register/creator`, {
+      const response = await fetch(`${getApiUrl()}/api/auth/register/creator`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -134,7 +135,7 @@ const Auth = () => {
       phone_number: companyForm.phone_number
     });
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register/brand`, {
+      const response = await fetch(`${getApiUrl()}/api/auth/register/brand`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

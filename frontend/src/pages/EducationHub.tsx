@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Filter } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils';
 
 interface Resource {
   id: number;
@@ -30,7 +31,7 @@ const EducationHub = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/education/categories');
+      const response = await fetch(`${getApiUrl()}/api/education/categories`);
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories);
@@ -43,8 +44,8 @@ const EducationHub = () => {
   const fetchResources = async () => {
     try {
       const url = selectedCategory === 'all'
-        ? 'http://localhost:5000/api/education'
-        : `http://localhost:5000/api/education?category=${selectedCategory}`;
+        ? `${getApiUrl()}/api/education`
+        : `${getApiUrl()}/api/education?category=${selectedCategory}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();

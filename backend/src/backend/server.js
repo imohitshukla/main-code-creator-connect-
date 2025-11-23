@@ -16,8 +16,20 @@ import contactRoutes from '../../routes/contact.js';
 
 const app = new Hono();
 
-// Configure CORS
-app.use('*', cors());
+// Configure CORS to allow your Vercel frontend
+const corsOptions = {
+  origin: [
+    'https://main-code-creator.vercel.app', // Your production frontend
+    'http://localhost:8080',             // Your local frontend (Vite default)
+    'http://localhost:3000',             // Alternative local port
+    /https:\/\/main-code-creator-.*\.vercel\.app/, // All Vercel preview URLs
+    /https:\/\/.*\.vercel\.app/ // All Vercel preview URLs (more flexible)
+  ],
+  credentials: true
+};
+
+// Middleware
+app.use('*', cors(corsOptions));
 app.use('*', logger());
 
 // Routes

@@ -66,6 +66,10 @@
     --font-size-xl: 3rem;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+    /* Link colors */
+    --link: 217 91% 60%;
+    --link-hover: 217 91% 50%;
   }
 
   .dark {
