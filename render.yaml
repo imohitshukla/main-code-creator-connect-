@@ -2,7 +2,7 @@ services:
   - type: web
     name: niche-connect-api
     env: node
-    buildCommand: npm install
+    buildCommand: cd backend && npm install
     startCommand: node api/server.js
     rootDir: .
     envVars:
