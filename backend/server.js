@@ -12,7 +12,8 @@ import educationRoutes from './routes/education.js';
 import analyticsRoutes from './routes/analytics.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
-import contactRoutes from './routes/contact.js';
+// Add this right after existing route imports:
+import welcomeRoutes from './src/backend/routes/welcome.js';
 
 const app = new Hono();
 
@@ -32,6 +33,9 @@ app.route('/api/analytics', analyticsRoutes);
 app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
+
+// Add the new welcome route
+app.route('/api/welcome', welcomeRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {

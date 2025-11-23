@@ -253,6 +253,34 @@ const initDB = async () => {
       CREATE INDEX IF NOT EXISTS idx_analytics_campaign ON analytics(campaign_id);
       CREATE INDEX IF NOT EXISTS idx_contracts_proposal ON contracts(proposal_id);
       CREATE INDEX IF NOT EXISTS idx_payments_contract ON payments(contract_id);
+
+      CREATE TABLE IF NOT EXISTS campaign_ai_matches (
+        id SERIAL PRIMARY KEY,
+        campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        ai_matches JSONB NOT NULL,
+        search_hash VARCHAR(32),
+        search_context JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Add search_hash and search_context columns if they don't exist (for existing databases)
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'campaign_ai_matches' AND column_name = 'search_hash'
+        ) THEN
+          ALTER TABLE campaign_ai_matches ADD COLUMN search_hash VARCHAR(32);
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'campaign_ai_matches' AND column_name = 'search_context'
+        ) THEN
+          ALTER TABLE campaign_ai_matches ADD COLUMN search_context JSONB;
+        END IF;
+      END $$;
     `);
 
     console.log('Tables created successfully');

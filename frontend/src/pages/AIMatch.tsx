@@ -1,35 +1,130 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sparkles, Users, Target } from 'lucide-react';
+import { Sparkles, Users, Target, History, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { getApiUrl } from '@/lib/utils';
 
 const AIMatch = () => {
+  const { user } = useAuth();
   const [campaignDescription, setCampaignDescription] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('');
   const [aiMatches, setAiMatches] = useState<any[]>([]);
+  const [previousMatchesList, setPreviousMatchesList] = useState<any[]>([]);
+  const [isLoadingPreviousMatches, setIsLoadingPreviousMatches] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showPreviousMatches, setShowPreviousMatches] = useState(false);
   const { toast } = useToast();
 
   const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology'];
+
+  // Note: Search hash is generated on the backend
+
+  // Load list of previous matches
+  useEffect(() => {
+    if (user) {
+      loadPreviousMatchesList();
+    }
+  }, [user]);
+
+  const loadPreviousMatchesList = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`${getApiUrl()}/api/ai/smart-match/list?userId=${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPreviousMatchesList(data.matches || []);
+      }
+    } catch (error) {
+      console.error('Load Previous Matches List Error:', error);
+    }
+  };
+
+  const handleLoadPreviousMatch = async (match: any) => {
+    if (!user) {
+      toast({
+        title: 'User Not Authenticated',
+        description: 'Please login to continue previous matches.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoadingPreviousMatches(true);
+    try {
+      const params = new URLSearchParams({
+        userId: user.id.toString(),
+      });
+      
+      if (match.campaignId) {
+        params.append('campaignId', match.campaignId.toString());
+      } else if (match.searchHash) {
+        params.append('searchHash', match.searchHash);
+      }
+
+      const response = await fetch(`${getApiUrl()}/api/ai/smart-match/continue?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAiMatches(data.aiMatches || []);
+        
+        // Restore search context if available
+        if (data.searchContext) {
+          const context = typeof data.searchContext === 'string' ? JSON.parse(data.searchContext) : data.searchContext;
+          setCampaignDescription(context.campaignDescription || '');
+          setTargetAudience(context.targetAudience || '');
+          setBudget(context.budget || '');
+          setSelectedNiche(context.niche || '');
+        }
+        
+        setShowResults(true);
+        setShowPreviousMatches(false);
+        toast({
+          title: 'Previous Matches Loaded',
+          description: `Loaded ${data.aiMatches?.length || 0} previous matches.`,
+        });
+      } else {
+        throw new Error('Failed to load previous matches');
+      }
+    } catch (error) {
+      console.error('Load Previous Match Error:', error);
+      toast({
+        title: 'Load Failed',
+        description: 'Unable to load previous matches. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingPreviousMatches(false);
+    }
+  };
 
   const handleAIMatch = async () => {
     if (!campaignDescription.trim()) {
       toast({
         title: 'Campaign Description Required',
         description: 'Please describe your campaign to use AI matching.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
 
     setIsLoadingAI(true);
     try {
-      const response = await fetch('/api/ai/smart-match', {
+      const response = await fetch(`${getApiUrl()}/api/ai/smart-match`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +133,7 @@ const AIMatch = () => {
           campaignDescription,
           targetAudience,
           budget,
-          niche: selectedNiche
+          niche: selectedNiche,
         }),
       });
 
@@ -50,6 +145,35 @@ const AIMatch = () => {
           title: 'AI Matching Complete!',
           description: `Found ${data.matches?.length || 0} perfect creator matches for your campaign.`,
         });
+
+        // Save AI match results to backend
+        if (user) {
+          try {
+            const saveResponse = await fetch(`${getApiUrl()}/api/ai/smart-match/save`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                aiMatches: data.matches || [],
+                campaignDescription,
+                targetAudience,
+                budget,
+                niche: selectedNiche,
+              }),
+            });
+            if (saveResponse.ok) {
+              // Reload previous matches list
+              loadPreviousMatchesList();
+            } else {
+              console.warn('Failed to save AI match results');
+            }
+          } catch (saveError) {
+            console.warn('Error saving AI match results:', saveError);
+          }
+        }
       } else {
         throw new Error('AI matching failed');
       }
@@ -58,7 +182,7 @@ const AIMatch = () => {
       toast({
         title: 'AI Matching Failed',
         description: 'Unable to perform AI matching. Please try again.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setIsLoadingAI(false);
@@ -84,8 +208,31 @@ const AIMatch = () => {
           </p>
         </div>
 
-        {!showResults ? (
+        {!showResults && !showPreviousMatches ? (
           <>
+            {previousMatchesList.length > 0 && (
+              <Card className="bg-gradient-card border-0 shadow-soft mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="w-6 h-6 text-primary" />
+                    Continue Previous Matches
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You have {previousMatchesList.length} previous AI matching session{previousMatchesList.length > 1 ? 's' : ''}. Continue from where you left off.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPreviousMatches(true)}
+                    className="w-full"
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    View Previous Matches
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <Card className="bg-gradient-card border-0 shadow-hover mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -214,12 +361,29 @@ const AIMatch = () => {
                   {aiMatches.length} Perfect Matches
                 </span>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowResults(false)}
-              >
-                New Search
-              </Button>
+              <div className="flex gap-2">
+                {previousMatchesList.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowResults(false);
+                      setShowPreviousMatches(true);
+                    }}
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    Previous Matches
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowResults(false);
+                    setShowPreviousMatches(false);
+                  }}
+                >
+                  New Search
+                </Button>
+              </div>
             </div>
 
             {aiMatches.length > 0 ? (

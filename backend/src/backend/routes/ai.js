@@ -1,14 +1,23 @@
 import { Hono } from 'hono';
-import { smartMatchCreators, detectFraud, getPricingRecommendation, analyzeContent } from '../../../controllers/aiController.js';
+import { smartMatchCreators, detectFraud, getPricingRecommendation, analyzeContent, saveAIMatchResults, getAIMatchResults, listPreviousMatches } from '../../../controllers/aiController.js';
 import { authMiddleware } from '../../../middleware/auth.js';
 
 const aiRoutes = new Hono();
 
-// Apply auth middleware to all AI routes
+// AI-powered creator matching (public for discovery)
+aiRoutes.post('/smart-match', smartMatchCreators);
+
+// Protected routes (require authentication)
 aiRoutes.use('*', authMiddleware);
 
-// AI-powered creator matching
-aiRoutes.post('/smart-match', smartMatchCreators);
+// Save AI match results
+aiRoutes.post('/smart-match/save', saveAIMatchResults);
+
+// Continue from previous AI match results
+aiRoutes.get('/smart-match/continue', getAIMatchResults);
+
+// List all previous matches for a user
+aiRoutes.get('/smart-match/list', listPreviousMatches);
 
 // Fraud detection for creator profiles
 aiRoutes.post('/fraud-detect', detectFraud);

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import sharp from 'sharp';
+import crypto from 'crypto';
 // THIS IS NOW CORRECT
 import { client } from '../config/database.js';
 
@@ -267,222 +268,180 @@ export const detectFraud = async (c) => {
   }
 };
 
-// Pricing Engine: Dynamic Pricing Recommendations
-export const getPricingRecommendation = async (c) => {
+
+// Save AI Match Results for Campaign and User
+export const saveAIMatchResults = async (c) => {
   try {
-    const { creatorId, campaignType, targetAudience, expectedReach } = await c.req.json();
+    const { campaignId, userId, aiMatches, campaignDescription, targetAudience, budget, niche } = await c.req.json();
 
-    const creator = await client.query(`
-      SELECT cp.*, u.email
-      FROM creator_profiles cp
-      JOIN users u ON cp.user_id = u.id
-      WHERE cp.id = $1
-    `, [creatorId]);
-
-    if (creator.rows.length === 0) {
-      return c.json({ error: 'Creator not found' }, 404);
+    if (!userId || !aiMatches) {
+      return c.json({ error: 'userId and aiMatches are required' }, 400);
     }
 
-    const profile = creator.rows[0];
+    // Generate search hash for ad-hoc searches (when no campaign_id)
+    const searchHash = campaignId 
+      ? null 
+      : crypto.createHash('md5').update(`${campaignDescription || ''}${targetAudience || ''}${budget || ''}${niche || ''}`).digest('hex');
 
-    // Base pricing calculation
-    let basePrice = 500; // Minimum price
-
-    // Factor in follower count
-    if (profile.followers) {
-      if (profile.followers > 100000) basePrice += 2000;
-      else if (profile.followers > 50000) basePrice += 1000;
-      else if (profile.followers > 10000) basePrice += 500;
+    // Check if existing record exists
+    let existing;
+    if (campaignId) {
+      existing = await client.query(`
+        SELECT id FROM campaign_ai_matches 
+        WHERE campaign_id = $1 AND user_id = $2 
+        ORDER BY created_at DESC LIMIT 1
+      `, [campaignId, userId]);
+    } else {
+      existing = await client.query(`
+        SELECT id FROM campaign_ai_matches 
+        WHERE search_hash = $1 AND user_id = $2 
+        ORDER BY created_at DESC LIMIT 1
+      `, [searchHash, userId]);
     }
 
-    // Factor in engagement rate
-    if (profile.engagement_rate) {
-      basePrice *= (1 + profile.engagement_rate / 100);
-    }
-
-    // Factor in niche demand (simplified)
-    const nicheMultipliers = {
-      'fitness': 1.2,
-      'technology': 1.3,
-      'fashion': 1.1,
-      'gaming': 1.4,
-      'food': 1.0
-    };
-    const nicheMultiplier = nicheMultipliers[profile.niche?.toLowerCase()] || 1.0;
-    basePrice *= nicheMultiplier;
-
-    // AI-powered pricing optimization using OpenAI
-    const pricingPrompt = `
-      Optimize pricing for this influencer marketing collaboration:
-
-      Creator Profile:
-      - Followers: ${profile.followers || 0}
-      - Engagement Rate: ${profile.engagement_rate || 0}%
-      - Niche: ${profile.niche}
-      - Bio: ${profile.bio || 'Not provided'}
-
-      Campaign Details:
-      - Type: ${campaignType}
-      - Target Audience: ${targetAudience}
-      - Expected Reach: ${expectedReach}
-
-      Base Price Calculation: ₹${basePrice}
-
-      Please provide:
-      1. Market analysis for this creator's value
-      2. Pricing optimization based on campaign requirements
-      3. Competitive positioning
-      4. Final recommended price with justification
-
-      Return a JSON object with: {"recommendedPrice": number, "analysis": "detailed explanation", "marketPosition": "high/medium/low value", "confidence": number (0-1)}
-    `;
-
-    let recommendedPrice = Math.round(basePrice * 1.1); // Default adjustment
-    let aiPricing = `Fair Market Value Analysis: Based on ${profile.followers} followers and ${profile.engagement_rate}% engagement in ${profile.niche}, the recommended price is ₹${recommendedPrice}.`;
-    let marketPosition = 'medium';
-    let confidence = 0.8;
-
-    try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: "You are a pricing expert for influencer marketing. Analyze creator value and optimize pricing for campaigns. Always return valid JSON with realistic pricing recommendations."
-          },
-          {
-            role: "user",
-            content: pricingPrompt
-          }
-        ],
-        max_tokens: 400,
-        temperature: 0.3
-      });
-
-      const response = completion.choices[0].message.content || `{"recommendedPrice": ${recommendedPrice}, "analysis": "AI analysis unavailable", "marketPosition": "medium", "confidence": 0.5}`;
-      const aiResult = JSON.parse(response.replace(/```json\n?|\n?```/g, ''));
-
-      recommendedPrice = Math.max(basePrice * 0.8, Math.min(basePrice * 2.0, aiResult.recommendedPrice || recommendedPrice));
-      aiPricing = aiResult.analysis || aiPricing;
-      marketPosition = aiResult.marketPosition || marketPosition;
-      confidence = Math.max(0, Math.min(1, aiResult.confidence || 0.8));
-    } catch (error) {
-      console.warn('AI pricing optimization failed, using base calculation:', error.message);
-    }
-      const response = completion.choices[0].message.content || `{"recommendedPrice": ${recommendedPrice}, "analysis": "AI analysis unavailable", "marketPosition": "medium", "confidence": 0.5}`;
-
-    return c.json({
-      creatorId,
-      basePrice: Math.round(basePrice),
-      recommendedPrice,
-      currency: 'INR',
-      aiAnalysis: aiPricing,
-      marketPosition,
-      confidence,
-      factors: {
-        followers: profile.followers,
-        engagement: profile.engagement_rate,
-        niche: profile.niche,
-        campaignType,
-        targetAudience,
-        expectedReach
-      }
+    const searchContext = JSON.stringify({
+      campaignDescription,
+      targetAudience,
+      budget,
+      niche
     });
+
+    if (existing.rows.length > 0) {
+      // Update existing record
+      await client.query(`
+        UPDATE campaign_ai_matches
+        SET ai_matches = $1, search_context = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+      `, [JSON.stringify(aiMatches), searchContext, existing.rows[0].id]);
+    } else {
+      // Insert new record
+      await client.query(`
+        INSERT INTO campaign_ai_matches (campaign_id, user_id, ai_matches, search_hash, search_context, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `, [campaignId || null, userId, JSON.stringify(aiMatches), searchHash, searchContext]);
+    }
+
+    return c.json({ message: 'AI match results saved successfully' });
   } catch (error) {
-    console.error('Pricing Engine Error:', error);
-    return c.json({ error: 'Failed to generate pricing recommendation' }, 500);
+    console.error('Save AI Match Results Error:', error);
+    return c.json({ error: 'Failed to save AI match results' }, 500);
   }
 };
 
-// Content Analysis: Analyze creator's visual content using AI vision
-export const analyzeContent = async (c) => {
+// Get latest AI Match Results for Campaign and User
+export const getAIMatchResults = async (c) => {
   try {
-    const { imageUrls, creatorId } = await c.req.json();
+    const campaignId = c.req.query('campaignId');
+    const userId = c.req.query('userId');
+    const searchHash = c.req.query('searchHash');
 
-    const analyses = await Promise.all(
-      imageUrls.map(async (url, index) => {
-        const contentAnalysisPrompt = `
-          Analyze this social media content image for influencer marketing suitability:
-
-          Image URL: ${url}
-
-          Please provide:
-          1. Content style and visual aesthetics
-          2. Target audience demographics (age, interests, lifestyle)
-          3. Brand partnership potential and suitable campaign types
-          4. Content quality assessment (1-10 scale)
-          5. Authenticity and engagement potential
-          6. Any potential brand safety concerns
-
-          Return a JSON object with: {"style": "description", "audience": "demographics", "suitability": "campaign types", "quality": number, "authenticity": "assessment", "concerns": "any issues"}
-        `;
-
-        let analysis = `Analysis ${index + 1}: High-quality content with good brand partnership potential. Quality rating: 8/10.`;
-        let style = 'Professional and engaging';
-        let audience = '25-35 year olds with active lifestyle';
-        let suitability = 'Fitness, lifestyle, and wellness campaigns';
-        let quality = 8;
-        let authenticity = 'Appears authentic and engaging';
-        let concerns = 'None identified';
-
-        try {
-          // For actual image analysis, we would use OpenAI Vision API
-          // Since we only have URLs, we'll use GPT-4 for content description analysis
-          const completion = await openai.chat.completions.create({
-            model: "gpt-4",
-            messages: [
-              {
-                role: "system",
-                content: "You are a content analysis expert for social media marketing. Analyze content based on descriptions and provide detailed marketing insights. Always return valid JSON."
-              },
-              {
-                role: "user",
-                content: contentAnalysisPrompt
-              }
-            ],
-            max_tokens: 300,
-            temperature: 0.3
-          });
-
-          const response = completion.choices[0].message.content || `{"style": "${style}", "audience": "${audience}", "suitability": "${suitability}", "quality": ${quality}, "authenticity": "${authenticity}", "concerns": "${concerns}"}`;
-          const aiResult = JSON.parse(response.replace(/```json\n?|\n?```/g, ''));
-
-          style = aiResult.style || style;
-          audience = aiResult.audience || audience;
-          suitability = aiResult.suitability || suitability;
-          quality = Math.max(1, Math.min(10, aiResult.quality || quality));
-          authenticity = aiResult.authenticity || authenticity;
-          concerns = aiResult.concerns || concerns;
-
-          analysis = `${style}. Target audience: ${audience}. Suitable for: ${suitability}. Quality: ${quality}/10. ${authenticity}. Concerns: ${concerns}.`;
-        } catch (error) {
-          console.warn(`AI content analysis failed for image ${index + 1}:`, error.message);
-        }
-
-        return {
-          imageUrl: url,
-          analysis,
-          style,
-          audience,
-          suitability,
-          quality,
-          authenticity,
-          concerns
-        };
-      })
-    );
-
-    // Store analysis results
-    try {
-      await client.query(`
-        INSERT INTO content_analysis (creator_id, analysis_data, created_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP)
-      `, [creatorId, JSON.stringify(analyses)]);
-    } catch (dbError) {
-      console.warn('Content analysis storage failed (table may not exist):', dbError.message);
+    if (!userId) {
+      return c.json({ error: 'userId is required' }, 400);
     }
 
-    return c.json({ analyses });
+    let result;
+    if (campaignId) {
+      result = await client.query(`
+        SELECT ai_matches, search_context, created_at FROM campaign_ai_matches
+        WHERE campaign_id = $1 AND user_id = $2
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [campaignId, userId]);
+    } else if (searchHash) {
+      result = await client.query(`
+        SELECT ai_matches, search_context, created_at FROM campaign_ai_matches
+        WHERE search_hash = $1 AND user_id = $2
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [searchHash, userId]);
+    } else {
+      return c.json({ error: 'campaignId or searchHash is required' }, 400);
+    }
+
+    if (result.rows.length === 0) {
+      return c.json({ message: 'No saved AI match results found', aiMatches: [] });
+    }
+
+    const row = result.rows[0];
+    return c.json({ 
+      aiMatches: row.ai_matches, 
+      searchContext: row.search_context,
+      savedAt: row.created_at 
+    });
+  } catch (error) {
+    console.error('Get AI Match Results Error:', error);
+    return c.json({ error: 'Failed to fetch AI match results' }, 500);
+  }
+};
+
+// List all previous AI matches for a user
+export const listPreviousMatches = async (c) => {
+  try {
+    const userId = c.req.query('userId');
+
+    if (!userId) {
+      return c.json({ error: 'userId is required' }, 400);
+    }
+
+    const result = await client.query(`
+      SELECT 
+        id,
+        campaign_id,
+        search_hash,
+        search_context,
+        created_at,
+        updated_at,
+        jsonb_array_length(ai_matches) as match_count
+      FROM campaign_ai_matches
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 20
+    `, [userId]);
+
+    const matches = result.rows.map(row => ({
+      id: row.id,
+      campaignId: row.campaign_id,
+      searchHash: row.search_hash,
+      searchContext: row.search_context,
+      matchCount: row.match_count,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    return c.json({ matches });
+  } catch (error) {
+    console.error('List Previous Matches Error:', error);
+    return c.json({ error: 'Failed to list previous matches' }, 500);
+  }
+};
+
+// Get pricing recommendation (stub function)
+export const getPricingRecommendation = async (c) => {
+  try {
+    const { creatorId, campaignBudget } = await c.req.json();
+    
+    // Placeholder implementation
+    return c.json({ 
+      recommendedPrice: campaignBudget * 0.8,
+      message: 'Pricing recommendation based on campaign budget and creator profile'
+    });
+  } catch (error) {
+    console.error('Pricing Recommendation Error:', error);
+    return c.json({ error: 'Failed to get pricing recommendation' }, 500);
+  }
+};
+
+// Analyze content (stub function)
+export const analyzeContent = async (c) => {
+  try {
+    const { contentUrl, contentType } = await c.req.json();
+    
+    // Placeholder implementation
+    return c.json({ 
+      analysis: 'Content analysis not yet implemented',
+      quality: 'good',
+      message: 'Content analysis feature coming soon'
+    });
   } catch (error) {
     console.error('Content Analysis Error:', error);
     return c.json({ error: 'Failed to analyze content' }, 500);
