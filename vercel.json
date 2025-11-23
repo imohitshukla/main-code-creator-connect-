@@ -1,13 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/vercel/vercel/main/schema.json",
   "version": 2,
-  "build": {
-    "env": {},
-    "rootDirectory": "frontend",
-    "buildCommand": "npm run build",
-    "devCommand": "npm run dev",
-    "outputDirectory": "frontend/dist"
-  },
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "devCommand": "cd frontend && npm run dev",
+  "installCommand": "cd frontend && npm install",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
