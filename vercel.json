@@ -1,17 +1,29 @@
 {
+  "$schema": "https://raw.githubusercontent.com/vercel/vercel/main/schema.json",
   "version": 2,
   "build": {
     "env": {},
-    "rootDirectory": "frontend"
+    "rootDirectory": "frontend",
+    "buildCommand": "npm run build",
+    "devCommand": "npm run dev",
+    "outputDirectory": "frontend/dist"
   },
-  "routes": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/server.js"
+      "source": "/api/(.*)",
+      "destination": "/api/server.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/frontend/dist/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/server.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  }
 }
