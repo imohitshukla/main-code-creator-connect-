@@ -19,9 +19,14 @@ const app = new Hono();
 // Configure CORS to allow your Vercel frontend
 const corsOptions = {
   origin: [
+    'https://niche-connect-project.vercel.app', // Your deployed frontend
     'https://main-code-creator.vercel.app', // Your production frontend
-    'http://localhost:3000',             // Your local frontend
-    /https:\/\/main-code-creator-.*\.vercel\.app/ // All Vercel preview URLs
+    'http://localhost:8080',             // Your local frontend (Vite default)
+    'http://localhost:5173',             // Vite dev server
+    'http://localhost:3000',             // Alternative local port
+    /https:\/\/niche-connect-project-.*\.vercel\.app/, // All Vercel preview URLs for niche-connect
+    /https:\/\/main-code-creator-.*\.vercel\.app/, // All Vercel preview URLs
+    /https:\/\/.*\.vercel\.app/ // All Vercel preview URLs (more flexible)
   ],
   credentials: true
 };
