@@ -10,6 +10,8 @@ import {
   verifyOtp
 } from '../controllers/authController.js';
 import { signup } from '../controllers/authController.js';
+import { client } from '../config/database.js';
+import jwt from 'jsonwebtoken';
 
 const auth = new Hono();
 
@@ -59,5 +61,35 @@ auth.post('/login', zValidator('json', loginSchema), login);
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
+
+// Temporary route to bypass login for testing (only for dev)
+auth.post('/login-bypass', async (c) => {
+  const { email } = await c.req.json();
+
+  try {
+    const userResult = await client.query(
+      'SELECT id, email, role FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const user = userResult.rows[0];
+
+    // Manually generate JWT without password check for testing
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+    );
+
+    return c.json({ token, user });
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
 
 export default auth;

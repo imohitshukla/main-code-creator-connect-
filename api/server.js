@@ -2,17 +2,17 @@ import 'dotenv/config';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import authRoutes from '../routes/auth.js';
-import creatorRoutes from '../routes/creators.js';
-import campaignRoutes from '../routes/campaigns.js';
-import aiRoutes from '../src/backend/routes/ai.js';
-import messageRoutes from '../routes/messages.js';
-import mediaKitRoutes from '../routes/mediakits.js';
-import educationRoutes from '../routes/education.js';
-import analyticsRoutes from '../routes/analytics.js';
-import paymentsRoutes from '../routes/payments.js';
-import adminRoutes from '../routes/admin.js';
-import contactRoutes from '../routes/contact.js';
+import authRoutes from '../backend/routes/auth.js';
+import creatorRoutes from '../backend/routes/creators.js';
+import campaignRoutes from '../backend/routes/campaigns.js';
+import aiRoutes from '../backend/src/backend/routes/ai.js';
+import messageRoutes from '../backend/routes/messages.js';
+import mediaKitRoutes from '../backend/routes/mediakits.js';
+import educationRoutes from '../backend/routes/education.js';
+import analyticsRoutes from '../backend/routes/analytics.js';
+import paymentsRoutes from '../backend/routes/payments.js';
+import adminRoutes from '../backend/routes/admin.js';
+import contactRoutes from '../backend/routes/contact.js';
 
 const app = new Hono();
 
@@ -59,13 +59,6 @@ app.onError((err, c) => {
   return c.json({ error: 'Server crashed', message: err.message }, 500);
 });
 
-// Error handling
-app.onError((err, c) => {
-  console.error(err);
-  return c.json({ error: 'Something went wrong!' }, 500);
-});
-
-// Make sure PORT is defined.
 const PORT = process.env.PORT || 5000;
 
 import { serve } from '@hono/node-server';
