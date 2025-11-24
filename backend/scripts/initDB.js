@@ -7,7 +7,10 @@ const initDB = async () => {
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: 'postgres'
+    database: 'postgres',
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   try {
@@ -32,6 +35,9 @@ const initDB = async () => {
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   try {
