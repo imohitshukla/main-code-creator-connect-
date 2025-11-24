@@ -12,6 +12,7 @@ import educationRoutes from './routes/education.js';
 import analyticsRoutes from './routes/analytics.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
+import contactRoutes from './routes/contact.js';
 // Add this right after existing route imports:
 import welcomeRoutes from './src/backend/routes/welcome.js';
 
@@ -20,14 +21,8 @@ const app = new Hono();
 // Configure CORS to allow your Vercel frontend
 const corsOptions = {
   origin: [
-    'https://niche-connect-project.vercel.app', // Your deployed frontend
-    'https://main-code-creator.vercel.app', // Your production frontend
-    'http://localhost:8080',             // Your local frontend (Vite default)
-    'http://localhost:5173',             // Vite dev server
-    'http://localhost:3000',             // Alternative local port
-    /https:\/\/niche-connect-project-.*\.vercel\.app/, // All Vercel preview URLs for niche-connect
-    /https:\/\/main-code-creator-.*\.vercel\.app/, // All Vercel preview URLs
-    /https:\/\/.*\.vercel\.app/ // All Vercel preview URLs (more flexible)
+    "https://niche-connect-project.vercel.app",  // Your Vercel URL
+    "http://localhost:5173"                      // Your Localhost
   ],
   credentials: true
 };
