@@ -9,7 +9,7 @@ const Index = () => {
           Welcome to Creator Connect
         </h1>
         <p className="text-xl text-muted-foreground mb-8">
-          The ultimate platform connecting brands with talented creators. Start building authentic partnerships today!
+          Professional platform connecting brands with verified creators. Build successful partnerships with our comprehensive services.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a 

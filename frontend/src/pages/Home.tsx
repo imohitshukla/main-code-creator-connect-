@@ -8,31 +8,31 @@ const Home = () => {
   const features = [
     {
       icon: Users,
-      title: 'Find Perfect Creators',
-      description: 'Connect with talented creators across all niches and platforms'
+      title: 'Verified Creator Network',
+      description: 'Access our curated network of verified content creators across all niches and platforms'
     },
     {
       icon: Zap,
-      title: 'Launch Campaigns Fast',
-      description: 'Create and manage influencer campaigns with ease'
+      title: 'Streamlined Campaign Management',
+      description: 'Professional tools to create, manage, and track influencer marketing campaigns efficiently'
     },
     {
       icon: Shield,
-      title: 'Secure Partnerships',
-      description: 'Built-in protection and verified creator profiles'
+      title: 'Secure & Trusted Platform',
+      description: 'Enterprise-grade security with verified profiles and protected partnerships'
     },
     {
       icon: Star,
-      title: 'Quality Results',
-      description: 'Track performance and measure campaign success'
+      title: 'Data-Driven Results',
+      description: 'Comprehensive analytics and reporting to measure ROI and campaign performance'
     }
   ];
 
   const stats = [
-    { number: '100+', label: 'Active Creators' },
-    { number: '20+', label: 'Brands Connected' },
-    { number: '99%', label: 'Success Rate' },
-    { number: '24/7', label: 'Support' }
+    { number: '500+', label: 'Verified Creators' },
+    { number: '100+', label: 'Partner Brands' },
+    { number: '98%', label: 'Client Satisfaction' },
+    { number: '24/7', label: 'Dedicated Support' }
   ];
 
   return (
@@ -44,25 +44,24 @@ const Home = () => {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="text-hero font-bold text-foreground leading-tight">
-                  Connecting Brands with 
-                  <span className="bg-gradient-hero bg-clip-text text-transparent"> Creators </span>
-                  Effortlessly
+                  Professional Creator-Brand 
+                  <span className="bg-gradient-hero bg-clip-text text-transparent"> Partnership Platform</span>
                 </h1>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  The ultimate platform where talented creators meet innovative brands. 
-                  Build authentic partnerships that drive real results.
+                  Niche Connect provides enterprise-grade services connecting innovative brands with verified content creators. 
+                  Streamline your influencer marketing with our comprehensive platform designed for professional partnerships.
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg" className="bg-gradient-hero hover:shadow-glow transition-all duration-300">
                   <Link to="/filter">
-                    Find Creators
+                    Explore Services
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="border-primary text-primary hover:bg-primary-soft">
-                  <Link to="/campaign">Post Campaign</Link>
+                  <Link to="/campaign">Launch Campaign</Link>
                 </Button>
               </div>
             </div>
@@ -103,7 +102,7 @@ const Home = () => {
               Why Choose Creator Connect?
             </h2>
             <p className="text-xl text-muted-foreground">
-              Everything you need to build successful creator partnerships
+              Professional services and tools designed for successful brand-creator partnerships
             </p>
           </div>
           
@@ -127,17 +126,17 @@ const Home = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-hero">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-display font-bold text-white mb-4">
-            Ready to Start Connecting?
+            Ready to Elevate Your Marketing Strategy?
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            Join thousands of creators and brands building amazing partnerships
+            Join leading brands and creators leveraging our professional platform for successful partnerships
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-              <Link to="/filter">Browse Creators</Link>
+              <Link to="/filter">Explore Creator Network</Link>
             </Button>
             <Button asChild size="lg" className="bg-black text-white border-black hover:bg-gray-800">
-              <Link to="/contact">Get in Touch</Link>
+              <Link to="/contact">Schedule a Consultation</Link>
             </Button>
           </div>
         </div>

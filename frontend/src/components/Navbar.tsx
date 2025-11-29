@@ -10,6 +10,7 @@ import AuthModal from '@/components/AuthModal';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signup' | 'login'>('login');
   const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
 
@@ -78,9 +79,25 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => setIsAuthModalOpen(true)}>
-                Sign Up / Login
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  Sign Up
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  Log In
+                </Button>
+              </div>
             )}
           </div>
 
@@ -113,9 +130,27 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button size="sm" onClick={() => setIsAuthModalOpen(true)}>
-                Sign Up / Login
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  Sign Up
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  Log In
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -143,7 +178,11 @@ const Navbar = () => {
         )}
       </div>
 
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode={authMode}
+      />
     </nav>
   );
 };
