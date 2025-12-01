@@ -1,4 +1,8 @@
-- [x] Update globals.css to use min-height and add smooth scroll behavior
-- [x] Import ScrollArea component in ProfileSetup.tsx
-- [x] Wrap the form in ScrollArea with appropriate height
-- [x] Close the ScrollArea tag properly
+# Modal Scrolling Fix - TODO
+
+## Completed Tasks
+- [x] Identified the profile edit modal in Navbar.tsx as the problematic component
+- [x] Updated DialogContent className to include max-h-[90vh] overflow-y-auto for scrollable content
+
+## Remaining Tasks
+- [ ] Test the modal to ensure the form is now scrollable and all fields are accessible
