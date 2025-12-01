@@ -45,8 +45,8 @@ const seedTestData = async () => {
     // Insert creator_profile
     console.log('Inserting creator profile for user:', usersMap['creator@example.com']);
     await client.query(
-      `INSERT INTO creator_profiles (user_id, name, bio, niche, social_links, portfolio_links, followers, engagement_rate, location, verified)
-       VALUES ($1, 'Creator One', 'Bio of creator', 'fitness', '[]', '[]', 1000, 5.5, 'NYC', true)
+      `INSERT INTO creator_profiles (user_id, name, bio, niche, social_media, portfolio_links, follower_count, engagement_rate, audience, budget, is_verified)
+       VALUES ($1, 'Creator One', 'Bio of creator', 'fitness', '[]', '[]', 1000, 5.5, '{}', '{}', true)
        ON CONFLICT (user_id) DO NOTHING;`,
       [usersMap['creator@example.com']]
     );

@@ -1,5 +1,51 @@
 import { client } from '../config/database.js';
 
+export const getCreatorByUsername = async (c) => {
+  try {
+    const username = c.req.param('username');
+    const creator = await client.query(`
+      SELECT cp.id, cp.bio, cp.niche, cp.social_media, cp.portfolio_links,
+             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
+             u.email, u.name, cp.is_verified,
+             mk.id as media_kit_id, mk.title, mk.description, mk.content, mk.views, mk.downloads
+      FROM creator_profiles cp
+      JOIN users u ON cp.user_id = u.id
+      LEFT JOIN media_kits mk ON mk.creator_id = u.id AND mk.is_public = true
+      WHERE u.email = $1
+    `, [username]);
+    if (creator.rows.length === 0) {
+      return c.json({ error: 'Creator not found' }, 404);
+    }
+    // Group media kits
+    const creatorData = {
+      id: creator.rows[0].id,
+      name: creator.rows[0].name,
+      email: creator.rows[0].email,
+      bio: creator.rows[0].bio,
+      niche: creator.rows[0].niche,
+      social_media: creator.rows[0].social_media,
+      portfolio_links: creator.rows[0].portfolio_links,
+      follower_count: creator.rows[0].follower_count,
+      engagement_rate: creator.rows[0].engagement_rate,
+      audience: creator.rows[0].audience,
+      budget: creator.rows[0].budget,
+      is_verified: creator.rows[0].is_verified,
+      media_kits: creator.rows.filter(row => row.media_kit_id).map(row => ({
+        id: row.media_kit_id,
+        title: row.title,
+        description: row.description,
+        content: row.content,
+        views: row.views,
+        downloads: row.downloads
+      }))
+    };
+    return c.json({ creator: creatorData });
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: 'Failed to fetch creator' }, 500);
+  }
+};
+
 export const getCreators = async (c) => {
   try {
     const creators = await client.query(`

@@ -90,16 +90,28 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
-        bio TEXT,
-        niche VARCHAR(100),
-        social_links JSONB DEFAULT '[]'::JSONB,
         portfolio_links JSONB DEFAULT '[]'::JSONB,
+        bio TEXT,
+        social_media JSONB DEFAULT '[]'::JSONB,
+        niche VARCHAR(100),
         follower_count INTEGER DEFAULT 0,
         engagement_rate DECIMAL(5,2),
         audience JSONB,
         budget JSONB,
-        location VARCHAR(100),
-        verified BOOLEAN DEFAULT FALSE,
+        is_verified BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE media_kits (
+        id SERIAL PRIMARY KEY,
+        creator_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        content JSONB NOT NULL,
+        is_public BOOLEAN DEFAULT TRUE,
+        views INTEGER DEFAULT 0,
+        downloads INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
