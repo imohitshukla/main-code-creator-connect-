@@ -55,7 +55,7 @@ const Home = () => {
     {
       icon: BarChart3,
       title: 'Performance & ROI Analytics',
-      description: 'Plug into Instagram, YouTube, and TikTok APIs for live KPIs—views, clicks, sentiment, CTR, and ROI benchmarks.'
+      description: 'Plug into Instagram and YouTube APIs for live KPIs—views, clicks, sentiment, CTR, and ROI benchmarks.'
     },
     {
       icon: FileSignature,

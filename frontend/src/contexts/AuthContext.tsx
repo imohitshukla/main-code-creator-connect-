@@ -20,7 +20,6 @@ export interface UserProfile {
   followers: string;
   instagram: string;
   youtube: string;
-  tiktok: string;
   portfolio: string;
   niche: string;
   bio: string;
@@ -73,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       followers: '',
       instagram: '',
       youtube: '',
-      tiktok: '',
       portfolio: userData.portfolio_link || '',
       niche: '',
       bio: '',

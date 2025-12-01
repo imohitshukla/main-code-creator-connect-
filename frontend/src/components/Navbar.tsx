@@ -28,7 +28,6 @@ const Navbar = () => {
     followers: profile?.followers || '',
     instagram: profile?.instagram || '',
     youtube: profile?.youtube || '',
-    tiktok: profile?.tiktok || '',
     portfolio: profile?.portfolio || user?.portfolio_link || '',
     niche: profile?.niche || '',
     bio: profile?.bio || '',
@@ -88,7 +87,6 @@ const Navbar = () => {
     { label: 'Budget', value: profile?.budgetRange || 'Add preferred budget' },
     { label: 'Instagram', value: profile?.instagram || 'Add Instagram link' },
     { label: 'YouTube', value: profile?.youtube || 'Add YouTube link' },
-    { label: 'TikTok', value: profile?.tiktok || 'Add TikTok link' },
     { label: 'Portfolio', value: profile?.portfolio || 'Add portfolio link' },
   ];
 
@@ -398,16 +396,7 @@ const Navbar = () => {
                   placeholder="https://youtube.com/@yourchannel"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-tiktok">TikTok Link</Label>
-                <Input
-                  id="profile-tiktok"
-                  type="url"
-                  value={profileForm.tiktok}
-                  onChange={(e) => handleProfileChange('tiktok', e.target.value)}
-                  placeholder="https://tiktok.com/@yourhandle"
-                />
-              </div>
+
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="profile-portfolio">Portfolio</Label>
                 <Input

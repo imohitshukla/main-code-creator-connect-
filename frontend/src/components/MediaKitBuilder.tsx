@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 const MediaKitBuilder = () => {
   const [socialLinks, setSocialLinks] = useState({
     instagram: '',
-    tiktok: '',
     youtube: '',
     twitter: ''
   });

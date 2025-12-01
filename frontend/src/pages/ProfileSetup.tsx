@@ -20,7 +20,6 @@ const buildInitialProfile = (profile: UserProfile | null, userNameFallback: stri
   followers: profile?.followers || '',
   instagram: profile?.instagram || '',
   youtube: profile?.youtube || '',
-  tiktok: profile?.tiktok || '',
   portfolio: profile?.portfolio || '',
   niche: profile?.niche || '',
   bio: profile?.bio || '',
@@ -205,16 +204,7 @@ const ProfileSetup = () => {
                       onChange={(e) => handleChange('youtube', e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="setup-tiktok">TikTok / Reels</Label>
-                    <Input
-                      id="setup-tiktok"
-                      type="url"
-                      placeholder="https://tiktok.com/@you"
-                      value={formState.tiktok}
-                      onChange={(e) => handleChange('tiktok', e.target.value)}
-                    />
-                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="setup-portfolio">Portfolio / Media Kit</Label>
                     <Input
