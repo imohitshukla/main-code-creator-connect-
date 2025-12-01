@@ -13,6 +13,7 @@ import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Messages from "./pages/Messages";
 import EducationHub from "./pages/EducationHub";
+import BrandDashboard from "./pages/BrandDashboard";
 import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
 
