@@ -5,7 +5,7 @@ import { authMiddleware } from '../../../middleware/auth.js';
 const aiRoutes = new Hono();
 
 // AI-powered creator matching (public for discovery)
-aiRoutes.post('/smart-match', smartMatchCreators);
+aiRoutes.post('/smart-match', smartMatchCreators); // Accepts campaignDescription, targetAudience, budget, niche and brief.
 
 // Protected routes (require authentication)
 aiRoutes.use('*', authMiddleware);

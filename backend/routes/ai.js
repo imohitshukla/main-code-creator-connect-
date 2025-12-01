@@ -10,7 +10,7 @@ const {
 const router = new Hono();
 
 // Public routes (limited AI features for discovery)
-router.post('/smart-match', smartMatchCreators);
+router.post('/smart-match', smartMatchCreators); // Accepts campaignDescription, targetAudience, budget, niche and brief.
 
 // Protected routes (require authentication)
 router.use('*', authMiddleware);

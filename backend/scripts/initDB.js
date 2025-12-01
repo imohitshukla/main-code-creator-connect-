@@ -8,9 +8,9 @@ const initDB = async () => {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: 'postgres',
-    ssl: {
+    ssl: process.env.NODE_ENV === 'production' ? {
       rejectUnauthorized: false,
-    },
+    } : false,
   });
 
   try {
@@ -35,9 +35,9 @@ const initDB = async () => {
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    ssl: {
+    ssl: process.env.NODE_ENV === 'production' ? {
       rejectUnauthorized: false,
-    },
+    } : false,
   });
 
   try {
@@ -94,8 +94,10 @@ const initDB = async () => {
         niche VARCHAR(100),
         social_links JSONB DEFAULT '[]'::JSONB,
         portfolio_links JSONB DEFAULT '[]'::JSONB,
-        followers INTEGER DEFAULT 0,
+        follower_count INTEGER DEFAULT 0,
         engagement_rate DECIMAL(5,2),
+        audience JSONB,
+        budget JSONB,
         location VARCHAR(100),
         verified BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

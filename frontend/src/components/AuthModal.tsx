@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -164,15 +165,13 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
+      setSession(data.user, data.token);
       toast({
         title: 'Signup successful',
         description: `Welcome to Creator Connect as a ${userRole === 'brand' ? 'Brand' : 'Creator'}!`,
       });
       onClose();
-      window.location.reload(); // Refresh to update auth state
+      navigate('/profile-setup');
     } catch (error: any) {
       toast({
         title: 'Signup failed',

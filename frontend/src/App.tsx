@@ -14,6 +14,7 @@ import Auth from "./pages/Auth";
 import Messages from "./pages/Messages";
 import EducationHub from "./pages/EducationHub";
 import NotFound from "./pages/NotFound";
+import ProfileSetup from "./pages/ProfileSetup";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,8 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/education" element={<EducationHub />} />
+              <Route path="/brand-dashboard" element={<BrandDashboard />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

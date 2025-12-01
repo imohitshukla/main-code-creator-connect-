@@ -10,6 +10,10 @@ export interface Creator {
   image: string;
   followers?: string;
   rating?: number;
+  audience?: any;
+  budget?: any;
+  social_links?: any;
+  portfolio_links?: any;
 }
 
 interface CreatorCardProps {

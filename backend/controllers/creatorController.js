@@ -20,7 +20,8 @@ export const getCreatorById = async (c) => {
     const id = c.req.param('id');
     const creator = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
-             u.email
+             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
+             u.email, u.name
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.id = $1
@@ -38,13 +39,13 @@ export const getCreatorById = async (c) => {
 export const updateCreatorProfile = async (c) => {
   try {
     const userId = c.get('userId');
-    const { bio, niche, social_links, portfolio_links } = await c.req.json();
+    const { bio, niche, social_links, portfolio_links, audience, budget } = await c.req.json();
 
     await client.query(`
       UPDATE creator_profiles
-      SET bio = $1, niche = $2, social_links = $3, portfolio_links = $4, updated_at = NOW()
-      WHERE user_id = $5
-    `, [bio, niche, social_links, portfolio_links, userId]);
+      SET bio = $1, niche = $2, social_links = $3, portfolio_links = $4, audience = $5, budget = $6, updated_at = NOW()
+      WHERE user_id = $7
+    `, [bio, niche, social_links, portfolio_links, audience, budget, userId]);
 
     return c.json({ message: 'Profile updated successfully' });
   } catch (error) {
@@ -78,7 +79,8 @@ export const getVerifiedCreators = async (c) => {
   try {
     const creators = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
-             u.email, cp.verified
+             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
+             u.email, u.name, cp.verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.verified = TRUE

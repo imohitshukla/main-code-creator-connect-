@@ -1,0 +1,319 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, UserProfile } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Layers, ArrowRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const niches = ['Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Music', 'Lifestyle'];
+const budgetRanges = ['₹10K - ₹25K', '₹25K - ₹75K', '₹75K - ₹150K', '₹150K+', 'Open to discussion'];
+
+const buildInitialProfile = (profile: UserProfile | null, userNameFallback: string): UserProfile => ({
+  name: profile?.name || userNameFallback,
+  phoneNumber: profile?.phoneNumber || '',
+  email: profile?.email || '',
+  followers: profile?.followers || '',
+  instagram: profile?.instagram || '',
+  youtube: profile?.youtube || '',
+  tiktok: profile?.tiktok || '',
+  portfolio: profile?.portfolio || '',
+  niche: profile?.niche || '',
+  bio: profile?.bio || '',
+  audience: profile?.audience || '',
+  budgetRange: profile?.budgetRange || '',
+  location: profile?.location || '',
+  campaignGoals: profile?.campaignGoals || '',
+});
+
+const ProfileSetup = () => {
+  const navigate = useNavigate();
+  const { user, profile, updateProfile, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
+  const fallbackName = useMemo(
+    () => profile?.name || user?.name || user?.username || user?.email?.split('@')[0] || 'Creator',
+    [profile?.name, user?.name, user?.username, user?.email]
+  );
+
+  const [formState, setFormState] = useState<UserProfile>(() => buildInitialProfile(profile, fallbackName));
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+    setFormState(buildInitialProfile(profile, fallbackName));
+  }, [isAuthenticated, profile, navigate, fallbackName]);
+
+  const handleChange = (field: keyof UserProfile, value: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateProfile(formState);
+    toast({
+      title: 'Profile saved',
+      description: 'Your creator profile is now ready for Filters and AI Match.',
+    });
+    navigate('/filter');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-subtle pt-24 pb-16 px-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="text-center space-y-3">
+          <Badge className="bg-primary/10 text-primary border-primary/20">Step 2 · Profile Setup</Badge>
+          <h1 className="text-4xl font-bold text-foreground">Tell Brands About You</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Complete your Creator Connect profile so you show up in Filters and receive accurate AI matches.
+            Share your niche, audience, and platform stats to unlock better collaborations.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-card/90 shadow-soft">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Creator Basics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-name">Display Name</Label>
+                    <Input
+                      id="setup-name"
+                      value={formState.name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-email">Professional Email</Label>
+                    <Input
+                      id="setup-email"
+                      type="email"
+                      value={formState.email}
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-phone">Phone / WhatsApp</Label>
+                    <Input
+                      id="setup-phone"
+                      value={formState.phoneNumber}
+                      onChange={(e) => handleChange('phoneNumber', e.target.value)}
+                      placeholder="+91 98765 43210"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-location">Primary Location</Label>
+                    <Input
+                      id="setup-location"
+                      value={formState.location}
+                      onChange={(e) => handleChange('location', e.target.value)}
+                      placeholder="City, Country"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Primary Niche</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {niches.map((niche) => (
+                      <Button
+                        key={niche}
+                        type="button"
+                        variant={formState.niche === niche ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleChange('niche', niche)}
+                        className={formState.niche === niche ? 'bg-gradient-hero' : ''}
+                      >
+                        {niche}
+                      </Button>
+                    ))}
+                    <Input
+                      placeholder="Custom niche"
+                      value={formState.niche && !niches.includes(formState.niche) ? formState.niche : ''}
+                      onChange={(e) => handleChange('niche', e.target.value)}
+                      className="w-full mt-2"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="setup-followers">Total Followers</Label>
+                  <Input
+                    id="setup-followers"
+                    value={formState.followers}
+                    onChange={(e) => handleChange('followers', e.target.value)}
+                    placeholder="e.g. 220K across Instagram + YouTube"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="setup-bio">Elevator Pitch / Bio</Label>
+                  <Textarea
+                    id="setup-bio"
+                    rows={4}
+                    value={formState.bio}
+                    onChange={(e) => handleChange('bio', e.target.value)}
+                    placeholder="Describe your content style, signature formats, and collaborations you love."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/90 shadow-soft">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-primary" />
+                  Platforms & Audience
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-instagram">Instagram</Label>
+                    <Input
+                      id="setup-instagram"
+                      type="url"
+                      placeholder="https://instagram.com/you"
+                      value={formState.instagram}
+                      onChange={(e) => handleChange('instagram', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-youtube">YouTube</Label>
+                    <Input
+                      id="setup-youtube"
+                      type="url"
+                      placeholder="https://youtube.com/@you"
+                      value={formState.youtube}
+                      onChange={(e) => handleChange('youtube', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-tiktok">TikTok / Reels</Label>
+                    <Input
+                      id="setup-tiktok"
+                      type="url"
+                      placeholder="https://tiktok.com/@you"
+                      value={formState.tiktok}
+                      onChange={(e) => handleChange('tiktok', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-portfolio">Portfolio / Media Kit</Label>
+                    <Input
+                      id="setup-portfolio"
+                      type="url"
+                      placeholder="https://yourwebsite.com/portfolio"
+                      value={formState.portfolio}
+                      onChange={(e) => handleChange('portfolio', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="setup-audience">Audience Breakdown</Label>
+                  <Textarea
+                    id="setup-audience"
+                    rows={4}
+                    value={formState.audience}
+                    onChange={(e) => handleChange('audience', e.target.value)}
+                    placeholder="Share top cities, age groups, interests, or audience insights brands should know."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/90 shadow-soft">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Collaboration Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Preferred Budget Range</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {budgetRanges.map((range) => (
+                      <Button
+                        key={range}
+                        type="button"
+                        variant={formState.budgetRange === range ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleChange('budgetRange', range)}
+                      >
+                        {range}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="setup-goals">Collaboration Goals</Label>
+                  <Textarea
+                    id="setup-goals"
+                    rows={4}
+                    value={formState.campaignGoals}
+                    onChange={(e) => handleChange('campaignGoals', e.target.value)}
+                    placeholder="Share campaign types, deliverables, or industries you are excited to work with."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
+                Skip for now
+              </Button>
+              <Button type="submit" size="lg" className="gap-2 bg-gradient-hero hover:shadow-glow">
+                Save profile
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Card className="bg-gradient-card border-0 shadow-hover">
+              <CardHeader>
+                <CardTitle>Why complete this?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-start gap-3">
+                  <Badge className="bg-primary text-primary-foreground">1</Badge>
+                  <p>Creators with complete profiles appear higher in Filters and search results.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Badge className="bg-primary text-primary-foreground">2</Badge>
+                  <p>AI Match uses your niche, audience, and pricing to recommend the best campaigns.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Badge className="bg-primary text-primary-foreground">3</Badge>
+                  <p>Brands can fast-track approvals when they see platform links and audience stats upfront.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSetup;
+

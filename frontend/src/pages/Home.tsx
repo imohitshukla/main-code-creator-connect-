@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Users, Zap, Shield, Star } from 'lucide-react';
+import { ArrowRight, Users, Zap, Shield, Star, Sparkles, ShieldCheck, TrendingUp, Briefcase, BarChart3, FileSignature, CreditCard, Palette, GraduationCap, CalendarDays } from 'lucide-react';
 import heroImage from '@/assets/hero-image.jpg';
 
 const Home = () => {
@@ -28,6 +28,65 @@ const Home = () => {
     }
   ];
 
+  const aiHighlights = [
+    {
+      icon: Sparkles,
+      title: 'Smart Match Intelligence',
+      description: 'Natural-language briefs are parsed via NLP, computer vision, and historical performance to recommend the top creators with context-rich match scores.'
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Fraud & Authenticity Radar',
+      description: 'Continuous AI scanning flags fake followers, suspicious spikes, and unsafe content so brands trust every “Creator Connect Verified Authentic” badge.'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Dynamic Pricing Engine',
+      description: 'Real-time engagement, niche demand, and growth trends inform fair-market pricing and budget unlock tips before you send a brief.'
+    }
+  ];
+
+  const brandFeatures = [
+    {
+      icon: Briefcase,
+      title: 'Campaign Control Center',
+      description: 'Plan, brief, and track every collaboration from one dashboard with creator milestones, approvals, and message threads.'
+    },
+    {
+      icon: BarChart3,
+      title: 'Performance & ROI Analytics',
+      description: 'Plug into Instagram, YouTube, and TikTok APIs for live KPIs—views, clicks, sentiment, CTR, and ROI benchmarks.'
+    },
+    {
+      icon: FileSignature,
+      title: 'Contracts & Compliance',
+      description: 'Generate agreements, capture e-signatures, and store every scope, brief, and disclosure in a compliant audit trail.'
+    },
+    {
+      icon: CreditCard,
+      title: 'Escrow & Payments',
+      description: 'Fund projects upfront with escrow releases tied to milestones so both brands and creators collaborate with confidence.'
+    }
+  ];
+
+  const creatorTools = [
+    {
+      icon: Palette,
+      title: 'Media Kit Builder',
+      description: 'Auto-generate a beautiful deck using live social stats, audience demographics, and signature content formats.'
+    },
+    {
+      icon: GraduationCap,
+      title: 'Creator School',
+      description: 'Educational paths on pricing, negotiation, marketing metrics, and financial hygiene help creators scale sustainably.'
+    },
+    {
+      icon: CalendarDays,
+      title: 'Content Calendar & Scheduling',
+      description: 'Stay on top of deliverables and organic posts with reminders, workflow templates, and shared visibility for brands.'
+    }
+  ];
+
   const stats = [
     { number: '500+', label: 'Verified Creators' },
     { number: '100+', label: 'Partner Brands' },
@@ -48,7 +107,7 @@ const Home = () => {
                   <span className="bg-gradient-hero bg-clip-text text-transparent"> Partnership Platform</span>
                 </h1>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Niche Connect provides enterprise-grade services connecting innovative brands with verified content creators. 
+                  Creator Connect provides enterprise-grade services connecting innovative brands with verified content creators.
                   Streamline your influencer marketing with our comprehensive platform designed for professional partnerships.
                 </p>
               </div>
@@ -118,6 +177,82 @@ const Home = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Revolution Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card/60">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="max-w-3xl text-center mx-auto space-y-4">
+            <p className="text-sm uppercase tracking-[0.2em] text-primary font-semibold">Part 2 · The AI Revolution</p>
+            <h2 className="text-display font-bold text-foreground">Intelligent, Predictive Partnerships</h2>
+            <p className="text-lg text-muted-foreground">
+              We are layering advanced AI across every workflow so brands get curated match lists, verified authenticity, and budget guidance in minutes—not weeks.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {aiHighlights.map((item, index) => (
+              <Card key={index} className="bg-gradient-card border-0 shadow-soft h-full">
+                <CardContent className="p-6 space-y-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Platform Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">For Brands & Companies</p>
+            <h2 className="text-display font-bold text-foreground">Campaign Management, Analytics, and Trust in One Place</h2>
+            <p className="text-lg text-muted-foreground">
+              Manage briefs, content approvals, communication threads, KPIs, contracts, and payments inside one secure dashboard. 
+              Integrate social APIs for real-time performance, monitor ROI, and unlock escrow-backed payouts tied to milestones.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {brandFeatures.map((feature, index) => (
+              <Card key={index} className="border border-border/60 shadow-soft h-full">
+                <CardContent className="p-5 space-y-3">
+                  <feature.icon className="w-6 h-6 text-primary" />
+                  <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Creator Platform Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card/60">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+          <div className="grid sm:grid-cols-2 gap-4 order-2 lg:order-1">
+            {creatorTools.map((tool, index) => (
+              <Card key={index} className="border border-border/60 shadow-soft h-full">
+                <CardContent className="p-5 space-y-3">
+                  <tool.icon className="w-6 h-6 text-primary" />
+                  <h3 className="font-semibold text-foreground">{tool.title}</h3>
+                  <p className="text-sm text-muted-foreground">{tool.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="space-y-4 order-1 lg:order-2">
+            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">For Creators</p>
+            <h2 className="text-display font-bold text-foreground">Grow Your Brand, Not Just Your Inbox</h2>
+            <p className="text-lg text-muted-foreground">
+              From automated media kits and education tracks to content scheduling, Creator Connect acts like your operations team. 
+              Learn how to price confidently, track your pipeline, and keep every collaboration on schedule.
+            </p>
           </div>
         </div>
       </section>

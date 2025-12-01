@@ -11,7 +11,7 @@ const openai = new OpenAI({
 // Smart Match: AI-Powered Creator Discovery
 export const smartMatchCreators = async (c) => {
   try {
-    const { campaignDescription, targetAudience, budget, niche } = await c.req.json();
+const { campaignDescription, targetAudience, budget, niche, brief } = await c.req.json(); // Added 'brief'
 
     // AI-powered campaign analysis using OpenAI
     const aiAnalysisPrompt = `
@@ -54,13 +54,14 @@ export const smartMatchCreators = async (c) => {
     // Query creators with AI-enhanced filtering
     const creators = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
-             u.email,
-             COALESCE(cp.followers, 0) as followers,
+             cp.audience, cp.budget,
+             u.email, u.name,
+             COALESCE(cp.follower_count, 0) as followers,
              COALESCE(cp.engagement_rate, 0) as engagement_rate
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE (cp.niche ILIKE $1 OR $1 = '')
-      ORDER BY cp.engagement_rate DESC, cp.followers DESC
+      ORDER BY cp.engagement_rate DESC, cp.follower_count DESC
       LIMIT 20
     `, [`%${niche}%`]);
 

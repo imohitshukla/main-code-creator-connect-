@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Search, Filter as FilterIcon } from 'lucide-react';
 import CreatorCard, { Creator } from '@/components/CreatorCard';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/utils';
 import creator1 from '@/assets/creator1.jpg';
 import creator2 from '@/assets/creator2.jpg';
 import creator3 from '@/assets/creator3.jpg';
@@ -15,75 +16,63 @@ const Filter = () => {
   const [selectedNiche, setSelectedNiche] = useState('');
   const { toast } = useToast();
 
-  // Sample creator data
-  const creators: Creator[] = [
-    {
-      id: 1,
-      name: 'John Fit',
-      niche: 'Fitness',
-      bio: 'Certified personal trainer and fitness influencer with 5+ years of experience helping people achieve their health goals.',
-      image: creator1,
-      followers: '125K',
-      rating: 4.9
-    },
-    {
-      id: 2,
-      name: 'Healthy Hannah',
-      niche: 'Nutrition',
-      bio: 'Registered nutritionist and wellness blogger sharing evidence-based nutrition tips for a healthier lifestyle.',
-      image: creator2,
-      followers: '89K',
-      rating: 4.8
-    },
-    {
-      id: 3,
-      name: 'Alex Camera',
-      niche: 'Photography',
-      bio: 'Professional photographer and content creator specializing in lifestyle and brand photography.',
-      image: creator3,
-      followers: '156K',
-      rating: 4.9
-    },
-    {
-      id: 4,
-      name: 'GameMaster Mike',
-      niche: 'Gaming',
-      bio: 'Gaming content creator and streamer covering the latest games, reviews, and gaming tech.',
-      image: creator4,
-      followers: '234K',
-      rating: 4.7
-    },
-    {
-      id: 5,
-      name: 'Fashion Fiona',
-      niche: 'Fashion',
-      bio: 'Fashion stylist and influencer showcasing the latest trends and sustainable fashion choices.',
-      image: creator2, // Reusing for demo
-      followers: '198K',
-      rating: 4.8
-    },
-    {
-      id: 6,
-      name: 'Tech Tom',
-      niche: 'Technology',
-      bio: 'Technology reviewer and educator helping people make informed decisions about gadgets and software.',
-      image: creator3, // Reusing for demo
-      followers: '167K',
-      rating: 4.6
-    }
-  ];
+
 
   const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology'];
 
+  // Fetch creators data from API
+  useEffect(() => {
+    const fetchCreators = async () => {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/creators`);
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to match Creator interface
+          const transformedCreators: Creator[] = data.creators.map((creator: any, index: number) => ({
+            id: creator.id,
+            name: creator.name || creator.email?.split('@')[0] || `Creator ${creator.id}`,
+            niche: creator.niche || 'General',
+            bio: creator.bio || 'No bio available',
+            image: [creator1, creator2, creator3, creator4][index % 4], // Cycle through available images
+            followers: creator.follower_count ? `${creator.follower_count.toLocaleString()}` : '0',
+            audience: creator.audience,
+            budget: creator.budget,
+            social_links: creator.social_links,
+            portfolio_links: creator.portfolio_links
+          }));
+          setCreators(transformedCreators);
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to load creators data',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching creators:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load creators data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCreators();
+  }, [toast]);
+
   // Filter creators based on search term and selected niche
   const filteredCreators = useMemo(() => {
+    if (!creators.length) return [];
     return creators.filter(creator => {
       const matchesSearch = creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           creator.niche.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           creator.bio.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesNiche = selectedNiche === '' || selectedNiche === 'All' || creator.niche === selectedNiche;
-      
+
       return matchesSearch && matchesNiche;
     });
   }, [searchTerm, selectedNiche, creators]);
@@ -165,7 +154,24 @@ const Filter = () => {
         </div>
 
         {/* Creators Grid */}
-        {filteredCreators.length > 0 ? (
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index} className="bg-gradient-card border-0 shadow-soft animate-pulse">
+                <CardContent className="p-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-16 h-16 bg-gray-300 rounded-full"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-300 rounded w-full"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredCreators.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCreators.map((creator) => (
               <CreatorCard

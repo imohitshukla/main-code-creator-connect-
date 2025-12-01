@@ -20,7 +20,14 @@ export interface UserProfile {
   followers: string;
   instagram: string;
   youtube: string;
+  tiktok: string;
   portfolio: string;
+  niche: string;
+  bio: string;
+  audience: string;
+  budgetRange: string;
+  location: string;
+  campaignGoals: string;
 }
 
 interface AuthContextType {
@@ -30,6 +37,7 @@ interface AuthContextType {
   signup: (email: string, password: string) => Promise<void>;
   verifyOtp: (userId: number, otp: string) => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => void;
+  setSession: (user: User, token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -65,7 +73,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       followers: '',
       instagram: '',
       youtube: '',
+      tiktok: '',
       portfolio: userData.portfolio_link || '',
+      niche: '',
+      bio: '',
+      audience: '',
+      budgetRange: '',
+      location: '',
+      campaignGoals: '',
     };
   };
 
@@ -103,6 +118,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const setSession = (userData: User, token: string) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    const hydratedProfile = hydrateProfile(userData);
+    setProfile(hydratedProfile);
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${getApiUrl()}/api/auth/login`, {
@@ -123,11 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: data.message
         };
       } else {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-        const hydratedProfile = hydrateProfile(data.user);
-        setProfile(hydratedProfile);
+        setSession(data.user, data.token);
         return { requiresOtp: false };
       }
     } catch (error) {
@@ -148,11 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      const hydratedProfile = hydrateProfile(data.user);
-      setProfile(hydratedProfile);
+      setSession(data.user, data.token);
     } catch (error) {
       throw error;
     }
@@ -171,11 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      const hydratedProfile = hydrateProfile(data.user);
-      setProfile(hydratedProfile);
+      setSession(data.user, data.token);
     } catch (error) {
       throw error;
     }
@@ -211,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     verifyOtp,
     updateProfile,
+    setSession,
     logout,
     isAuthenticated: !!user
   };

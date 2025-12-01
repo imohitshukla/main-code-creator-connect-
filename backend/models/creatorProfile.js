@@ -38,6 +38,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true
     },
+    audience: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
+    budget: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
     is_verified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false

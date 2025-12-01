@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageCircle, Edit3, LogOut } from 'lucide-react';
+import { Menu, X, MessageCircle, Edit3, LogOut, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +28,14 @@ const Navbar = () => {
     followers: profile?.followers || '',
     instagram: profile?.instagram || '',
     youtube: profile?.youtube || '',
+    tiktok: profile?.tiktok || '',
     portfolio: profile?.portfolio || user?.portfolio_link || '',
+    niche: profile?.niche || '',
+    bio: profile?.bio || '',
+    audience: profile?.audience || '',
+    budgetRange: profile?.budgetRange || '',
+    location: profile?.location || '',
+    campaignGoals: profile?.campaignGoals || '',
   }), [profile, user]);
 
   const [profileForm, setProfileForm] = useState<UserProfile>(profileDefaults);
@@ -72,11 +80,15 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const profileDetailItems = [
-    { label: 'Phone', value: profile?.phoneNumber || profileDefaults.phoneNumber },
     { label: 'Email', value: profile?.email || profileDefaults.email },
+    { label: 'Phone', value: profile?.phoneNumber || profileDefaults.phoneNumber || 'Add number' },
+    { label: 'Niche', value: profile?.niche || 'Select niche' },
     { label: 'Followers', value: profile?.followers || 'Add follower count' },
+    { label: 'Audience', value: profile?.audience || 'Add target audience' },
+    { label: 'Budget', value: profile?.budgetRange || 'Add preferred budget' },
     { label: 'Instagram', value: profile?.instagram || 'Add Instagram link' },
     { label: 'YouTube', value: profile?.youtube || 'Add YouTube link' },
+    { label: 'TikTok', value: profile?.tiktok || 'Add TikTok link' },
     { label: 'Portfolio', value: profile?.portfolio || 'Add portfolio link' },
   ];
 
@@ -113,6 +125,12 @@ const Navbar = () => {
       >
         <Edit3 className="h-4 w-4" />
         Edit profile
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild className="cursor-pointer gap-2">
+        <Link to="/profile-setup" className="flex items-center gap-2 w-full">
+          <Layers className="h-4 w-4" />
+          Full profile setup
+        </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild className="cursor-pointer gap-2">
         <Link to="/messages" className="flex items-center gap-2 w-full">
@@ -197,7 +215,7 @@ const Navbar = () => {
                   }}
                 >
                   Log In
-                </Button>
+              </Button>
               </div>
             )}
           </div>
@@ -248,7 +266,7 @@ const Navbar = () => {
                   }}
                 >
                   Log In
-                </Button>
+              </Button>
               </div>
             )}
           </div>
@@ -324,6 +342,24 @@ const Navbar = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="profile-location">Location</Label>
+                <Input
+                  id="profile-location"
+                  value={profileForm.location}
+                  onChange={(e) => handleProfileChange('location', e.target.value)}
+                  placeholder="City, Country"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-niche">Primary Niche</Label>
+                <Input
+                  id="profile-niche"
+                  value={profileForm.niche}
+                  onChange={(e) => handleProfileChange('niche', e.target.value)}
+                  placeholder="e.g. Fitness, Tech, Lifestyle"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="profile-followers">Followers</Label>
                 <Input
                   id="profile-followers"
@@ -352,6 +388,26 @@ const Navbar = () => {
                   placeholder="https://youtube.com/@yourchannel"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-youtube">YouTube Link</Label>
+                <Input
+                  id="profile-youtube"
+                  type="url"
+                  value={profileForm.youtube}
+                  onChange={(e) => handleProfileChange('youtube', e.target.value)}
+                  placeholder="https://youtube.com/@yourchannel"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-tiktok">TikTok Link</Label>
+                <Input
+                  id="profile-tiktok"
+                  type="url"
+                  value={profileForm.tiktok}
+                  onChange={(e) => handleProfileChange('tiktok', e.target.value)}
+                  placeholder="https://tiktok.com/@yourhandle"
+                />
+              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="profile-portfolio">Portfolio</Label>
                 <Input
@@ -360,6 +416,45 @@ const Navbar = () => {
                   value={profileForm.portfolio}
                   onChange={(e) => handleProfileChange('portfolio', e.target.value)}
                   placeholder="https://yourportfolio.com"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="profile-bio">Bio / About</Label>
+                <Textarea
+                  id="profile-bio"
+                  value={profileForm.bio}
+                  onChange={(e) => handleProfileChange('bio', e.target.value)}
+                  placeholder="Tell brands about your content style, focus areas, and results."
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="profile-audience">Audience Highlights</Label>
+                <Textarea
+                  id="profile-audience"
+                  value={profileForm.audience}
+                  onChange={(e) => handleProfileChange('audience', e.target.value)}
+                  placeholder="Describe your audience demographics, locations, and interests."
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-1">
+                <Label htmlFor="profile-budget">Preferred Budget Range</Label>
+                <Input
+                  id="profile-budget"
+                  value={profileForm.budgetRange}
+                  onChange={(e) => handleProfileChange('budgetRange', e.target.value)}
+                  placeholder="e.g. ₹25K - ₹75K per deliverable"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-1">
+                <Label htmlFor="profile-goals">Campaign Goals</Label>
+                <Textarea
+                  id="profile-goals"
+                  value={profileForm.campaignGoals}
+                  onChange={(e) => handleProfileChange('campaignGoals', e.target.value)}
+                  placeholder="Share the types of partnerships you are excited about."
+                  rows={3}
                 />
               </div>
             </div>

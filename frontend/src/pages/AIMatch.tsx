@@ -9,7 +9,8 @@ import { getApiUrl } from '@/lib/utils';
 
 const AIMatch = () => {
   const { user } = useAuth();
-  const [campaignDescription, setCampaignDescription] = useState('');
+const [campaignDescription, setCampaignDescription] = useState(''); // Campaign description input
+const [brief, setBrief] = useState(''); // New state for brief input
   const [targetAudience, setTargetAudience] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('');
