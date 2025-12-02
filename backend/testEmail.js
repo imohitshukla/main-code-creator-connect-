@@ -11,15 +11,15 @@ async function sendTestEmail() {
   // 1. Create the Transporter (using Port 465 for Secure Connection)
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    port: 465,            // <--- CHANGE THIS to 465
+    secure: true,         // <--- MUST BE TRUE for port 465
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    // These settings enable detailed logging
-    logger: true,
-    debug: true 
+    // Add these timeouts so it doesn't hang for 2 minutes if it fails
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 5000,    // 5 seconds
   });
 
   // 2. Define the email options (Self-sending)
