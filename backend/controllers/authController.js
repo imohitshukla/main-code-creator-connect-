@@ -12,12 +12,15 @@ const twilioClient = twilio(
 
 // Initialize Nodemailer transporter
 const emailTransporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  host: 'smtp-relay.brevo.com',
+  port: 2525,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: process.env.EMAIL_USER,    // Your Brevo SMTP login
+    pass: process.env.EMAIL_PASS     // Your Brevo SMTP password/key
+  },
+  tls: {
+    rejectUnauthorized: false // Helps avoid SSL errors on some clouds
   }
 });
 

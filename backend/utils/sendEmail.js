@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,              // <--- Try 587 instead of 465
-  secure: false,          // <--- Must be FALSE for 587
+  host: 'smtp-relay.brevo.com',
+  port: 2525,              // <--- Brevo uses port 2525 (not blocked on Render free)
+  secure: false,           // <--- Must be FALSE for 2525
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER,    // Your Brevo SMTP login
+    pass: process.env.EMAIL_PASS,    // Your Brevo SMTP password/key
   },
   tls: {
     rejectUnauthorized: false // Helps avoid SSL errors on some clouds
