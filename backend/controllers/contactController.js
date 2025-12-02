@@ -1,63 +1,32 @@
-import { client } from '../config/database.js';
 import transporter from '../utils/sendEmail.js';
 
-const submitContactForm = async (c) => {
+export const submitContactForm = async (c) => {
   try {
-    const { name, email, message } = await c.req.json();
+    const body = await c.req.json();
 
     // Validate required fields
-    if (!name || !email || !message) {
+    if (!body.name || !body.email || !body.message) {
       return c.json({
         error: 'Missing required fields',
         details: 'name, email, and message are required'
       }, 400);
     }
 
-    // Insert contact submission into database
-    const query = `
-      INSERT INTO contact_submissions (name, email, message, submitted_at)
-      VALUES ($1, $2, $3, NOW())
-      RETURNING id, name, email, submitted_at
-    `;
-
-    const values = [name, email, message];
-    const result = await client.query(query, values);
-
-    // Send email notification
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: 'mohitshukla57662@gmail.com',
-      replyTo: email,
-      subject: 'New Contact Form Submission',
-      text: `You have received a new contact form submission.
-
-Name: ${name}
-Email: ${email}
-Message: ${message}
-
-Please reply to this email to respond to the user.`
+      from: `Creator Connect System <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      replyTo: body.email,
+      subject: `New Message from ${body.name}`,
+      text: body.message
     };
 
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log('Contact form email sent successfully');
-    } catch (emailError) {
-      console.error('Failed to send contact form email:', emailError);
-      // Don't fail the request if email fails, just log it
-    }
+    await transporter.sendMail(mailOptions);
 
-    return c.json({
-      success: true,
-      message: 'Contact form submitted successfully',
-      data: result.rows[0]
-    }, 201);
+    return c.json({ message: "Message Sent Successfully!" }, 201);
 
   } catch (error) {
-    console.error('Contact form submission error:', error);
-    return c.json({
-      error: 'Internal server error',
-      details: 'Failed to submit contact form'
-    }, 500);
+    console.error("❌ EMAIL FAILED:", error);
+    return c.json({ error: "Failed to send email" }, 500);
   }
 };
 
@@ -85,7 +54,4 @@ const getContactSubmissions = async (c) => {
   }
 };
 
-export {
-  submitContactForm,
-  getContactSubmissions
-};
+export { getContactSubmissions };
