@@ -1,4 +1,5 @@
 import { client } from '../config/database.js';
+import transporter from '../utils/sendEmail.js';
 
 const submitContactForm = async (c) => {
   try {
@@ -21,6 +22,29 @@ const submitContactForm = async (c) => {
 
     const values = [name, email, message];
     const result = await client.query(query, values);
+
+    // Send email notification
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'mohitshukla57662@gmail.com',
+      replyTo: email,
+      subject: 'New Contact Form Submission',
+      text: `You have received a new contact form submission.
+
+Name: ${name}
+Email: ${email}
+Message: ${message}
+
+Please reply to this email to respond to the user.`
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Contact form email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send contact form email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
 
     return c.json({
       success: true,

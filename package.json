@@ -1,0 +1,24 @@
+{
+  "name": "niche-connect-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "testEmail.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imohitshukla/main-code-creator-connect-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imohitshukla/main-code-creator-connect-/issues"
+  },
+  "homepage": "https://github.com/imohitshukla/main-code-creator-connect-#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "nodemailer": "^7.0.11"
+  }
+}
