@@ -1,11 +1,14 @@
 import 'dotenv/config';
+import { serve } from '@hono/node-server'; // Moved to top
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+
+// Route Imports
 import authRoutes from '../backend/routes/auth.js';
 import creatorRoutes from '../backend/routes/creators.js';
 import campaignRoutes from '../backend/routes/campaigns.js';
-import aiRoutes from '../backend/src/backend/routes/ai.js';
+import aiRoutes from '../backend/routes/ai.js'; // <--- FIXED PATH
 import messageRoutes from '../backend/routes/messages.js';
 import mediaKitRoutes from '../backend/routes/mediakits.js';
 import educationRoutes from '../backend/routes/education.js';
@@ -15,13 +18,14 @@ import adminRoutes from '../backend/routes/admin.js';
 import contactRoutes from '../backend/routes/contact.js';
 
 const app = new Hono();
+const port = process.env.PORT || 10000;
 
-// Configure CORS to allow your Vercel frontend
+// Configure CORS
 const corsOptions = {
   origin: [
-    "https://main-code-creator-connect.vercel.app", // <--- THIS is the one you are using now
-    "https://niche-connect-project.vercel.app",     // Keep this just in case
-    "http://localhost:5173"                           // For local testing
+    "https://main-code-creator-connect.vercel.app", 
+    "https://niche-connect-project.vercel.app",     
+    "http://localhost:5173"                           
   ],
   credentials: true
 };
@@ -43,7 +47,7 @@ app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (c) => {
   return c.json({ status: 'OK', message: 'CreatorConnect API is running' });
 });
@@ -53,23 +57,19 @@ app.notFound((c) => {
   return c.json({ error: 'Endpoint not found' }, 404);
 });
 
-// Global error handler for debugging
+// Error handler
 app.onError((err, c) => {
   console.error('Unhandled Server Error:', err);
   return c.json({ error: 'Server crashed', message: err.message }, 500);
 });
 
-const port = process.env.PORT || 10000;
-
-import { serve } from '@hono/node-server';
-
+// Start Server
 serve({
   fetch: app.fetch,
   port: port,
-  hostname: '0.0.0.0'
+  hostname: '0.0.0.0' // Required for Render
 }, (info) => {
   console.log(`Server is running on port ${info.port}`);
 });
 
 export { port };
-export const fetch = app.fetch;
