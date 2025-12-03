@@ -1,6 +1,6 @@
 // backend/testEmail.js
 import 'dotenv/config'; // Load your .env variables
-import nodemailer from 'nodemailer';
+import transporter from './utils/sendEmail.js';
 
 async function sendTestEmail() {
   console.log("---------------------------------------");
@@ -8,22 +8,7 @@ async function sendTestEmail() {
   console.log(`👤 Sending FROM: ${process.env.EMAIL_USER}`);
   console.log(`👤 Sending TO:   ${process.env.EMAIL_USER}`);
 
-  // 1. Create the Transporter (using Port 587 for STARTTLS)
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,              // <--- Try 587 instead of 465
-    secure: false,          // <--- Must be FALSE for 587
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false // Helps avoid SSL errors on some clouds
-    },
-    // Keep these timeouts to prevent it from hanging forever
-    connectionTimeout: 10000,
-    greetingTimeout: 5000,
-  });
+  // 1. Use the updated transporter from sendEmail.js
 
   // 2. Define the email options (Self-sending)
   const mailOptions = {
