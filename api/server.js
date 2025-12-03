@@ -59,16 +59,17 @@ app.onError((err, c) => {
   return c.json({ error: 'Server crashed', message: err.message }, 500);
 });
 
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 10000;
 
 import { serve } from '@hono/node-server';
 
 serve({
   fetch: app.fetch,
-  port: PORT
+  port: port,
+  hostname: '0.0.0.0'
 }, (info) => {
   console.log(`Server is running on port ${info.port}`);
 });
 
-export const port = PORT;
+export { port };
 export const fetch = app.fetch;
