@@ -1,16 +1,18 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST, // This will now be smtp-relay.brevo.com
-  port: process.env.EMAIL_PORT, // This will be 587
-  secure: false, // Must be false for port 587
+  host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.EMAIL_PORT) || 2525,
+  secure: false, // Must be false for port 2525
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  // Debug logs to verify connection
-  logger: true,
-  debug: true
+  tls: {
+    rejectUnauthorized: false // Helps with some Render SSL issues
+  },
+  logger: true, // Log to console
+  debug: true   // Include SMTP traffic in logs
 });
 
 export default transporter;
