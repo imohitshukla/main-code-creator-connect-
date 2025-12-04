@@ -1,4 +1,5 @@
 import transporter from '../utils/sendEmail.js';
+import { client } from '../config/database.js';
 
 export const submitContactForm = async (c) => {
   try {
@@ -12,9 +13,18 @@ export const submitContactForm = async (c) => {
       }, 400);
     }
 
+    // 1. Save to Database
+    const query = `
+      INSERT INTO contact_submissions (name, email, message)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `;
+    await client.query(query, [body.name, body.email, body.message]);
+
+    // 2. Send Email
     const mailOptions = {
       from: `Creator Connect System <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+      to: 'mohitshukla57662@gmail.com', // Send to your actual Gmail
       replyTo: body.email,
       subject: `New Message from ${body.name}`,
       text: body.message
@@ -25,8 +35,8 @@ export const submitContactForm = async (c) => {
     return c.json({ message: "Message Sent Successfully!" }, 201);
 
   } catch (error) {
-    console.error("❌ EMAIL FAILED:", error);
-    return c.json({ error: "Failed to send email" }, 500);
+    console.error("❌ SUBMISSION FAILED:", error);
+    return c.json({ error: "Failed to process submission" }, 500);
   }
 };
 
