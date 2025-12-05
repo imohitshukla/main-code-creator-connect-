@@ -23,63 +23,43 @@ export const submitContactForm = async (c) => {
     `;
     await client.query(query, [body.name, body.email, body.message]);
 
-    // 2. Send Email to Admin (You)
-    // We use the user's name in the 'From' field but keep the authenticated email address to avoid spam blocks.
-    // When you hit 'Reply', it will go to the user's email because of 'replyTo'.
+    // 2. Send Email to Admin
+    // CRITICAL FIX: The 'from' address MUST be your verified sender in Brevo (e.g., your gmail),
+    // NOT the SMTP Login ID (which is what process.env.EMAIL_USER contains).
+    const verifiedSender = 'mohitshukla57662@gmail.com';
+
     const adminMailOptions = {
-      from: `"${body.name}" <${process.env.EMAIL_USER}>`,
+      from: `"Creator Connect" <${verifiedSender}>`,
       to: 'mohitshukla57662@gmail.com',
-      replyTo: body.email, // This makes the "Reply" button work as expected
-      subject: `New Message from ${body.name}`,
+      replyTo: body.email, // Replies go to the user
+      subject: `Contact: ${body.name}`,
       text: `
-You have received a new message via the Creator Connect Contact Form.
+New message from: ${body.name} (${body.email})
 
-From: ${body.name} (${body.email})
-Message:
 ${body.message}
-
---------------------------------------------------
-Reply to this email to contact ${body.name} directly.
-      `,
-      html: `
-        <h3>New Contact Form Submission</h3>
-        <p><strong>From:</strong> ${body.name} (<a href="mailto:${body.email}">${body.email}</a>)</p>
-        <p><strong>Message:</strong></p>
-        <blockquote style="background: #f9f9f9; border-left: 10px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px;">
-          ${body.message.replace(/\n/g, '<br>')}
-        </blockquote>
-        <hr>
-        <p style="font-size: 0.9em; color: #666;">This email was sent from the Creator Connect contact form.</p>
       `
     };
 
     // 3. Send Confirmation Email to User
     const userMailOptions = {
-      from: `"Creator Connect Team" <${process.env.EMAIL_USER}>`,
+      from: `"Creator Connect Team" <${verifiedSender}>`,
       to: body.email,
-      subject: `We received your message!`,
-      text: `Hi ${body.name},\n\nThank you for reaching out to Creator Connect. We have received your message and will get back to you shortly.\n\nYour Message:\n${body.message}\n\nBest regards,\nThe Creator Connect Team`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2>Hi ${body.name},</h2>
-          <p>Thank you for reaching out to <strong>Creator Connect</strong>. We have received your message and will get back to you shortly.</p>
-          <hr>
-          <p><strong>Your Message:</strong></p>
-          <p><em>${body.message}</em></p>
-          <hr>
-          <p>Best regards,<br>The Creator Connect Team</p>
-        </div>
-      `
+      subject: `Message Received`,
+      text: `Hi ${body.name},\n\nWe received your message:\n\n"${body.message}"\n\nWe'll get back to you soon.\n\n- Creator Connect`
     };
 
-    // Send emails and log the result
+    console.log('📨 Attempting to send emails...');
+    console.log('👉 From (Verified):', verifiedSender);
+    console.log('👉 To Admin:', 'mohitshukla57662@gmail.com');
+    console.log('👉 To User:', body.email);
+
     const [adminInfo, userInfo] = await Promise.all([
       transporter.sendMail(adminMailOptions),
       transporter.sendMail(userMailOptions)
     ]);
 
-    console.log('✅ Admin Email Sent. MessageID:', adminInfo.messageId);
-    console.log('✅ User Email Sent. MessageID:', userInfo.messageId);
+    console.log('✅ Admin Email Accepted by Brevo. ID:', adminInfo.messageId);
+    console.log('✅ User Email Accepted by Brevo. ID:', userInfo.messageId);
 
     return c.json({ message: "Message Sent Successfully!" }, 201);
 
@@ -87,6 +67,12 @@ Reply to this email to contact ${body.name} directly.
     console.error("❌ SUBMISSION FAILED:", error);
     return c.json({ error: "Failed to process submission", details: error.message }, 500);
   }
+};
+
+  } catch (error) {
+  console.error("❌ SUBMISSION FAILED:", error);
+  return c.json({ error: "Failed to process submission", details: error.message }, 500);
+}
 };
 
 const getContactSubmissions = async (c) => {
