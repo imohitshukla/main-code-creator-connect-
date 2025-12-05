@@ -11,7 +11,7 @@ import { getApiUrl } from '@/lib/utils';
 
 const CampaignPage = () => {
   const { toast } = useToast();
-  
+
   // Sample campaign data
   const [campaigns, setCampaigns] = useState<Campaign[]>([
     {
@@ -60,6 +60,7 @@ const CampaignPage = () => {
   const [selectedCreator, setSelectedCreator] = useState<any>(null);
   const [aiPricing, setAiPricing] = useState<any>(null);
   const [isLoadingPricing, setIsLoadingPricing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -69,9 +70,10 @@ const CampaignPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setIsSubmitting(true);
+
     if (!formData.companyName || !formData.title || !formData.description || !formData.budget) {
       toast({
         title: 'Missing Information',
@@ -106,6 +108,7 @@ const CampaignPage = () => {
       title: 'Campaign Created!',
       description: 'Your campaign has been posted successfully. Creators will start seeing it now.',
     });
+    setIsSubmitting(false);
   };
 
   const handleApply = async (campaign: Campaign) => {
@@ -298,8 +301,9 @@ const CampaignPage = () => {
                   <Button
                     type="submit"
                     className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
+                    disabled={isSubmitting}
                   >
-                    Post Campaign
+                    {isSubmitting ? "Posting..." : "Post Campaign"}
                   </Button>
                   <Button
                     type="button"
@@ -435,7 +439,7 @@ const CampaignPage = () => {
               <p className="text-muted-foreground mb-4">
                 Be the first to create a campaign and connect with amazing creators!
               </p>
-              <Button 
+              <Button
                 onClick={() => setShowForm(true)}
                 className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
               >

@@ -10,12 +10,13 @@ import { getApiUrl } from '@/lib/utils';
 
 const Contact = () => {
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -37,6 +38,7 @@ const Contact = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await fetch(`${getApiUrl()}/api/contact`, {
         method: 'POST',
@@ -67,6 +69,8 @@ const Contact = () => {
         description: 'Failed to send message. Please try again.',
         variant: 'destructive'
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -270,9 +274,16 @@ const Contact = () => {
                     type="submit"
                     size="lg"
                     className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
+                    disabled={isLoading}
                   >
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
+                    {isLoading ? (
+                      "Sending..."
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>

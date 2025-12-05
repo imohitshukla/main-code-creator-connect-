@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Filter from "./pages/Filter";
 import AIMatch from "./pages/AIMatch";
@@ -35,13 +37,18 @@ const App = () => (
               <Route path="/campaign" element={<Campaign />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/education" element={<EducationHub />} />
-              <Route path="/brand-dashboard" element={<BrandDashboard />} />
-              <Route path="/profile-setup" element={<ProfileSetup />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/brand-dashboard" element={<BrandDashboard />} />
+                <Route path="/profile-setup" element={<ProfileSetup />} />
+                {/* Aliases for user-friendly URLs */}
+                <Route path="/dashboard" element={<BrandDashboard />} />
+                <Route path="/profile" element={<ProfileSetup />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Footer />
           </div>
         </BrowserRouter>
       </TooltipProvider>

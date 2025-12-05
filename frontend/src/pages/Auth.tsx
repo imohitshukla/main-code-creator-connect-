@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, Building2, ArrowLeft } from 'lucide-react';
 import { getApiUrl } from '@/lib/utils';
+import { getErrorMessage } from '@/utils/apiHelper';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -31,6 +32,7 @@ const Auth = () => {
     phone_number: ''
   });
 
+  const [isLoading, setIsLoading] = useState(false);
   const [companyForm, setCompanyForm] = useState({
     companyName: '',
     productType: '',
@@ -41,6 +43,7 @@ const Auth = () => {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const result = await login(loginForm.email, loginForm.password);
       if (result.requiresOtp) {
@@ -51,12 +54,14 @@ const Auth = () => {
           description: result.message,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please try again.",
+        description: error.message || "Invalid credentials. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,6 +95,7 @@ const Auth = () => {
 
   const handleCreatorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     console.log('Submitting creator registration:', {
       name: creatorForm.name,
       email: creatorForm.email,
@@ -121,14 +127,17 @@ const Auth = () => {
     } catch (error) {
       toast({
         title: "Registration Failed",
-        description: "Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCompanySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     console.log('Submitting company registration:', {
       company_name: companyForm.companyName,
       email: companyForm.email,
@@ -160,9 +169,11 @@ const Auth = () => {
     } catch (error) {
       toast({
         title: "Registration Failed",
-        description: "Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -230,140 +241,140 @@ const Auth = () => {
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full">
-                      Login
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Logging in..." : "Login"}
                     </Button>
                   </form>
                 </TabsContent>
 
                 <TabsContent value="creator" className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Creator Registration</h3>
-                  <p className="text-muted-foreground">
-                    Join our community of talented creators and showcase your work
-                  </p>
-                </div>
-                
-                <form onSubmit={handleCreatorSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-name">Full Name</Label>
-                      <Input
-                        id="creator-name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={creatorForm.name}
-                        onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-followers">Number of Followers</Label>
-                      <Input
-                        id="creator-followers"
-                        type="number"
-                        placeholder="e.g., 10000"
-                        value={creatorForm.followers}
-                        onChange={(e) => setCreatorForm({ ...creatorForm, followers: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="creator-email">Email Address</Label>
-                    <Input
-                      id="creator-email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={creatorForm.email}
-                      onChange={(e) => setCreatorForm({ ...creatorForm, email: e.target.value })}
-                      required
-                    />
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Creator Registration</h3>
+                    <p className="text-muted-foreground">
+                      Join our community of talented creators and showcase your work
+                    </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="creator-phone">Phone Number</Label>
-                    <Input
-                      id="creator-phone"
-                      type="tel"
-                      placeholder="+1234567890"
-                      value={creatorForm.phone_number}
-                      onChange={(e) => setCreatorForm({ ...creatorForm, phone_number: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full">
-                    Register as Creator
-                  </Button>
-                </form>
-              </TabsContent>
+                  <form onSubmit={handleCreatorSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="creator-name">Full Name</Label>
+                        <Input
+                          id="creator-name"
+                          type="text"
+                          placeholder="Enter your full name"
+                          value={creatorForm.name}
+                          onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="creator-followers">Number of Followers</Label>
+                        <Input
+                          id="creator-followers"
+                          type="number"
+                          placeholder="e.g., 10000"
+                          value={creatorForm.followers}
+                          onChange={(e) => setCreatorForm({ ...creatorForm, followers: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
 
-              <TabsContent value="company" className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Company Registration</h3>
-                  <p className="text-muted-foreground">
-                    Connect with talented creators for your marketing campaigns
-                  </p>
-                </div>
-                
-                <form onSubmit={handleCompanySubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="company-name">Company Name</Label>
+                      <Label htmlFor="creator-email">Email Address</Label>
                       <Input
-                        id="company-name"
-                        type="text"
-                        placeholder="Your company name"
-                        value={companyForm.companyName}
-                        onChange={(e) => setCompanyForm({ ...companyForm, companyName: e.target.value })}
+                        id="creator-email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        value={creatorForm.email}
+                        onChange={(e) => setCreatorForm({ ...creatorForm, email: e.target.value })}
                         required
                       />
                     </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="product-type">Product Type</Label>
+                      <Label htmlFor="creator-phone">Phone Number</Label>
                       <Input
-                        id="product-type"
-                        type="text"
-                        placeholder="e.g., Fashion, Tech, Food"
-                        value={companyForm.productType}
-                        onChange={(e) => setCompanyForm({ ...companyForm, productType: e.target.value })}
+                        id="creator-phone"
+                        type="tel"
+                        placeholder="+1234567890"
+                        value={creatorForm.phone_number}
+                        onChange={(e) => setCreatorForm({ ...creatorForm, phone_number: e.target.value })}
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="company-email">Business Email</Label>
-                    <Input
-                      id="company-email"
-                      type="email"
-                      placeholder="business@company.com"
-                      value={companyForm.email}
-                      onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
-                      required
-                    />
+
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Registering..." : "Register as Creator"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="company" className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Company Registration</h3>
+                    <p className="text-muted-foreground">
+                      Connect with talented creators for your marketing campaigns
+                    </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="company-phone">Business Phone Number</Label>
-                    <Input
-                      id="company-phone"
-                      type="tel"
-                      placeholder="+1234567890"
-                      value={companyForm.phone_number}
-                      onChange={(e) => setCompanyForm({ ...companyForm, phone_number: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full">
-                    Register as Company
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                  <form onSubmit={handleCompanySubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="company-name">Company Name</Label>
+                        <Input
+                          id="company-name"
+                          type="text"
+                          placeholder="Your company name"
+                          value={companyForm.companyName}
+                          onChange={(e) => setCompanyForm({ ...companyForm, companyName: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="product-type">Product Type</Label>
+                        <Input
+                          id="product-type"
+                          type="text"
+                          placeholder="e.g., Fashion, Tech, Food"
+                          value={companyForm.productType}
+                          onChange={(e) => setCompanyForm({ ...companyForm, productType: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="company-email">Business Email</Label>
+                      <Input
+                        id="company-email"
+                        type="email"
+                        placeholder="business@company.com"
+                        value={companyForm.email}
+                        onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="company-phone">Business Phone Number</Label>
+                      <Input
+                        id="company-phone"
+                        type="tel"
+                        placeholder="+1234567890"
+                        value={companyForm.phone_number}
+                        onChange={(e) => setCompanyForm({ ...companyForm, phone_number: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Registering..." : "Register as Company"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
             ) : (
               // OTP Verification Step
               <div className="space-y-6">

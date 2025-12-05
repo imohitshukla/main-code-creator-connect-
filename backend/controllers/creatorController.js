@@ -48,12 +48,28 @@ export const getCreatorByUsername = async (c) => {
 
 export const getCreators = async (c) => {
   try {
-    const creators = await client.query(`
+    const { niche, minFollowers } = c.req.query();
+    let query = `
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
-             u.email
+             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
+             u.email, u.name, cp.is_verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
-    `);
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (niche && niche !== 'All') {
+      params.push(`%${niche}%`);
+      query += ` AND cp.niche ILIKE $${params.length}`;
+    }
+
+    if (minFollowers) {
+      params.push(parseInt(minFollowers));
+      query += ` AND cp.follower_count >= $${params.length}`;
+    }
+
+    const creators = await client.query(query, params);
     return c.json({ creators: creators.rows });
   } catch (error) {
     console.error(error);

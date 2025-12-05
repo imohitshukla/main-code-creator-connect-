@@ -117,27 +117,20 @@ const Navbar = () => {
         ))}
       </div>
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        className="cursor-pointer gap-2"
-        onSelect={() => setIsProfileDialogOpen(true)}
-      >
-        <Edit3 className="h-4 w-4" />
-        Edit profile
-      </DropdownMenuItem>
       <DropdownMenuItem asChild className="cursor-pointer gap-2">
-        <Link to="/profile-setup" className="flex items-center gap-2 w-full">
+        <Link to="/dashboard" className="flex items-center gap-2 w-full">
           <Layers className="h-4 w-4" />
-          Full profile setup
+          Dashboard
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild className="cursor-pointer gap-2">
-        <Link to="/messages" className="flex items-center gap-2 w-full">
-          <MessageCircle className="h-4 w-4" />
-          Messages
+        <Link to="/profile" className="flex items-center gap-2 w-full">
+          <Edit3 className="h-4 w-4" />
+          Profile
         </Link>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={logout} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+      <DropdownMenuItem onClick={() => { logout(); window.location.href = '/'; }} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
         <LogOut className="h-4 w-4" />
         Log out
       </DropdownMenuItem>
@@ -197,8 +190,8 @@ const Navbar = () => {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setAuthMode('signup');
                     setIsAuthModalOpen(true);
@@ -206,14 +199,14 @@ const Navbar = () => {
                 >
                   Sign Up
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     setAuthMode('login');
                     setIsAuthModalOpen(true);
                   }}
                 >
                   Log In
-              </Button>
+                </Button>
               </div>
             )}
           </div>
@@ -246,8 +239,8 @@ const Navbar = () => {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => {
                     setAuthMode('signup');
@@ -256,7 +249,7 @@ const Navbar = () => {
                 >
                   Sign Up
                 </Button>
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => {
                     setAuthMode('login');
@@ -264,7 +257,7 @@ const Navbar = () => {
                   }}
                 >
                   Log In
-              </Button>
+                </Button>
               </div>
             )}
           </div>
@@ -279,11 +272,10 @@ const Navbar = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-smooth ${
-                    isActive(item.path)
+                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-smooth ${isActive(item.path)
                       ? 'text-primary bg-primary-soft'
                       : 'text-foreground hover:text-primary hover:bg-accent'
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -293,8 +285,8 @@ const Navbar = () => {
         )}
       </div>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
+      <AuthModal
+        isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         defaultMode={authMode}
       />
