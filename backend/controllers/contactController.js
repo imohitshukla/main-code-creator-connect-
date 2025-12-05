@@ -21,16 +21,31 @@ export const submitContactForm = async (c) => {
     `;
     await client.query(query, [body.name, body.email, body.message]);
 
-    // 2. Send Email
-    const mailOptions = {
+    // 2. Send Email to Admin
+    const adminMailOptions = {
       from: `Creator Connect System <${process.env.EMAIL_USER}>`,
-      to: 'mohitshukla57662@gmail.com', // Send to your actual Gmail
+      to: 'mohitshukla57662@gmail.com',
       replyTo: body.email,
-      subject: `New Message from ${body.name}`,
-      text: body.message
+      subject: `New Contact Form Submission from ${body.name}`,
+      text: `
+        Name: ${body.name}
+        Email: ${body.email}
+        Message: ${body.message}
+      `
     };
 
-    await transporter.sendMail(mailOptions);
+    // 3. Send Confirmation Email to User
+    const userMailOptions = {
+      from: `Creator Connect Team <${process.env.EMAIL_USER}>`,
+      to: body.email,
+      subject: `We received your message!`,
+      text: `Hi ${body.name},\n\nThank you for reaching out to Creator Connect. We have received your message and will get back to you shortly.\n\nYour Message:\n${body.message}\n\nBest regards,\nThe Creator Connect Team`
+    };
+
+    await Promise.all([
+      transporter.sendMail(adminMailOptions),
+      transporter.sendMail(userMailOptions)
+    ]);
 
     return c.json({ message: "Message Sent Successfully!" }, 201);
 
