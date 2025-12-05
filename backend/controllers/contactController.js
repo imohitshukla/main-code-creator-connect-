@@ -69,11 +69,7 @@ ${body.message}
   }
 };
 
-  } catch (error) {
-  console.error("❌ SUBMISSION FAILED:", error);
-  return c.json({ error: "Failed to process submission", details: error.message }, 500);
-}
-};
+
 
 const getContactSubmissions = async (c) => {
   try {
