@@ -4,9 +4,10 @@ export const getCampaigns = async (c) => {
   try {
     const campaigns = await client.query(`
       SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
-             u.email as brand_name
+             bp.company_name as brand_name
       FROM campaigns c
-      JOIN users u ON c.brand_id = u.id
+      JOIN brand_profiles bp ON c.brand_id = bp.id
+      ORDER BY c.created_at DESC
     `);
     return c.json({ campaigns: campaigns.rows });
   } catch (error) {
@@ -20,11 +21,23 @@ export const createCampaign = async (c) => {
     const userId = c.get('userId');
     const { title, description, budget_range, niche } = await c.req.json();
 
+    // Get brand_id from brand_profiles
+    const brandProfile = await client.query(
+      'SELECT id FROM brand_profiles WHERE user_id = $1',
+      [userId]
+    );
+
+    if (brandProfile.rows.length === 0) {
+      return c.json({ error: 'Brand profile not found. Please complete your profile first.' }, 400);
+    }
+
+    const brandId = brandProfile.rows[0].id;
+
     const result = await client.query(`
       INSERT INTO campaigns (brand_id, title, description, budget_range, niche)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id, title, description, budget_range, niche, status, created_at
-    `, [userId, title, description, budget_range, niche]);
+    `, [brandId, title, description, budget_range, niche]);
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {

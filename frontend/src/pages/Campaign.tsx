@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,39 +12,8 @@ import { getApiUrl } from '@/lib/utils';
 const CampaignPage = () => {
   const { toast } = useToast();
 
-  // Sample campaign data
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
-    {
-      id: 1,
-      companyName: 'FitLife Apparel',
-      title: 'Summer Fitness Collection Launch',
-      description: 'We\'re looking for fitness influencers to showcase our new summer collection of workout gear. Perfect for gym enthusiasts and fitness coaches.',
-      budget: '$500 - $2,000',
-      requirements: 'Fitness niche, 50K+ followers, good engagement rate',
-      deadline: 'Dec 15, 2024',
-      applicants: 24
-    },
-    {
-      id: 2,
-      companyName: 'TechFlow Solutions',
-      title: 'SaaS Product Review Campaign',
-      description: 'Seeking tech reviewers to create honest reviews of our productivity software. Multiple content formats accepted.',
-      budget: '$300 - $1,200',
-      requirements: 'Tech/Business niche, YouTube or LinkedIn presence',
-      deadline: 'Dec 20, 2024',
-      applicants: 18
-    },
-    {
-      id: 3,
-      companyName: 'GreenEats',
-      title: 'Sustainable Food Brand Partnership',
-      description: 'Looking for food bloggers and nutrition experts to promote our sustainable meal prep service.',
-      budget: '$400 - $1,500',
-      requirements: 'Food/Health niche, Instagram focused content',
-      deadline: 'Dec 25, 2024',
-      applicants: 31
-    }
-  ]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,6 +30,45 @@ const CampaignPage = () => {
   const [aiPricing, setAiPricing] = useState<any>(null);
   const [isLoadingPricing, setIsLoadingPricing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${getApiUrl()}/api/campaigns`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend data to frontend Campaign interface
+        const mappedCampaigns: Campaign[] = data.campaigns.map((c: any) => ({
+          id: c.id,
+          companyName: c.brand_name || 'Unknown Brand',
+          title: c.title,
+          description: c.description,
+          budget: c.budget_range,
+          requirements: c.niche,
+          deadline: new Date(c.created_at).toLocaleDateString(),
+          applicants: 0, // Backend doesn't return this yet
+          status: c.status
+        }));
+        setCampaigns(mappedCampaigns);
+      } else {
+        console.error('Failed to fetch campaigns');
+        // Fallback to empty list or handle error appropriately
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -80,35 +88,57 @@ const CampaignPage = () => {
         description: 'Please fill in all required fields.',
         variant: 'destructive'
       });
+      setIsSubmitting(false);
       return;
     }
 
-    const newCampaign: Campaign = {
-      id: campaigns.length + 1,
-      companyName: formData.companyName,
-      title: formData.title,
-      description: formData.description,
-      budget: formData.budget,
-      requirements: formData.requirements || undefined,
-      deadline: 'Just posted',
-      applicants: 0
-    };
+    try {
+      const response = await fetch(`${getApiUrl()}/api/campaigns`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          budget_range: formData.budget,
+          niche: formData.requirements
+        })
+      });
 
-    setCampaigns([newCampaign, ...campaigns]);
-    setFormData({
-      companyName: '',
-      title: '',
-      description: '',
-      budget: '',
-      requirements: ''
-    });
-    setShowForm(false);
+      if (response.ok) {
+        toast({
+          title: 'Campaign Created!',
+          description: 'Your campaign has been posted successfully. Creators will start seeing it now.',
+        });
 
-    toast({
-      title: 'Campaign Created!',
-      description: 'Your campaign has been posted successfully. Creators will start seeing it now.',
-    });
-    setIsSubmitting(false);
+        setFormData({
+          companyName: '',
+          title: '',
+          description: '',
+          budget: '',
+          requirements: ''
+        });
+        setShowForm(false);
+        fetchCampaigns(); // Refresh list
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Failed to create campaign',
+          description: errorData.error || 'Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Network Error',
+        description: 'Unable to create campaign. Please check your connection.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleApply = async (campaign: Campaign) => {
@@ -406,32 +436,39 @@ const CampaignPage = () => {
         )}
 
         {/* Campaigns Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {campaigns.map((campaign) => (
-            <div key={campaign.id} className="relative">
-              <CampaignCard
-                campaign={campaign}
-                onApply={handleApply}
-              />
-              {/* AI Pricing Button Overlay */}
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md"
-                onClick={() => handleAIPricing({ id: campaign.id, username: campaign.companyName })}
-                disabled={isLoadingPricing}
-              >
-                {isLoadingPricing ? (
-                  <div className="animate-spin rounded-full h-3 w-3 border-b border-primary"></div>
-                ) : (
-                  <TrendingUp className="w-3 h-3" />
-                )}
-              </Button>
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading campaigns...</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {campaigns.map((campaign) => (
+              <div key={campaign.id} className="relative">
+                <CampaignCard
+                  campaign={campaign}
+                  onApply={handleApply}
+                />
+                {/* AI Pricing Button Overlay */}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md"
+                  onClick={() => handleAIPricing({ id: campaign.id, username: campaign.companyName })}
+                  disabled={isLoadingPricing}
+                >
+                  {isLoadingPricing ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b border-primary"></div>
+                  ) : (
+                    <TrendingUp className="w-3 h-3" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {campaigns.length === 0 && (
+        {!isLoading && campaigns.length === 0 && (
           <Card className="text-center py-12 bg-gradient-card border-0">
             <CardContent>
               <div className="text-6xl mb-4">📢</div>
