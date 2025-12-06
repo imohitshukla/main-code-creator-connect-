@@ -50,19 +50,58 @@ export const applyToCampaign = async (c) => {
   try {
     const campaignId = c.req.param('id');
     const userId = c.get('userId');
+    const userRole = c.get('userRole');
     const { proposal_text } = await c.req.json();
+
+    if (userRole !== 'creator') {
+      return c.json({ error: 'Only creators can apply to campaigns' }, 403);
+    }
+
+    // Get creator_id from creator_profiles
+    const creatorProfile = await client.query(
+      'SELECT id, name FROM creator_profiles WHERE user_id = $1',
+      [userId]
+    );
+
+    if (creatorProfile.rows.length === 0) {
+      return c.json({ error: 'Creator profile not found. Please complete your profile first.' }, 400);
+    }
+
+    const creatorId = creatorProfile.rows[0].id;
+    const creatorName = creatorProfile.rows[0].name;
+
+    // Check if already applied
+    const existingProposal = await client.query(
+      'SELECT id FROM proposals WHERE campaign_id = $1 AND creator_id = $2',
+      [campaignId, creatorId]
+    );
+
+    if (existingProposal.rows.length > 0) {
+      return c.json({ error: 'You have already applied to this campaign' }, 400);
+    }
 
     const result = await client.query(`
       INSERT INTO proposals (campaign_id, creator_id, proposal_text)
       VALUES ($1, $2, $3)
       RETURNING id, proposal_text, status, created_at
-    `, [campaignId, userId, proposal_text]);
+    `, [campaignId, creatorId, proposal_text]);
 
-    // Create notification for brand
-    await client.query(`
-      INSERT INTO notifications (user_id, type, message, related_id)
-      VALUES ($1, 'application', 'New application for your campaign', $2)
-    `, [userId, campaignId]); // Note: userId here should be brand_id, fix later
+    // Get brand owner's user_id for notification
+    const campaign = await client.query(`
+      SELECT bp.user_id 
+      FROM campaigns c
+      JOIN brand_profiles bp ON c.brand_id = bp.id
+      WHERE c.id = $1
+    `, [campaignId]);
+
+    if (campaign.rows.length > 0) {
+      const brandUserId = campaign.rows[0].user_id;
+      // Create notification for brand
+      await client.query(`
+        INSERT INTO notifications (user_id, type, message, related_id)
+        VALUES ($1, 'application', $2, $3)
+      `, [brandUserId, `New application from ${creatorName}`, campaignId]);
+    }
 
     return c.json({ proposal: result.rows[0] });
   } catch (error) {

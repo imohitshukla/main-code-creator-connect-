@@ -142,12 +142,22 @@ const CampaignPage = () => {
   };
 
   const handleApply = async (campaign: Campaign) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to apply for campaigns.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`${getApiUrl()}/api/campaigns/${campaign.id}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           proposal_text: `I am interested in collaborating on "${campaign.title}". Please consider my application.`
@@ -160,12 +170,20 @@ const CampaignPage = () => {
           description: `Your application for "${campaign.title}" has been sent to ${campaign.companyName}!`,
         });
       } else {
-        const errorData = await response.json();
-        toast({
-          title: 'Application Failed',
-          description: errorData.error || 'Please try again.',
-          variant: 'destructive'
-        });
+        if (response.status === 401) {
+          toast({
+            title: 'Session Expired',
+            description: 'Please log in again.',
+            variant: 'destructive'
+          });
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: 'Application Failed',
+            description: errorData.error || 'Please try again.',
+            variant: 'destructive'
+          });
+        }
       }
     } catch (error) {
       toast({
