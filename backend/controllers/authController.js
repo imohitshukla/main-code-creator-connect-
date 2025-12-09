@@ -4,11 +4,16 @@ import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { client } from '../config/database.js';
 
-// Initialize Twilio client
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+// Initialize Twilio client conditionally
+let twilioClient;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+  twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
+} else {
+  console.warn('Twilio credentials missing. SMS features will be disabled.');
+}
 
 // Initialize Nodemailer transporter
 const emailTransporter = nodemailer.createTransport({
@@ -24,116 +29,7 @@ const emailTransporter = nodemailer.createTransport({
   }
 });
 
-const registerCreator = async (c) => {
-  const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
-
-  try {
-    // Check if user exists
-    const userExists = await client.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (userExists.rows.length > 0) {
-      return c.json({ error: 'User already exists' }, 400);
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Start transaction
-    await client.query('BEGIN');
-
-    // Create user
-    const newUser = await client.query(
-      'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
-      [email, hashedPassword, 'creator', phone_number]
-    );
-
-    const userId = newUser.rows[0].id;
-
-    // Create creator profile
-    await client.query(
-      `INSERT INTO creator_profiles (user_id, name, portfolio_links) 
-       VALUES ($1, $2, $3)`,
-      [userId, name, JSON.stringify([portfolio_link])]
-    );
-
-    await client.query('COMMIT');
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: userId, email, role: 'creator' },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-    );
-
-    return c.json({
-      token,
-      user: { id: userId, email, role: 'creator', name }
-    }, 201);
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
-  }
-};
-
-// Register Brand
-const registerBrand = async (c) => {
-  const { company_name, email, password, website, phone_number } = c.req.valid('json');
-
-  try {
-    // Check if user exists
-    const userExists = await client.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (userExists.rows.length > 0) {
-      return c.json({ error: 'User already exists' }, 400);
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Start transaction
-    await client.query('BEGIN');
-
-    // Create user
-    const newUser = await client.query(
-      'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
-      [email, hashedPassword, 'brand', phone_number]
-    );
-
-    const userId = newUser.rows[0].id;
-
-    // Create brand profile
-    await client.query(
-      `INSERT INTO brand_profiles (user_id, company_name, website)
-       VALUES ($1, $2, $3)`,
-      [userId, company_name, website]
-    );
-
-    await client.query('COMMIT');
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: userId, email, role: 'brand' },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-    );
-
-    return c.json({
-      token,
-      user: { id: userId, email, role: 'brand', company_name }
-    }, 201);
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
-  }
-};
+// ... (existing code) ...
 
 // Login - Send OTP
 const login = async (c) => {
@@ -170,31 +66,37 @@ const login = async (c) => {
       [otp, expiresAt, user.id]
     );
 
+    // Log OTP for debugging (since email might be delayed/spam)
+    console.log(`[DEBUG] Login OTP for ${user.email}: ${otp}`);
+
     // Send OTP via email (primary)
-    try {
-      console.log(`Attempting to send OTP email to ${user.email}...`);
-      const info = await emailTransporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: 'Your Login OTP - Niche Connect',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Login Verification</h2>
-            <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
-            <p>This code expires in 10 minutes.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-          </div>
-        `
-      });
-      console.log(`OTP email sent successfully. MessageId: ${info.messageId}`);
-    } catch (emailError) {
-      console.error('Error sending OTP email:', emailError);
-      // Log OTP for development/testing if sending fails
-      console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
+    if (process.env.EMAIL_USER) {
+      try {
+        console.log(`Attempting to send OTP email to ${user.email}...`);
+        const info = await emailTransporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: 'Your Login OTP - Niche Connect',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Login Verification</h2>
+              <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
+              <p>This code expires in 10 minutes.</p>
+              <p>If you didn't request this, please ignore this email.</p>
+            </div>
+          `
+        });
+        console.log(`OTP email sent successfully. MessageId: ${info.messageId}`);
+      } catch (emailError) {
+        console.error('Error sending OTP email:', emailError);
+        console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
+      }
+    } else {
+      console.warn('EMAIL_USER not set. Skipping email sending.');
     }
 
-    // Send SMS OTP if phone number exists
-    if (user.phone_number) {
+    // Send SMS OTP if phone number exists and Twilio is configured
+    if (user.phone_number && twilioClient) {
       try {
         console.log(`Attempting to send OTP SMS to ${user.phone_number}...`);
         await twilioClient.messages.create({
@@ -205,8 +107,9 @@ const login = async (c) => {
         console.log('OTP SMS sent successfully');
       } catch (twilioError) {
         console.error('Error sending OTP SMS:', twilioError.message);
-        // Don't fail the request if SMS fails, just log it
       }
+    } else if (user.phone_number && !twilioClient) {
+      console.log('Twilio not configured. Skipping SMS.');
     }
 
     return c.json({
