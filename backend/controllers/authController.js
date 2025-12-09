@@ -26,7 +26,7 @@ const emailTransporter = nodemailer.createTransport({
 
 const registerCreator = async (c) => {
   const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
-  
+
   try {
     // Check if user exists
     const userExists = await client.query(
@@ -80,7 +80,7 @@ const registerCreator = async (c) => {
 };
 
 // Register Brand
- const registerBrand = async (c) => {
+const registerBrand = async (c) => {
   const { company_name, email, password, website, phone_number } = c.req.valid('json');
 
   try {
@@ -136,7 +136,7 @@ const registerCreator = async (c) => {
 };
 
 // Login - Send OTP
- const login = async (c) => {
+const login = async (c) => {
   const { email, password } = c.req.valid('json');
 
   try {
@@ -170,10 +170,10 @@ const registerCreator = async (c) => {
       [otp, expiresAt, user.id]
     );
 
-    // Send OTP via email (primary) and SMS (if phone available)
+    // Send OTP via email (primary)
     try {
-      // Send email OTP
-      await emailTransporter.sendMail({
+      console.log(`Attempting to send OTP email to ${user.email}...`);
+      const info = await emailTransporter.sendMail({
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: 'Your Login OTP - Niche Connect',
@@ -186,19 +186,27 @@ const registerCreator = async (c) => {
           </div>
         `
       });
+      console.log(`OTP email sent successfully. MessageId: ${info.messageId}`);
+    } catch (emailError) {
+      console.error('Error sending OTP email:', emailError);
+      // Log OTP for development/testing if sending fails
+      console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
+    }
 
-      // Send SMS OTP if phone number exists
-      if (user.phone_number) {
+    // Send SMS OTP if phone number exists
+    if (user.phone_number) {
+      try {
+        console.log(`Attempting to send OTP SMS to ${user.phone_number}...`);
         await twilioClient.messages.create({
           body: `Your login OTP for Niche Connect is: ${otp}. This code expires in 10 minutes.`,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: user.phone_number,
         });
+        console.log('OTP SMS sent successfully');
+      } catch (twilioError) {
+        console.error('Error sending OTP SMS:', twilioError.message);
+        // Don't fail the request if SMS fails, just log it
       }
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      // Log OTP for development/testing if sending fails
-      console.log(`Login OTP for ${user.email}: ${otp}`);
     }
 
     return c.json({
@@ -262,7 +270,7 @@ const verifyLoginOtp = async (c) => {
 };
 
 // Send OTP
- const sendOtp = async (c) => {
+const sendOtp = async (c) => {
   const { phone_number } = c.req.valid('json');
 
   try {
@@ -311,7 +319,7 @@ const verifyLoginOtp = async (c) => {
 };
 
 // Verify OTP
- const verifyOtp = async (c) => {
+const verifyOtp = async (c) => {
   const { phone_number, otp } = c.req.valid('json');
 
   try {
