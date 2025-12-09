@@ -14,6 +14,7 @@ const CampaignPage = () => {
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -33,6 +34,15 @@ const CampaignPage = () => {
 
   useEffect(() => {
     fetchCampaigns();
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.id);
+      } catch (e) {
+        console.error('Failed to decode token', e);
+      }
+    }
   }, []);
 
   const fetchCampaigns = async () => {
@@ -56,12 +66,12 @@ const CampaignPage = () => {
           requirements: c.niche,
           deadline: new Date(c.created_at).toLocaleDateString(),
           applicants: 0, // Backend doesn't return this yet
-          status: c.status
+          status: c.status,
+          brand_user_id: c.brand_user_id
         }));
         setCampaigns(mappedCampaigns);
       } else {
         console.error('Failed to fetch campaigns');
-        // Fallback to empty list or handle error appropriately
       }
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -189,6 +199,42 @@ const CampaignPage = () => {
       toast({
         title: 'Network Error',
         description: 'Unable to submit application. Please check your connection.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleCloseCampaign = async (campaign: Campaign) => {
+    try {
+      const response = await fetch(`${getApiUrl()}/api/campaigns/${campaign.id}/progress`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: 'closed'
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Campaign Closed',
+          description: 'The campaign has been successfully closed.',
+        });
+        fetchCampaigns(); // Refresh list
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: 'Failed to close campaign',
+          description: errorData.error || 'Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Network Error',
+        description: 'Unable to close campaign. Please check your connection.',
         variant: 'destructive'
       });
     }
@@ -466,6 +512,8 @@ const CampaignPage = () => {
                 <CampaignCard
                   campaign={campaign}
                   onApply={handleApply}
+                  isOwner={currentUserId === campaign.brand_user_id}
+                  onClose={handleCloseCampaign}
                 />
                 {/* AI Pricing Button Overlay */}
                 <Button

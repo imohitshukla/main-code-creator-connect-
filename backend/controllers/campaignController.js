@@ -4,7 +4,7 @@ export const getCampaigns = async (c) => {
   try {
     const campaigns = await client.query(`
       SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
-             bp.company_name as brand_name
+             c.brand_id, bp.company_name as brand_name, bp.user_id as brand_user_id
       FROM campaigns c
       JOIN brand_profiles bp ON c.brand_id = bp.id
       ORDER BY c.created_at DESC
