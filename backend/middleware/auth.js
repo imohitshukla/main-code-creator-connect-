@@ -15,6 +15,7 @@ const authMiddleware = async (c, next) => {
     c.set('isAdmin', decoded.role === 'admin'); // Placeholder for admin role
     await next();
   } catch (error) {
+    console.error('Auth Middleware Error:', error.message);
     return c.json({ error: 'Invalid token' }, 401);
   }
 };

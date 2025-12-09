@@ -224,12 +224,20 @@ const CampaignPage = () => {
         });
         fetchCampaigns(); // Refresh list
       } else {
-        const errorData = await response.json();
-        toast({
-          title: 'Failed to close campaign',
-          description: errorData.error || 'Please try again.',
-          variant: 'destructive'
-        });
+        if (response.status === 401) {
+          toast({
+            title: 'Session Expired',
+            description: 'Please log in again to manage your campaign.',
+            variant: 'destructive'
+          });
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: 'Failed to close campaign',
+            description: errorData.error || 'Please try again.',
+            variant: 'destructive'
+          });
+        }
       }
     } catch (error) {
       toast({
