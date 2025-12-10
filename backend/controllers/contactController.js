@@ -16,12 +16,17 @@ export const submitContactForm = async (c) => {
     console.log('📩 Processing contact submission for:', body.email);
 
     // 1. Save to Database
-    const query = `
-      INSERT INTO contact_submissions (name, email, message)
-      VALUES ($1, $2, $3)
-      RETURNING *
-    `;
-    await client.query(query, [body.name, body.email, body.message]);
+    // 1. Save to Database (Non-blocking)
+    try {
+      const query = `
+        INSERT INTO contact_submissions (name, email, message)
+        VALUES ($1, $2, $3)
+        RETURNING *
+      `;
+      await client.query(query, [body.name, body.email, body.message]);
+    } catch (dbError) {
+      console.error('⚠️ Failed to save contact to DB (proceeding to email):', dbError.message);
+    }
 
     // 2. Send Email to Admin
     // CRITICAL FIX: The 'from' address MUST be your verified sender in Brevo (e.g., your gmail),
