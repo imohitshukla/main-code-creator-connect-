@@ -37,6 +37,15 @@ const App = () => (
               <Route path="/campaign" element={<Campaign />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
+
+              {/* Placeholder Routes for New Navigation */}
+              <Route path="/platform" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Platform Overview</h1><p>Coming soon...</p></div>} />
+              <Route path="/agency" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Agency Services</h1><p>Coming soon...</p></div>} />
+              <Route path="/stories" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Customer Stories</h1><p>Coming soon...</p></div>} />
+              <Route path="/blog" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Blog</h1><p>Coming soon...</p></div>} />
+              <Route path="/resources/*" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Resources</h1><p>Coming soon...</p></div>} />
+              <Route path="/education" element={<EducationHub />} />
+
               <Route element={<ProtectedRoute />}>
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/brand-dashboard" element={<BrandDashboard />} />

@@ -1,94 +1,40 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageCircle, Edit3, LogOut, Layers } from 'lucide-react';
+import { Menu, X, ChevronDown, Layers, Edit3, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth, UserProfile } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
+import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('login');
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const location = useLocation();
-  const { toast } = useToast();
-  const { user, profile, logout, isAuthenticated, updateProfile } = useAuth();
+  const { user, profile, logout, isAuthenticated } = useAuth();
 
-  const profileDefaults = useMemo<UserProfile>(() => ({
-    name: profile?.name || user?.username || user?.email?.split('@')[0] || 'Creator',
-    phoneNumber: profile?.phoneNumber || user?.phone_number || '',
-    email: profile?.email || user?.email || '',
-    followers: profile?.followers || '',
-    instagram: profile?.instagram || '',
-    youtube: profile?.youtube || '',
-    portfolio: profile?.portfolio || user?.portfolio_link || '',
-    niche: profile?.niche || '',
-    bio: profile?.bio || '',
-    audience: profile?.audience || '',
-    budgetRange: profile?.budgetRange || '',
-    location: profile?.location || '',
-    campaignGoals: profile?.campaignGoals || '',
-  }), [profile, user]);
-
-  const [profileForm, setProfileForm] = useState<UserProfile>(profileDefaults);
-
-  useEffect(() => {
-    if (isProfileDialogOpen) {
-      setProfileForm(profileDefaults);
-    }
-  }, [isProfileDialogOpen, profileDefaults]);
-
-  const profileInitial = (profile?.name || profileForm.name || user?.email || 'C')
+  const profileInitial = (profile?.name || user?.email || 'C')
     .trim()
     .charAt(0)
     .toUpperCase();
-
-  const handleProfileChange = (field: keyof UserProfile, value: string) => {
-    setProfileForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleProfileSave = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    updateProfile(profileForm);
-    toast({
-      title: 'Profile updated',
-      description: 'Your profile details have been saved.',
-    });
-    setIsProfileDialogOpen(false);
-  };
-
-  const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/filter', label: 'Filter' },
-    { path: '/ai-match', label: 'AI Match' },
-    { path: '/campaign', label: 'Campaign' },
-    { path: '/messages', label: 'Messages' },
-    { path: '/contact', label: 'Contact' },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const profileDetailItems = [
-    { label: 'Email', value: profile?.email || profileDefaults.email },
-    { label: 'Phone', value: profile?.phoneNumber || profileDefaults.phoneNumber || 'Add number' },
-    { label: 'Niche', value: profile?.niche || 'Select niche' },
-    { label: 'Followers', value: profile?.followers || 'Add follower count' },
-    { label: 'Audience', value: profile?.audience || 'Add target audience' },
-    { label: 'Budget', value: profile?.budgetRange || 'Add preferred budget' },
-    { label: 'Instagram', value: profile?.instagram || 'Add Instagram link' },
-    { label: 'YouTube', value: profile?.youtube || 'Add YouTube link' },
-    { label: 'Portfolio', value: profile?.portfolio || 'Add portfolio link' },
-  ];
 
   const renderProfileMenu = () => (
     <>
@@ -98,24 +44,11 @@ const Navbar = () => {
             {profileInitial}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold truncate">{profile?.name || profileDefaults.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{profile?.email || profileDefaults.email}</p>
+            <p className="font-semibold truncate">{profile?.name || user?.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Manage your Creator Connect profile details and jump into conversations with brands.
-        </p>
       </DropdownMenuLabel>
-      <div className="px-3 pb-2 space-y-2 text-sm">
-        {profileDetailItems.map((detail) => (
-          <div key={detail.label} className="flex items-center justify-between gap-4">
-            <span className="text-muted-foreground">{detail.label}</span>
-            <span className="font-medium text-right truncate max-w-[55%]">
-              {detail.value}
-            </span>
-          </div>
-        ))}
-      </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild className="cursor-pointer gap-2">
         <Link to="/dashboard" className="flex items-center gap-2 w-full">
@@ -138,148 +71,214 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="fixed top-0 w-full bg-card/95 backdrop-blur-sm border-b shadow-soft z-50">
+    <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm border-b z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CC</span>
-            </div>
-            <span className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              Creator Connect
-            </span>
+          <Link to="/" className="flex items-center space-x-2 mr-8">
+            <span className="text-2xl font-bold tracking-tight">Aspire</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {navItems.map((item) => (
-                  <DropdownMenuItem key={item.path} asChild>
-                    <Link
-                      to={item.path}
-                      className={`w-full ${isActive(item.path) ? 'text-primary' : ''}`}
-                    >
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="hidden lg:flex items-center flex-1">
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="bg-transparent text-base font-medium">All-in-One Platform</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                      <li className="row-span-3">
+                        <NavigationMenuLink asChild>
+                          <Link
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                            to="/platform"
+                          >
+                            <div className="mb-2 mt-4 text-lg font-medium">
+                              Creator Connect Platform
+                            </div>
+                            <p className="text-sm leading-tight text-muted-foreground">
+                              The end-to-end solution for your influencer marketing needs.
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <Link to="/filter" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none">Influencer Discovery</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Find the perfect creators for your brand.
+                          </p>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/campaign" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none">Campaign Management</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Streamline your workflow from start to finish.
+                          </p>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/brand-dashboard" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none">Reporting & Analytics</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Measure ROI and campaign performance.
+                          </p>
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link to="/agency" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
+                    Agency Services
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link to="/stories" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
+                    <span className="bg-[#dcfce7] text-[#14532d] text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">New</span>
+                    Customer Stories
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="bg-transparent text-base font-medium">Resources</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      {[
+                        { title: "Blog", href: "/blog", description: "Latest trends and insights." },
+                        { title: "Influencer Brief", href: "/resources/brief", description: "Templates for perfect briefs." },
+                        { title: "Marketing Courses", href: "/education", description: "Learn from the experts." },
+                        { title: "ROI Calculator", href: "/resources/roi", description: "Estimate your campaign returns." },
+                      ].map((component) => (
+                        <li key={component.title}>
+                          <Link
+                            to={component.href}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="text-sm font-medium leading-none">{component.title}</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              {component.description}
+                            </p>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+
+          {/* Right Side Actions */}
+          <div className="hidden lg:flex items-center gap-4">
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.avatar} alt={user?.email || profileForm.email} />
+                      <AvatarImage src={user?.avatar} />
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                         {profileInitial}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80 p-0" align="end" forceMount>
+                <DropdownMenuContent className="w-80" align="end" forceMount>
                   {renderProfileMenu()}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-2">
+              <>
                 <Button
-                  variant="outline"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setIsAuthModalOpen(true);
-                  }}
-                >
-                  Sign Up
-                </Button>
-                <Button
+                  variant="ghost"
+                  className="text-base font-medium"
                   onClick={() => {
                     setAuthMode('login');
                     setIsAuthModalOpen(true);
                   }}
                 >
-                  Log In
+                  Login
                 </Button>
-              </div>
+                <Button
+                  className="bg-[#0f172a] text-white hover:bg-[#1e293b] rounded-full px-6"
+                  onClick={() => window.location.href = '/contact'}
+                >
+                  Book a demo
+                </Button>
+              </>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
               className="p-2"
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.avatar} alt={user?.email || profileForm.email} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {profileInitial}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80 p-0" align="end" forceMount>
-                  {renderProfileMenu()}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setIsAuthModalOpen(true);
-                  }}
-                >
-                  Sign Up
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthModalOpen(true);
-                  }}
-                >
-                  Log In
-                </Button>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-smooth ${isActive(item.path)
-                      ? 'text-primary bg-primary-soft'
-                      : 'text-foreground hover:text-primary hover:bg-accent'
-                    }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+          <div className="lg:hidden border-t py-4 space-y-4 bg-background h-screen">
+            <div className="px-4 space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Platform</h4>
+                <Link to="/filter" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Influencer Discovery</Link>
+                <Link to="/campaign" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Campaign Management</Link>
+                <Link to="/brand-dashboard" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Analytics</Link>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Services</h4>
+                <Link to="/agency" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Agency Services</Link>
+                <Link to="/stories" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Customer Stories</Link>
+              </div>
+
+              <div className="pt-4 border-t">
+                {!isAuthenticated ? (
+                  <div className="grid gap-3">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-center"
+                      onClick={() => {
+                        setIsOpen(false);
+                        setAuthMode('login');
+                        setIsAuthModalOpen(true);
+                      }}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      className="w-full justify-center bg-[#0f172a] text-white rounded-full"
+                      onClick={() => {
+                        setIsOpen(false);
+                        window.location.href = '/contact';
+                      }}
+                    >
+                      Book a demo
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-center"
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                  >
+                    Log out
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -290,169 +289,8 @@ const Navbar = () => {
         onClose={() => setIsAuthModalOpen(false)}
         defaultMode={authMode}
       />
-      <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit profile</DialogTitle>
-            <DialogDescription>
-              Keep your creator profile information up to date so brands know how to contact and collaborate with you.
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={handleProfileSave}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="profile-name">Full Name</Label>
-                <Input
-                  id="profile-name"
-                  value={profileForm.name}
-                  onChange={(e) => handleProfileChange('name', e.target.value)}
-                  placeholder="Jane Cooper"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-phone">Phone Number</Label>
-                <Input
-                  id="profile-phone"
-                  type="tel"
-                  value={profileForm.phoneNumber}
-                  onChange={(e) => handleProfileChange('phoneNumber', e.target.value)}
-                  placeholder="+1 555 123 4567"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="profile-email">Email Address</Label>
-                <Input
-                  id="profile-email"
-                  type="email"
-                  value={profileForm.email}
-                  onChange={(e) => handleProfileChange('email', e.target.value)}
-                  placeholder="you@email.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-location">Location</Label>
-                <Input
-                  id="profile-location"
-                  value={profileForm.location}
-                  onChange={(e) => handleProfileChange('location', e.target.value)}
-                  placeholder="City, Country"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-niche">Primary Niche</Label>
-                <Input
-                  id="profile-niche"
-                  value={profileForm.niche}
-                  onChange={(e) => handleProfileChange('niche', e.target.value)}
-                  placeholder="e.g. Fitness, Tech, Lifestyle"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-followers">Followers</Label>
-                <Input
-                  id="profile-followers"
-                  value={profileForm.followers}
-                  onChange={(e) => handleProfileChange('followers', e.target.value)}
-                  placeholder="e.g. 120K"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-instagram">Instagram Link</Label>
-                <Input
-                  id="profile-instagram"
-                  type="url"
-                  value={profileForm.instagram}
-                  onChange={(e) => handleProfileChange('instagram', e.target.value)}
-                  placeholder="https://instagram.com/yourhandle"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-youtube">YouTube Link</Label>
-                <Input
-                  id="profile-youtube"
-                  type="url"
-                  value={profileForm.youtube}
-                  onChange={(e) => handleProfileChange('youtube', e.target.value)}
-                  placeholder="https://youtube.com/@yourchannel"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="profile-youtube">YouTube Link</Label>
-                <Input
-                  id="profile-youtube"
-                  type="url"
-                  value={profileForm.youtube}
-                  onChange={(e) => handleProfileChange('youtube', e.target.value)}
-                  placeholder="https://youtube.com/@yourchannel"
-                />
-              </div>
-
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="profile-portfolio">Portfolio</Label>
-                <Input
-                  id="profile-portfolio"
-                  type="url"
-                  value={profileForm.portfolio}
-                  onChange={(e) => handleProfileChange('portfolio', e.target.value)}
-                  placeholder="https://yourportfolio.com"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="profile-bio">Bio / About</Label>
-                <Textarea
-                  id="profile-bio"
-                  value={profileForm.bio}
-                  onChange={(e) => handleProfileChange('bio', e.target.value)}
-                  placeholder="Tell brands about your content style, focus areas, and results."
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="profile-audience">Audience Highlights</Label>
-                <Textarea
-                  id="profile-audience"
-                  value={profileForm.audience}
-                  onChange={(e) => handleProfileChange('audience', e.target.value)}
-                  placeholder="Describe your audience demographics, locations, and interests."
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-1">
-                <Label htmlFor="profile-budget">Preferred Budget Range</Label>
-                <Input
-                  id="profile-budget"
-                  value={profileForm.budgetRange}
-                  onChange={(e) => handleProfileChange('budgetRange', e.target.value)}
-                  placeholder="e.g. ₹25K - ₹75K per deliverable"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-1">
-                <Label htmlFor="profile-goals">Campaign Goals</Label>
-                <Textarea
-                  id="profile-goals"
-                  value={profileForm.campaignGoals}
-                  onChange={(e) => handleProfileChange('campaignGoals', e.target.value)}
-                  placeholder="Share the types of partnerships you are excited about."
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsProfileDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Save changes
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </nav>
   );
 };
 
 export default Navbar;
-
