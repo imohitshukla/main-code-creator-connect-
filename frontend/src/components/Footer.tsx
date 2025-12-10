@@ -20,7 +20,7 @@ const Footer = () => {
     };
 
     return (
-        <footer className="bg-[#022c22] text-white pt-20 pb-10">
+        <footer className="bg-[#0f172a] text-white pt-20 pb-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
                     {/* Newsletter Section - Takes up 4 columns on large screens */}
@@ -40,7 +40,7 @@ const Footer = () => {
                             />
                             <Button
                                 type="submit"
-                                className="w-full h-12 bg-[#dcfce7] text-[#022c22] hover:bg-[#bbf7d0] font-semibold text-lg"
+                                className="w-full h-12 bg-purple-600 text-white hover:bg-purple-700 font-semibold text-lg"
                             >
                                 Subscribe
                             </Button>
@@ -51,7 +51,7 @@ const Footer = () => {
                     <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
                         {/* Company */}
                         <div className="space-y-4">
-                            <h4 className="font-bold text-[#dcfce7]">Company</h4>
+                            <h4 className="font-bold text-purple-400">Company</h4>
                             <ul className="space-y-3 text-sm text-gray-300">
                                 <li><Link to="/about" className="hover:text-white transition-colors">About us</Link></li>
                                 <li><Link to="/contact" className="hover:text-white transition-colors">Contact us</Link></li>
@@ -61,7 +61,7 @@ const Footer = () => {
 
                         {/* What we do */}
                         <div className="space-y-4">
-                            <h4 className="font-bold text-[#dcfce7]">What we do</h4>
+                            <h4 className="font-bold text-purple-400">What we do</h4>
                             <ul className="space-y-3 text-sm text-gray-300">
                                 <li><Link to="/platform" className="hover:text-white transition-colors">Platform overview</Link></li>
                                 <li><Link to="/campaign" className="hover:text-white transition-colors">By campaign strategy</Link></li>
@@ -71,7 +71,7 @@ const Footer = () => {
 
                         {/* Support */}
                         <div className="space-y-4">
-                            <h4 className="font-bold text-[#dcfce7]">Support</h4>
+                            <h4 className="font-bold text-purple-400">Support</h4>
                             <ul className="space-y-3 text-sm text-gray-300">
                                 <li><Link to="/support/brand" className="hover:text-white transition-colors">Brand support</Link></li>
                                 <li><Link to="/support/creator" className="hover:text-white transition-colors">Creator support</Link></li>
@@ -84,7 +84,7 @@ const Footer = () => {
 
                         {/* Free Resources */}
                         <div className="space-y-4">
-                            <h4 className="font-bold text-[#dcfce7]">Free Resources</h4>
+                            <h4 className="font-bold text-purple-400">Free Resources</h4>
                             <ul className="space-y-3 text-sm text-gray-300">
                                 <li><Link to="/resources/brief" className="hover:text-white transition-colors">Influencer brief</Link></li>
                                 <li><Link to="/resources/roi" className="hover:text-white transition-colors">Campaign ROI deck</Link></li>
@@ -98,7 +98,7 @@ const Footer = () => {
 
                         {/* Trust center */}
                         <div className="space-y-4">
-                            <h4 className="font-bold text-[#dcfce7]">Trust center</h4>
+                            <h4 className="font-bold text-purple-400">Trust center</h4>
                             <ul className="space-y-3 text-sm text-gray-300">
                                 <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy policy</Link></li>
                                 <li><Link to="/terms" className="hover:text-white transition-colors">Terms of service</Link></li>
@@ -113,9 +113,12 @@ const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1">
                         <span className="text-2xl font-bold tracking-tight">Creator Connect</span>
-                        <span className="text-xs text-gray-400 mt-1 ml-2">© {new Date().getFullYear()} Creator Connect, Inc. All rights reserved</span>
+                        <div className="flex flex-col text-xs text-gray-400 mt-1">
+                            <span>© 2025 Creator Connect, Inc. All rights reserved</span>
+                            <span>moitshukla57662@gmail.com</span>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-6">
