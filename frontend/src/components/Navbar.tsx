@@ -195,6 +195,17 @@ const Navbar = () => {
             ) : (
               <>
                 <Button
+                  className="bg-transparent border border-purple-500/50 hover:bg-purple-500/10 text-foreground transition-all duration-300 relative group overflow-hidden"
+                  onClick={() => window.location.href = '/ai-match'}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                    AI Match
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Button>
+
+                <Button
                   variant="ghost"
                   className="text-base font-medium"
                   onClick={() => {

@@ -7,6 +7,7 @@ import { TrustedByStrip } from '@/components/TrustedByStrip';
 import { PlatformTour } from '@/components/PlatformTour';
 import { TestimonialCarousel } from '@/components/TestimonialCarousel';
 import { UGCGallery } from '@/components/UGCGallery';
+import { AIAnalysisSection } from '@/components/AIAnalysisSection';
 
 const Home = () => {
   return (
@@ -15,19 +16,6 @@ const Home = () => {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-4"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              The #1 Influencer Marketing Platform
-            </motion.div>
-
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -59,25 +47,6 @@ const Home = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="xl" className="h-14 px-8 text-lg rounded-full border-2">
-                <Link to="/campaign">Start Free Trial</Link>
-              </Button>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="pt-8 flex items-center justify-center gap-8 text-sm text-muted-foreground"
-            >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span>14-day free trial</span>
-              </div>
             </motion.div>
           </div>
         </div>
@@ -89,7 +58,7 @@ const Home = () => {
         </div>
       </section>
 
-      <TrustedByStrip />
+      <AIAnalysisSection />
 
       <PlatformTour />
 
