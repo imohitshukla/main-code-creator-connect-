@@ -19,6 +19,10 @@ import BrandDashboard from "./pages/BrandDashboard";
 import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
 
+import About from "./pages/About";
+import CMSPage from "./pages/CMSPage";
+import LegalPage from "./pages/LegalPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -32,19 +36,37 @@ const App = () => (
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/filter" element={<Filter />} />
-              <Route path="/ai-match" element={<AIMatch />} />
-              <Route path="/campaign" element={<Campaign />} />
+              <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/ai-match" element={<AIMatch />} />
 
-              {/* Placeholder Routes for New Navigation */}
-              <Route path="/platform" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Platform Overview</h1><p>Coming soon...</p></div>} />
-              <Route path="/agency" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Agency Services</h1><p>Coming soon...</p></div>} />
-              <Route path="/stories" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Customer Stories</h1><p>Coming soon...</p></div>} />
-              <Route path="/blog" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Blog</h1><p>Coming soon...</p></div>} />
-              <Route path="/resources/*" element={<div className="pt-32 text-center"><h1 className="text-3xl font-bold">Resources</h1><p>Coming soon...</p></div>} />
+              {/* Product/Service Pages */}
+              <Route path="/platform" element={<CMSPage title="Platform Overview" subtitle="The complete toolkit for influencer marketing." />} />
+              <Route path="/campaign" element={<Campaign />} />
+              <Route path="/agency" element={<CMSPage title="Agency Services" subtitle="White-glove service for enterprise brands." />} />
+              <Route path="/filter" element={<Filter />} />
+              <Route path="/stories" element={<CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." />} />
+
+              {/* Resources & Support */}
+              <Route path="/blog" element={<CMSPage title="Blog" subtitle="Insights, trends, and tips." />} />
+              <Route path="/careers" element={<CMSPage title="Careers" subtitle="Join our mission to democratize influence." />} />
               <Route path="/education" element={<EducationHub />} />
+              <Route path="/support/brand" element={<CMSPage title="Brand Support" subtitle="Help center for brands." />} />
+              <Route path="/support/creator" element={<CMSPage title="Creator Support" subtitle="Help center for creators." />} />
+              <Route path="/partners" element={<CMSPage title="Partner Program" subtitle="Grow with us." />} />
+
+              {/* Legal Center */}
+              <Route path="/privacy" element={<LegalPage type="privacy" />} />
+              <Route path="/terms" element={<LegalPage type="terms" />} />
+              <Route path="/subscription-agreement" element={<LegalPage type="subscription" />} />
+              <Route path="/fees" element={<LegalPage type="fees" />} />
+              <Route path="/disclosure" element={<CMSPage title="Responsible Disclosure" />} />
+              <Route path="/acceptable-use" element={<CMSPage title="Acceptable Use Policy" />} />
+
+              {/* Resources Wildcard */}
+              <Route path="/resources/*" element={<CMSPage title="Resources" subtitle="Briefs, Templates, and more." />} />
+
+              <Route path="/auth" element={<Auth />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/messages" element={<Messages />} />
