@@ -1,368 +1,123 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Users, Zap, Shield, Star, Sparkles, ShieldCheck, TrendingUp, Briefcase, BarChart3, FileSignature, CreditCard, Palette, GraduationCap, CalendarDays } from 'lucide-react';
-import heroImage from '@/assets/hero-image.jpg';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
+import { TrustedByStrip } from '@/components/TrustedByStrip';
+import { PlatformTour } from '@/components/PlatformTour';
+import { TestimonialCarousel } from '@/components/TestimonialCarousel';
+import { UGCGallery } from '@/components/UGCGallery';
 
 const Home = () => {
-  const features = [
-    {
-      icon: Users,
-      title: 'Verified Creator Network',
-      description: 'Access our curated network of verified content creators across all niches and platforms'
-    },
-    {
-      icon: Zap,
-      title: 'Streamlined Campaign Management',
-      description: 'Professional tools to create, manage, and track influencer marketing campaigns efficiently'
-    },
-    {
-      icon: Shield,
-      title: 'Secure & Trusted Platform',
-      description: 'Enterprise-grade security with verified profiles and protected partnerships'
-    },
-    {
-      icon: Star,
-      title: 'Data-Driven Results',
-      description: 'Comprehensive analytics and reporting to measure ROI and campaign performance'
-    }
-  ];
-
-  const aiHighlights = [
-    {
-      icon: Sparkles,
-      title: 'Smart Match Intelligence',
-      description: 'Natural-language briefs are parsed via NLP, computer vision, and historical performance to recommend the top creators with context-rich match scores.'
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Fraud & Authenticity Radar',
-      description: 'Continuous AI scanning flags fake followers, suspicious spikes, and unsafe content so brands trust every “Creator Connect Verified Authentic” badge.'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Dynamic Pricing Engine',
-      description: 'Real-time engagement, niche demand, and growth trends inform fair-market pricing and budget unlock tips before you send a brief.'
-    }
-  ];
-
-  const brandFeatures = [
-    {
-      icon: Briefcase,
-      title: 'Campaign Control Center',
-      description: 'Plan, brief, and track every collaboration from one dashboard with creator milestones, approvals, and message threads.'
-    },
-    {
-      icon: BarChart3,
-      title: 'Performance & ROI Analytics',
-      description: 'Plug into Instagram and YouTube APIs for live KPIs—views, clicks, sentiment, CTR, and ROI benchmarks.'
-    },
-    {
-      icon: FileSignature,
-      title: 'Contracts & Compliance',
-      description: 'Generate agreements, capture e-signatures, and store every scope, brief, and disclosure in a compliant audit trail.'
-    },
-    {
-      icon: CreditCard,
-      title: 'Escrow & Payments',
-      description: 'Fund projects upfront with escrow releases tied to milestones so both brands and creators collaborate with confidence.'
-    }
-  ];
-
-  const creatorTools = [
-    {
-      icon: Palette,
-      title: 'Media Kit Builder',
-      description: 'Auto-generate a beautiful deck using live social stats, audience demographics, and signature content formats.'
-    },
-    {
-      icon: GraduationCap,
-      title: 'Creator School',
-      description: 'Educational paths on pricing, negotiation, marketing metrics, and financial hygiene help creators scale sustainably.'
-    },
-    {
-      icon: CalendarDays,
-      title: 'Content Calendar & Scheduling',
-      description: 'Stay on top of deliverables and organic posts with reminders, workflow templates, and shared visibility for brands.'
-    }
-  ];
-
-  const stats = [
-    { number: '500+', label: 'Verified Creators' },
-    { number: '100+', label: 'Partner Brands' },
-    { number: '98%', label: 'Client Satisfaction' },
-    { number: '24/7', label: 'Dedicated Support' }
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
-
   return (
-    <PageTransition className="min-h-screen bg-gradient-subtle">
+    <PageTransition className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
             <motion.div
-              className="space-y-8"
-              initial="hidden"
-              animate="visible"
-              variants={containerVariants}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-4"
             >
-              <div className="space-y-4">
-                <motion.h1 variants={itemVariants} className="text-hero font-bold text-foreground leading-tight">
-                  Professional Creator-Brand
-                  <span className="bg-gradient-hero bg-clip-text text-transparent"> Partnership Platform</span>
-                </motion.h1>
-                <motion.p variants={itemVariants} className="text-xl text-muted-foreground leading-relaxed">
-                  Creator Connect provides enterprise-grade services connecting innovative brands with verified content creators.
-                  Streamline your influencer marketing with our comprehensive platform designed for professional partnerships.
-                </motion.p>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              The #1 Influencer Marketing Platform
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1]"
+            >
+              Drive word-of-mouth <br />
+              <span className="text-primary">commerce at scale</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            >
+              Creator Connect is the all-in-one platform to find creators, manage relationships, and measure the ROI of your influencer marketing programs.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+            >
+              <Button asChild size="xl" className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-primary/25 transition-all">
+                <Link to="/contact">
+                  Request a Demo
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="xl" className="h-14 px-8 text-lg rounded-full border-2">
+                <Link to="/campaign">Start Free Trial</Link>
+              </Button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="pt-8 flex items-center justify-center gap-8 text-sm text-muted-foreground"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span>No credit card required</span>
               </div>
-
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="bg-gradient-hero hover:shadow-glow transition-all duration-300">
-                  <Link to="/filter">
-                    Explore Services
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="border-primary text-primary hover:bg-primary-soft">
-                  <Link to="/campaign">Launch Campaign</Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <img
-                src={heroImage}
-                alt="Creators working together"
-                className="rounded-2xl shadow-hover w-full"
-              />
-              <div className="absolute inset-0 bg-gradient-hero opacity-10 rounded-2xl"></div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span>14-day free trial</span>
+              </div>
             </motion.div>
           </div>
         </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="text-display font-bold bg-gradient-hero bg-clip-text text-transparent">
-                  {stat.number}
-                </div>
-                <div className="text-muted-foreground font-medium">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+        {/* Hero Background Elements */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 opacity-40 pointer-events-none">
+          <div className="absolute top-1/4 left-10 w-72 h-72 bg-primary/20 rounded-full blur-[100px]" />
+          <div className="absolute top-1/3 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]" />
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-display font-bold text-foreground mb-4">
-              Why Choose Creator Connect?
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Professional services and tools designed for successful brand-creator partnerships
-            </p>
-          </div>
+      <TrustedByStrip />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-              >
-                <Card className="group hover:shadow-hover transition-all duration-300 bg-gradient-card border-0 h-full">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-primary-soft rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-primary group-hover:shadow-glow transition-all duration-300">
-                      <feature.icon className="w-6 h-6 text-primary group-hover:text-white transition-smooth" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PlatformTour />
 
-      {/* AI Revolution Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card/60">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="max-w-3xl text-center mx-auto space-y-4">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary font-semibold">Part 2 · The AI Revolution</p>
-            <h2 className="text-display font-bold text-foreground">Intelligent, Predictive Partnerships</h2>
-            <p className="text-lg text-muted-foreground">
-              We are layering advanced AI across every workflow so brands get curated match lists, verified authenticity, and budget guidance in minutes—not weeks.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {aiHighlights.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="bg-gradient-card border-0 shadow-soft h-full hover:shadow-hover transition-all duration-300">
-                  <CardContent className="p-6 space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary">
-                      <item.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <UGCGallery />
 
-      {/* Brand Platform Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
-          <motion.div
-            className="space-y-4"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">For Brands & Companies</p>
-            <h2 className="text-display font-bold text-foreground">Campaign Management, Analytics, and Trust in One Place</h2>
-            <p className="text-lg text-muted-foreground">
-              Manage briefs, content approvals, communication threads, KPIs, contracts, and payments inside one secure dashboard.
-              Integrate social APIs for real-time performance, monitor ROI, and unlock escrow-backed payouts tied to milestones.
-            </p>
-          </motion.div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {brandFeatures.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="border border-border/60 shadow-soft h-full hover:border-primary/50 transition-colors duration-300">
-                  <CardContent className="p-5 space-y-3">
-                    <feature.icon className="w-6 h-6 text-primary" />
-                    <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialCarousel />
 
-      {/* Creator Platform Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-card/60">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
-          <div className="grid sm:grid-cols-2 gap-4 order-2 lg:order-1">
-            {creatorTools.map((tool, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="border border-border/60 shadow-soft h-full hover:border-primary/50 transition-colors duration-300">
-                  <CardContent className="p-5 space-y-3">
-                    <tool.icon className="w-6 h-6 text-primary" />
-                    <h3 className="font-semibold text-foreground">{tool.title}</h3>
-                    <p className="text-sm text-muted-foreground">{tool.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-          <motion.div
-            className="space-y-4 order-1 lg:order-2"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">For Creators</p>
-            <h2 className="text-display font-bold text-foreground">Grow Your Brand, Not Just Your Inbox</h2>
-            <p className="text-lg text-muted-foreground">
-              From automated media kits and education tracks to content scheduling, Creator Connect acts like your operations team.
-              Learn how to price confidently, track your pipeline, and keep every collaboration on schedule.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-hero">
-        <motion.div
-          className="max-w-4xl mx-auto text-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-display font-bold text-white mb-4">
-            Ready to Elevate Your Marketing Strategy?
+      {/* Final CTA */}
+      <section className="py-32 bg-primary text-primary-foreground overflow-hidden relative">
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight">
+            Ready to scale your <br /> influencer program?
           </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Join leading brands and creators leveraging our professional platform for successful partnerships
+          <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-12">
+            Join 1,000+ brands using Creator Connect to drive real business results through creator partnerships.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-              <Link to="/filter">Explore Creator Network</Link>
-            </Button>
-            <Button asChild size="lg" className="bg-black text-white border-black hover:bg-gray-800">
-              <Link to="/contact">Schedule a Consultation</Link>
+            <Button asChild size="xl" variant="secondary" className="h-14 px-8 text-lg rounded-full shadow-xl hover:scale-105 transition-transform">
+              <Link to="/contact">Get a Demo</Link>
             </Button>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Decorative circles */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-1/2 -left-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
+          <div className="absolute -bottom-1/2 -right-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
+        </div>
       </section>
     </PageTransition>
   );
