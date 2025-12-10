@@ -84,7 +84,7 @@ const Home = () => {
 
         {/* Decorative circles */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-1/2 -left-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
+          <div className="absolute -top-1/2 -right-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
           <div className="absolute -bottom-1/2 -right-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
         </div>
       </section>
