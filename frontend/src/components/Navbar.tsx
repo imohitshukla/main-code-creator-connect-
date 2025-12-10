@@ -23,6 +23,7 @@ import {
 import { useAuth, UserProfile } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import { cn } from "@/lib/utils";
+import Logo from '@/components/Logo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,9 +76,10 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 mr-8">
-            <span className="text-2xl font-bold tracking-tight">Aspire</span>
-          </Link>
+          {/* Logo */}
+          <div className="mr-8">
+            <Logo />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center flex-1">
