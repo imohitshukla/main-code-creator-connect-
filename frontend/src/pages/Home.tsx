@@ -69,10 +69,10 @@ const Home = () => {
       {/* Final CTA */}
       <section className="py-32 bg-primary text-primary-foreground overflow-hidden relative">
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tight">
             Ready to scale your <br /> influencer program?
           </h2>
-          <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-12">
+          <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-20">
             Join 1,000+ brands using Creator Connect to drive real business results through creator partnerships.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
