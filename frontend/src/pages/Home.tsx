@@ -20,10 +20,10 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1]"
+              className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]"
             >
-              Drive word-of-mouth <br />
-              <span className="text-primary">commerce at scale</span>
+              A platform that matches content creators <br />
+              <span className="text-primary">with companies for promotional campaigns</span>
             </motion.h1>
 
             <motion.p
