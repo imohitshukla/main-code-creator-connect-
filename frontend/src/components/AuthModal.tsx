@@ -29,7 +29,6 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
     name: '',
     company_name: '',
     website: '',
-    portfolio_link: '',
     phone_number: ''
   });
 
@@ -234,9 +233,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
         }
         : {
           name: signupData.name,
-          email: signupData.email,
           password: signupData.password,
-          portfolio_link: signupData.portfolio_link || '',
           phone_number: signupData.phone_number || ''
         };
 
@@ -448,8 +445,8 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                       <Label
                         htmlFor="role-brand"
                         className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer transition-all ${userRole === 'brand'
-                            ? 'border-primary bg-primary/5'
-                            : 'border-muted bg-popover hover:bg-accent hover:text-accent-foreground'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-muted bg-popover hover:bg-accent hover:text-accent-foreground'
                           }`}
                       >
                         <Building2 className="mb-3 h-6 w-6" />
@@ -461,8 +458,8 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                       <Label
                         htmlFor="role-creator"
                         className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer transition-all ${userRole === 'creator'
-                            ? 'border-primary bg-primary/5'
-                            : 'border-muted bg-popover hover:bg-accent hover:text-accent-foreground'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-muted bg-popover hover:bg-accent hover:text-accent-foreground'
                           }`}
                       >
                         <User className="mb-3 h-6 w-6" />
@@ -509,16 +506,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                         required
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-portfolio">Portfolio Link (Optional)</Label>
-                      <Input
-                        id="signup-portfolio"
-                        type="url"
-                        placeholder="https://yourportfolio.com"
-                        value={signupData.portfolio_link}
-                        onChange={(e) => setSignupData({ ...signupData, portfolio_link: e.target.value })}
-                      />
-                    </div>
+
                   </>
                 )}
 

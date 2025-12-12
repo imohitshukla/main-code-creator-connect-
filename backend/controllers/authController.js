@@ -53,7 +53,7 @@ const registerCreator = async (c) => {
     await db.query(
       `INSERT INTO creator_profiles (user_id, name, portfolio_links) 
        VALUES ($1, $2, $3)`,
-      [userId, name, JSON.stringify([portfolio_link])]
+      [userId, name, JSON.stringify(portfolio_link ? [portfolio_link] : [])]
     );
 
     await db.query('COMMIT');

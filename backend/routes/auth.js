@@ -21,7 +21,7 @@ const registerCreatorSchema = z.object({
   name: z.string().min(2).max(255),
   email: z.string().email(),
   password: z.string().min(6),
-  portfolio_link: z.string().url(),
+  portfolio_link: z.string().url().optional(),
   phone_number: z.string().min(10).max(15),
 });
 
