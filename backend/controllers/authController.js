@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
-import nodemailer from 'nodemailer';
 import { client } from '../config/database.js';
+import { sendEmail } from '../utils/emailService.js';
 
 // Initialize Twilio client conditionally
 let twilioClient;
@@ -14,20 +14,6 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
 } else {
   console.warn('Twilio credentials missing. SMS features will be disabled.');
 }
-
-// Initialize Nodemailer transporter
-const emailTransporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 2525,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,    // Your Brevo SMTP login
-    pass: process.env.EMAIL_PASS     // Your Brevo SMTP password/key
-  },
-  tls: {
-    rejectUnauthorized: false // Helps avoid SSL errors on some clouds
-  }
-});
 
 // ... (existing code) ...
 
@@ -192,29 +178,22 @@ const login = async (c) => {
     console.log(`[DEBUG] Login OTP for ${user.email}: ${otp}`);
 
     // Send OTP via email (primary)
-    if (process.env.EMAIL_USER) {
-      try {
-        console.log(`Attempting to send OTP email to ${user.email}...`);
-        const info = await emailTransporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: user.email,
-          subject: 'Your Login OTP - Niche Connect',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333;">Login Verification</h2>
-              <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
-              <p>This code expires in 10 minutes.</p>
-              <p>If you didn't request this, please ignore this email.</p>
-            </div>
-          `
-        });
-        console.log(`OTP email sent successfully. MessageId: ${info.messageId}`);
-      } catch (emailError) {
-        console.error('Error sending OTP email:', emailError);
-        console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
-      }
-    } else {
-      console.warn('EMAIL_USER not set. Skipping email sending.');
+    console.log(`Attempting to send OTP email to ${user.email}...`);
+    const emailResult = await sendEmail({
+      to: user.email,
+      subject: 'Your Login OTP - Niche Connect',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Login Verification</h2>
+          <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
+          <p>This code expires in 10 minutes.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        </div>
+      `
+    });
+
+    if (!emailResult.success) {
+      console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
     }
 
     // Send SMS OTP if phone number exists and Twilio is configured
