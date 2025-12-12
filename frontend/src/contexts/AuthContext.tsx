@@ -190,9 +190,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return;
 
+    // 1. Optimistic Update (Local)
     setProfile((prev) => {
       const nextProfile = {
         ...(prev ?? buildDefaultProfile(user)),
@@ -201,6 +202,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistProfile(user.id, nextProfile);
       return nextProfile;
     });
+
+    // 2. Sync with Backend
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const fullProfile = { ...(profile ?? buildDefaultProfile(user)), ...updates };
+
+      const payload = {
+        bio: fullProfile.bio,
+        niche: fullProfile.niche,
+        social_links: JSON.stringify([
+          { platform: 'instagram', url: fullProfile.instagram },
+          { platform: 'youtube', url: fullProfile.youtube }
+        ]),
+        portfolio_links: JSON.stringify([fullProfile.portfolio]),
+        audience: JSON.stringify({ description: fullProfile.audience }), // Wrap as JSON
+        budget: JSON.stringify({ range: fullProfile.budgetRange }),      // Wrap as JSON
+        // custom fields like campaignGoals, location might need schema update or appended to bio
+      };
+
+      await fetch(`${getApiUrl()}/api/creators/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      console.log('Profile synced with backend');
+
+    } catch (error) {
+      console.error('Failed to sync profile with backend:', error);
+      // Optional: Revert local state or show notification?
+      // For now, we assume local state is "truth" for the UI persistence 
+      // even if backend fails transiently.
+    }
   };
 
   const logout = () => {

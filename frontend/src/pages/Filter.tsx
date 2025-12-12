@@ -14,6 +14,8 @@ import creator4 from '@/assets/creator4.jpg';
 const Filter = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('');
+  const [creators, setCreators] = useState<Creator[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
 
@@ -68,8 +70,8 @@ const Filter = () => {
     if (!creators.length) return [];
     return creators.filter(creator => {
       const matchesSearch = creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          creator.niche.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          creator.bio.toLowerCase().includes(searchTerm.toLowerCase());
+        creator.niche.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creator.bio.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesNiche = selectedNiche === '' || selectedNiche === 'All' || creator.niche === selectedNiche;
 
