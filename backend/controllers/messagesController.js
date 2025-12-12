@@ -6,7 +6,7 @@ export const getMessages = async (c) => {
     const userId = c.get('userId'); // From auth middleware
 
     // Verify user is part of conversation
-    const convCheck = await db.query(`
+    const convCheck = await client.query(`
       SELECT participants FROM conversations 
       WHERE id = $1 AND participants @> $2::jsonb
     `, [conversationId, JSON.stringify([userId])]);
@@ -15,7 +15,7 @@ export const getMessages = async (c) => {
       return c.json({ error: 'Unauthorized' }, 403);
     }
 
-    const messages = await db.query(`
+    const messages = await client.query(`
       SELECT m.id, m.content, m.sender_id, m.created_at,
              u.email as sender_name  -- Use email since username may not exist; adjust if username added
       FROM messages m
@@ -37,7 +37,7 @@ export const sendMessage = async (c) => {
     const userId = c.get('userId');
 
     // Verify user is part of conversation
-    const convCheck = await db.query(`
+    const convCheck = await client.query(`
       SELECT participants FROM conversations 
       WHERE id = $1 AND participants @> $2::jsonb
     `, [conversationId, JSON.stringify([userId])]);
@@ -46,7 +46,7 @@ export const sendMessage = async (c) => {
       return c.json({ error: 'Unauthorized' }, 403);
     }
 
-    const result = await db.query(`
+    const result = await client.query(`
       INSERT INTO messages (conversation_id, sender_id, content)
       VALUES ($1, $2, $3)
       RETURNING id, content, sender_id, created_at
@@ -71,7 +71,7 @@ export const getConversations = async (c) => {
   try {
     const userId = c.get('userId');
 
-    const conversations = await db.query(`
+    const conversations = await client.query(`
       SELECT DISTINCT ON (conv.id) conv.id, conv.participants, conv.campaign_id, conv.updated_at,
              m.content as last_message, m.created_at as last_message_time,
              (other.participant::integer) as other_participant
@@ -109,7 +109,7 @@ export const createConversation = async (c) => {
     }
 
     // Check if conversation already exists
-    const existing = await db.query(`
+    const existing = await client.query(`
       SELECT id FROM conversations 
       WHERE participants = $1::jsonb
       ORDER BY created_at ASC LIMIT 1
@@ -120,7 +120,7 @@ export const createConversation = async (c) => {
     }
 
     // Create new conversation
-    const result = await db.query(`
+    const result = await client.query(`
       INSERT INTO conversations (participants, campaign_id)
       VALUES ($1, $2)
       RETURNING id, participants, created_at

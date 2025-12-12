@@ -35,14 +35,18 @@ const emailTransporter = nodemailer.createTransport({
 const registerCreator = async (c) => {
   const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
 
+  // Reserve a client from the pool for the transaction
+  const db = await client.connect();
+
   try {
-    // Check if user exists
-    const userExists = await client.query(
+    // Check if user exists (can be done on pool or dedicated client, dedicated is safer for consistency)
+    const userExists = await db.query(
       'SELECT id FROM users WHERE email = $1',
       [email]
     );
 
     if (userExists.rows.length > 0) {
+      db.release(); // release early
       return c.json({ error: 'User already exists' }, 400);
     }
 
@@ -50,10 +54,10 @@ const registerCreator = async (c) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Start transaction
-    await client.query('BEGIN');
+    await db.query('BEGIN');
 
     // Create user
-    const newUser = await client.query(
+    const newUser = await db.query(
       'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
       [email, hashedPassword, 'creator', phone_number]
     );
@@ -61,13 +65,13 @@ const registerCreator = async (c) => {
     const userId = newUser.rows[0].id;
 
     // Create creator profile
-    await client.query(
+    await db.query(
       `INSERT INTO creator_profiles (user_id, name, portfolio_links) 
        VALUES ($1, $2, $3)`,
       [userId, name, JSON.stringify([portfolio_link])]
     );
 
-    await client.query('COMMIT');
+    await db.query('COMMIT');
 
     // Generate JWT
     const token = jwt.sign(
@@ -81,9 +85,11 @@ const registerCreator = async (c) => {
       user: { id: userId, email, role: 'creator', name }
     }, 201);
   } catch (error) {
-    await client.query('ROLLBACK');
+    await db.query('ROLLBACK');
     console.error(error);
     return c.json({ error: 'Internal server error' }, 500);
+  } finally {
+    db.release();
   }
 };
 
@@ -91,14 +97,18 @@ const registerCreator = async (c) => {
 const registerBrand = async (c) => {
   const { company_name, email, password, website, phone_number } = c.req.valid('json');
 
+  // Reserve a client from the pool for the transaction
+  const db = await client.connect();
+
   try {
     // Check if user exists
-    const userExists = await client.query(
+    const userExists = await db.query(
       'SELECT id FROM users WHERE email = $1',
       [email]
     );
 
     if (userExists.rows.length > 0) {
+      db.release(); // release early
       return c.json({ error: 'User already exists' }, 400);
     }
 
@@ -106,10 +116,10 @@ const registerBrand = async (c) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Start transaction
-    await client.query('BEGIN');
+    await db.query('BEGIN');
 
     // Create user
-    const newUser = await client.query(
+    const newUser = await db.query(
       'INSERT INTO users (email, password, role, phone_number) VALUES ($1, $2, $3, $4) RETURNING id',
       [email, hashedPassword, 'brand', phone_number]
     );
@@ -117,13 +127,13 @@ const registerBrand = async (c) => {
     const userId = newUser.rows[0].id;
 
     // Create brand profile
-    await client.query(
+    await db.query(
       `INSERT INTO brand_profiles (user_id, company_name, website)
        VALUES ($1, $2, $3)`,
       [userId, company_name, website]
     );
 
-    await client.query('COMMIT');
+    await db.query('COMMIT');
 
     // Generate JWT
     const token = jwt.sign(
@@ -137,9 +147,11 @@ const registerBrand = async (c) => {
       user: { id: userId, email, role: 'brand', company_name }
     }, 201);
   } catch (error) {
-    await client.query('ROLLBACK');
+    await db.query('ROLLBACK');
     console.error(error);
     return c.json({ error: 'Internal server error' }, 500);
+  } finally {
+    db.release();
   }
 };
 
