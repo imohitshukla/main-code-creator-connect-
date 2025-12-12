@@ -46,7 +46,6 @@ const registerCreator = async (c) => {
     );
 
     if (userExists.rows.length > 0) {
-      db.release(); // release early
       return c.json({ error: 'User already exists' }, 400);
     }
 
@@ -108,7 +107,6 @@ const registerBrand = async (c) => {
     );
 
     if (userExists.rows.length > 0) {
-      db.release(); // release early
       return c.json({ error: 'User already exists' }, 400);
     }
 
