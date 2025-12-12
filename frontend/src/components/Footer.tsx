@@ -117,7 +117,7 @@ const Footer = () => {
                         <span className="text-2xl font-bold tracking-tight">Creator Connect</span>
                         <div className="flex flex-col text-xs text-gray-400 mt-1">
                             <span>© 2025 Creator Connect, Inc. All rights reserved</span>
-                            <span>moitshukla57662@gmail.com</span>
+                            <span>mohitshukla57662@gmail.com</span>
                         </div>
                     </div>
 
