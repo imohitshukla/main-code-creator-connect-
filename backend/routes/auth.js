@@ -7,7 +7,9 @@ import {
   login,
   verifyLoginOtp,
   sendOtp,
-  verifyOtp
+  verifyOtp,
+  forgotPassword,
+  resetPassword
 } from '../controllers/authController.js';
 import { signup } from '../controllers/authController.js';
 import { client } from '../config/database.js';
@@ -61,6 +63,19 @@ auth.post('/login', zValidator('json', loginSchema), login);
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6),
+  newPassword: z.string().min(6),
+});
+
+auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), forgotPassword);
+auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassword);
 
 // Temporary route to bypass login for testing (only for dev)
 auth.post('/login-bypass', async (c) => {
