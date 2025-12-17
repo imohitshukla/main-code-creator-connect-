@@ -1,10 +1,11 @@
+@import "./styles/globals.css";
+
 /* Import Tailwind's base styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Import global styles */
-@import "./styles/globals.css";
 
 /* This is the magic.
   :root defines your LIGHT MODE variables.
