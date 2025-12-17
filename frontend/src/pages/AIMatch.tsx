@@ -9,8 +9,8 @@ import { getApiUrl } from '@/lib/utils';
 
 const AIMatch = () => {
   const { user } = useAuth();
-const [campaignDescription, setCampaignDescription] = useState(''); // Campaign description input
-const [brief, setBrief] = useState(''); // New state for brief input
+  const [campaignDescription, setCampaignDescription] = useState(''); // Campaign description input
+  const [brief, setBrief] = useState(''); // New state for brief input
   const [targetAudience, setTargetAudience] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('');
@@ -66,7 +66,7 @@ const [brief, setBrief] = useState(''); // New state for brief input
       const params = new URLSearchParams({
         userId: user.id.toString(),
       });
-      
+
       if (match.campaignId) {
         params.append('campaignId', match.campaignId.toString());
       } else if (match.searchHash) {
@@ -78,11 +78,11 @@ const [brief, setBrief] = useState(''); // New state for brief input
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setAiMatches(data.aiMatches || []);
-        
+
         // Restore search context if available
         if (data.searchContext) {
           const context = typeof data.searchContext === 'string' ? JSON.parse(data.searchContext) : data.searchContext;
@@ -91,7 +91,7 @@ const [brief, setBrief] = useState(''); // New state for brief input
           setBudget(context.budget || '');
           setSelectedNiche(context.niche || '');
         }
-        
+
         setShowResults(true);
         setShowPreviousMatches(false);
         toast({
@@ -388,44 +388,80 @@ const [brief, setBrief] = useState(''); // New state for brief input
             </div>
 
             {aiMatches.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {aiMatches.map((match) => (
-                  <Card key={match.id} className="bg-gradient-card border-0 shadow-soft hover:shadow-glow transition-all duration-300">
+                  <Card key={match.id} className="bg-gradient-card border-0 shadow-soft hover:shadow-glow transition-all duration-300 overflow-hidden">
+                    <div className="h-2 bg-gradient-to-r from-primary/50 to-primary"></div>
                     <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold">
-                          {match.username?.charAt(0).toUpperCase() || match.name?.charAt(0).toUpperCase() || match.email?.charAt(0).toUpperCase()}
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                            {match.username?.charAt(0).toUpperCase() || match.name?.charAt(0).toUpperCase() || 'C'}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-foreground text-lg">{match.username || match.name || `Creator ${match.id}`}</h3>
+                            <p className="text-sm text-muted-foreground bg-primary/10 px-2 py-0.5 rounded-full inline-block mt-1">
+                              {match.niche}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">{match.username || match.name || `Creator ${match.id}`}</h3>
-                          <p className="text-sm text-muted-foreground">{match.niche}</p>
+                        {/* Circular Match Score */}
+                        <div className="relative w-16 h-16 flex items-center justify-center">
+                          <svg className="w-full h-full transform -rotate-90">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="transparent"
+                              className="text-muted/20"
+                            />
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="transparent"
+                              strokeDasharray={2 * Math.PI * 28}
+                              strokeDashoffset={2 * Math.PI * 28 * (1 - match.matchScore)}
+                              className="text-primary transition-all duration-1000 ease-out"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="absolute text-xs font-bold text-primary">
+                            {(match.matchScore * 100).toFixed(0)}%
+                          </span>
                         </div>
                       </div>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">AI Match Score:</span>
-                          <span className="font-semibold text-primary">{(match.matchScore * 100).toFixed(0)}%</span>
+
+                      <div className="grid grid-cols-2 gap-4 mb-6 bg-background/50 p-4 rounded-xl border border-border/50">
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Followers</p>
+                          <p className="font-bold text-lg">{match.followers?.toLocaleString() || 'N/A'}</p>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Followers:</span>
-                          <span className="font-semibold">{match.followers?.toLocaleString() || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Engagement:</span>
-                          <span className="font-semibold">{match.engagement_rate?.toFixed(1) || 'N/A'}%</span>
+                        <div className="text-center border-l border-border/50">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Engagement</p>
+                          <p className="font-bold text-lg">{match.engagement_rate?.toFixed(1) || '0'}%</p>
                         </div>
                       </div>
-                      <div className="bg-primary/5 rounded-lg p-3 mb-4">
-                        <p className="text-sm text-foreground font-medium mb-1">AI Analysis:</p>
-                        <p className="text-sm text-muted-foreground line-clamp-3">
-                          {match.explanation}
+
+                      <div className="bg-primary/5 rounded-lg p-4 mb-6 relative">
+                        <div className="absolute top-0 left-4 -translate-y-1/2 bg-background px-2 text-xs font-medium text-primary border border-primary/20 rounded-full">
+                          Why this match?
+                        </div>
+                        <p className="text-sm text-foreground/80 italic leading-relaxed pt-2">
+                          "{match.explanation}"
                         </p>
                       </div>
+
                       <Button
                         onClick={() => handleContact(match)}
-                        className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
+                        className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300 group"
                       >
                         Contact Creator
+                        <Sparkles className="w-4 h-4 ml-2 group-hover:animate-pulse" />
                       </Button>
                     </CardContent>
                   </Card>

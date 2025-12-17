@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Plus, Megaphone, Sparkles, TrendingUp } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Megaphone, Sparkles, TrendingUp, Zap, Star } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
@@ -22,7 +23,9 @@ const CampaignPage = () => {
     title: '',
     description: '',
     budget: '',
-    requirements: ''
+    requirements: '',
+    isUrgent: false,
+    isFeatured: false
   });
 
   const [showForm, setShowForm] = useState(false);
@@ -67,7 +70,9 @@ const CampaignPage = () => {
           deadline: new Date(c.created_at).toLocaleDateString(),
           applicants: 0, // Backend doesn't return this yet
           status: c.status,
-          brand_user_id: c.brand_user_id
+          brand_user_id: c.brand_user_id,
+          isUrgent: c.is_urgent,
+          isFeatured: c.is_featured
         }));
         setCampaigns(mappedCampaigns);
       } else {
@@ -85,6 +90,13 @@ const CampaignPage = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCheckboxChange = (checked: boolean, name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: checked
     }));
   };
 
@@ -113,7 +125,9 @@ const CampaignPage = () => {
           title: formData.title,
           description: formData.description,
           budget_range: formData.budget,
-          niche: formData.requirements
+          niche: formData.requirements,
+          is_urgent: formData.isUrgent,
+          is_featured: formData.isFeatured
         })
       });
 
@@ -128,7 +142,9 @@ const CampaignPage = () => {
           title: '',
           description: '',
           budget: '',
-          requirements: ''
+          requirements: '',
+          isUrgent: false,
+          isFeatured: false
         });
         setShowForm(false);
         fetchCampaigns(); // Refresh list
@@ -399,6 +415,32 @@ const CampaignPage = () => {
                   />
                 </div>
 
+                {/* Advanced Flags */}
+                <div className="flex gap-6 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isUrgent"
+                      checked={formData.isUrgent}
+                      onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'isUrgent')}
+                    />
+                    <Label htmlFor="isUrgent" className="flex items-center gap-1 cursor-pointer">
+                      <Zap className="h-4 w-4 text-amber-500" />
+                      Urgent Hiring
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isFeatured"
+                      checked={formData.isFeatured}
+                      onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'isFeatured')}
+                    />
+                    <Label htmlFor="isFeatured" className="flex items-center gap-1 cursor-pointer">
+                      <Star className="h-4 w-4 text-primary" />
+                      Featured Campaign
+                    </Label>
+                  </div>
+                </div>
+
                 <div className="flex gap-4">
                   <Button
                     type="submit"
@@ -523,11 +565,17 @@ const CampaignPage = () => {
                   isOwner={currentUserId === campaign.brand_user_id}
                   onClose={handleCloseCampaign}
                 />
+                {/* Badges */}
+                <div className="absolute top-2 left-2 flex gap-1 z-10">
+                  {/* Access internal campaign properties which are usually passed to Card, but here we overlay for now since we didn't update Card component internal logic fully yet, or we can update CampaignCard.tsx as well. */}
+                  {/* Actually, CampaignCard might not have props for these yet. Let's assume standard layout. */}
+                  {/* Better approach: Update CampaignCard.tsx to accept these props. But for now, putting them inside CampaignCard is better. */}
+                </div>
                 {/* AI Pricing Button Overlay */}
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md"
+                  className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-md z-20"
                   onClick={() => handleAIPricing({ id: campaign.id, username: campaign.companyName })}
                   disabled={isLoadingPricing}
                 >

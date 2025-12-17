@@ -48,7 +48,7 @@ export const getCreatorByUsername = async (c) => {
 
 export const getCreators = async (c) => {
   try {
-    const { niche, minFollowers } = c.req.query();
+    const { niche, minFollowers, minEngagement, maxBudget } = c.req.query();
     let query = `
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
@@ -67,6 +67,16 @@ export const getCreators = async (c) => {
     if (minFollowers) {
       params.push(parseInt(minFollowers));
       query += ` AND cp.follower_count >= $${params.length}`;
+    }
+
+    if (minEngagement) {
+      params.push(parseFloat(minEngagement));
+      query += ` AND cp.engagement_rate >= $${params.length}`;
+    }
+
+    if (maxBudget) {
+      params.push(parseFloat(maxBudget));
+      query += ` AND cp.budget <= $${params.length}`;
     }
 
     const creators = await client.query(query, params);

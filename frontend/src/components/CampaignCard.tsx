@@ -18,6 +18,8 @@ export interface Campaign {
   engagement_rate?: number;
   roi?: number;
   brand_user_id?: number;
+  isUrgent?: boolean;
+  isFeatured?: boolean;
 }
 
 interface CampaignCardProps {
@@ -41,6 +43,18 @@ const CampaignCard = ({ campaign, onApply, isOwner, onClose }: CampaignCardProps
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {campaign.isFeatured && (
+                  <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
+                    Featured
+                  </Badge>
+                )}
+                {campaign.isUrgent && (
+                  <Badge variant="destructive" className="animate-pulse">
+                    Urgent Hiring
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Building className="w-4 h-4" />
                 {campaign.companyName}

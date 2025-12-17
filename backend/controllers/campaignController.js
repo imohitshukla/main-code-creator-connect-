@@ -4,10 +4,11 @@ export const getCampaigns = async (c) => {
   try {
     const campaigns = await client.query(`
       SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
-             c.brand_id, bp.company_name as brand_name, bp.user_id as brand_user_id
+             c.brand_id, bp.company_name as brand_name, bp.user_id as brand_user_id,
+             c.is_urgent, c.is_featured
       FROM campaigns c
       JOIN brand_profiles bp ON c.brand_id = bp.id
-      ORDER BY c.created_at DESC
+      ORDER BY c.is_featured DESC, c.is_urgent DESC, c.created_at DESC
     `);
     return c.json({ campaigns: campaigns.rows });
   } catch (error) {
@@ -19,7 +20,7 @@ export const getCampaigns = async (c) => {
 export const createCampaign = async (c) => {
   try {
     const userId = c.get('userId');
-    const { title, description, budget_range, niche } = await c.req.json();
+    const { title, description, budget_range, niche, is_urgent, is_featured } = await c.req.json();
 
     // Get brand_id from brand_profiles
     const brandProfile = await client.query(
@@ -34,10 +35,10 @@ export const createCampaign = async (c) => {
     const brandId = brandProfile.rows[0].id;
 
     const result = await client.query(`
-      INSERT INTO campaigns (brand_id, title, description, budget_range, niche)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, title, description, budget_range, niche, status, created_at
-    `, [brandId, title, description, budget_range, niche]);
+      INSERT INTO campaigns (brand_id, title, description, budget_range, niche, is_urgent, is_featured)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, title, description, budget_range, niche, status, created_at, is_urgent, is_featured
+    `, [brandId, title, description, budget_range, niche, is_urgent || false, is_featured || false]);
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {
