@@ -42,8 +42,12 @@ export const createCampaign = async (c) => {
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to create campaign' }, 500);
+    console.error("Create Campaign Error:", error);
+    return c.json({
+      error: 'Failed to create campaign',
+      details: error.message,
+      stack: error.stack
+    }, 500);
   }
 };
 

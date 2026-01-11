@@ -124,7 +124,8 @@ const CampaignPage = () => {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          budget: formData.budget.replace(/[^0-9.]/g, ''),
+          // Extract the last number from the string (assuming upper range), or fall back to cleanup
+          budget: formData.budget.match(/(\d+(\.\d+)?)/g)?.pop() || formData.budget.replace(/[^0-9.]/g, ''),
           niche: formData.requirements,
           is_urgent: formData.isUrgent,
           is_featured: formData.isFeatured
@@ -150,7 +151,7 @@ const CampaignPage = () => {
         fetchCampaigns(); // Refresh list
       } else {
         const errorData = await response.json();
-        const msg = errorData.message || errorData.error?.issues?.[0]?.message || errorData.error || "Submission Failed";
+        const msg = errorData.details || errorData.message || errorData.error?.issues?.[0]?.message || errorData.error || "Submission Failed";
         console.error("Campaign Error:", errorData);
         toast({
           title: 'Failed to create campaign',
