@@ -3,7 +3,7 @@ import { client } from '../config/database.js';
 export const getCampaigns = async (c) => {
   try {
     const campaigns = await client.query(`
-      SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
+      SELECT c.id, c.title, c.description, c.budget, c.niche, c.status, c.created_at,
              c.brand_id, bp.company_name as brand_name, bp.user_id as brand_user_id,
              c.is_urgent, c.is_featured
       FROM campaigns c
@@ -20,7 +20,7 @@ export const getCampaigns = async (c) => {
 export const createCampaign = async (c) => {
   try {
     const userId = c.get('userId');
-    const { title, description, budget_range, niche, is_urgent, is_featured } = await c.req.json();
+    const { title, description, budget, niche, is_urgent, is_featured } = await c.req.json();
 
     // Get brand_id from brand_profiles
     const brandProfile = await client.query(
@@ -35,10 +35,10 @@ export const createCampaign = async (c) => {
     const brandId = brandProfile.rows[0].id;
 
     const result = await client.query(`
-      INSERT INTO campaigns (brand_id, title, description, budget_range, niche, is_urgent, is_featured)
+      INSERT INTO campaigns (brand_id, title, description, budget, niche, is_urgent, is_featured)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, title, description, budget_range, niche, status, created_at, is_urgent, is_featured
-    `, [brandId, title, description, budget_range, niche, is_urgent || false, is_featured || false]);
+      RETURNING id, title, description, budget, niche, status, created_at, is_urgent, is_featured
+    `, [brandId, title, description, budget, niche, is_urgent || false, is_featured || false]);
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {

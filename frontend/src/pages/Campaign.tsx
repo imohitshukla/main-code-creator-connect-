@@ -65,7 +65,7 @@ const CampaignPage = () => {
           companyName: c.brand_name || 'Unknown Brand',
           title: c.title,
           description: c.description,
-          budget: c.budget_range,
+          budget: c.budget,
           requirements: c.niche,
           deadline: new Date(c.created_at).toLocaleDateString(),
           applicants: 0, // Backend doesn't return this yet
@@ -124,7 +124,7 @@ const CampaignPage = () => {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          budget_range: formData.budget,
+          budget: formData.budget.replace(/[^0-9.]/g, ''),
           niche: formData.requirements,
           is_urgent: formData.isUrgent,
           is_featured: formData.isFeatured
@@ -150,9 +150,11 @@ const CampaignPage = () => {
         fetchCampaigns(); // Refresh list
       } else {
         const errorData = await response.json();
+        const msg = errorData.message || errorData.error?.issues?.[0]?.message || errorData.error || "Submission Failed";
+        console.error("Campaign Error:", errorData);
         toast({
           title: 'Failed to create campaign',
-          description: errorData.error || 'Please try again.',
+          description: msg,
           variant: 'destructive'
         });
       }
