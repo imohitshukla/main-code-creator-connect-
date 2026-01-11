@@ -35,10 +35,10 @@ export const createCampaign = async (c) => {
     const brandId = brandProfile.rows[0].id;
 
     const result = await client.query(`
-      INSERT INTO campaigns (brand_id, title, description, budget_range, niche, is_urgent, is_featured)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, title, description, budget_range, niche, status, created_at, is_urgent, is_featured
-    `, [brandId, title, description, budget_range, niche, is_urgent || false, is_featured || false]);
+      INSERT INTO campaigns (brand_id, title, description, budget_range, niche)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, title, description, budget_range, niche, status, created_at
+    `, [brandId, title, description, budget_range, niche]);
 
     return c.json({ campaign: result.rows[0] });
   } catch (error) {
