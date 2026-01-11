@@ -9,7 +9,7 @@ const router = new Hono();
 const createCampaignSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().min(1, 'Description is required'),
-    budget: z.coerce.number().min(1, 'Budget must be a positive number'),
+    budget_range: z.string().min(1, 'Budget is required'),
     niche: z.string().optional(),
     is_urgent: z.boolean().optional(),
     is_featured: z.boolean().optional()

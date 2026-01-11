@@ -65,7 +65,7 @@ const CampaignPage = () => {
           companyName: c.brand_name || 'Unknown Brand',
           title: c.title,
           description: c.description,
-          budget: c.budget,
+          budget: c.budget_range,
           requirements: c.niche,
           deadline: new Date(c.created_at).toLocaleDateString(),
           applicants: 0, // Backend doesn't return this yet
@@ -124,8 +124,7 @@ const CampaignPage = () => {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          // Extract the last number from the string (assuming upper range), or fall back to cleanup
-          budget: formData.budget.match(/(\d+(\.\d+)?)/g)?.pop() || formData.budget.replace(/[^0-9.]/g, ''),
+          budget_range: formData.budget, // Send as string/varchar
           niche: formData.requirements,
           is_urgent: formData.isUrgent,
           is_featured: formData.isFeatured
