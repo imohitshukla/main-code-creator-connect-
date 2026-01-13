@@ -146,7 +146,7 @@ const login = async (c) => {
   try {
     // Find user
     const userResult = await client.query(
-      'SELECT id, email, password, role, phone_number FROM users WHERE email = $1',
+      'SELECT id, email, password, role, phone_number, company_name, name FROM users LEFT JOIN brand_profiles ON users.id = brand_profiles.user_id LEFT JOIN creator_profiles ON users.id = creator_profiles.user_id WHERE email = $1',
       [email]
     );
 
@@ -162,61 +162,26 @@ const login = async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Set expiration time (10 minutes from now)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    // Update user with OTP and expiration
-    await client.query(
-      'UPDATE users SET phone_otp = $1, otp_expires_at = $2 WHERE id = $3',
-      [otp, expiresAt, user.id]
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // Log OTP for debugging (since email might be delayed/spam)
-    console.log(`[DEBUG] Login OTP for ${user.email}: ${otp}`);
-
-    // Send OTP via email (primary)
-    console.log(`Attempting to send OTP email to ${user.email}...`);
-    const emailResult = await sendEmail({
-      to: user.email,
-      subject: 'Your Login OTP - Niche Connect',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Login Verification</h2>
-          <p>Your OTP for login is: <strong style="font-size: 24px; color: #007bff;">${otp}</strong></p>
-          <p>This code expires in 10 minutes.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `
-    });
-
-    if (!emailResult.success) {
-      console.log(`[FALLBACK] Login OTP for ${user.email}: ${otp}`);
-    }
-
-    // Send SMS OTP if phone number exists and Twilio is configured
-    if (user.phone_number && twilioClient) {
-      try {
-        console.log(`Attempting to send OTP SMS to ${user.phone_number}...`);
-        await twilioClient.messages.create({
-          body: `Your login OTP for Niche Connect is: ${otp}. This code expires in 10 minutes.`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: user.phone_number,
-        });
-        console.log('OTP SMS sent successfully');
-      } catch (twilioError) {
-        console.error('Error sending OTP SMS:', twilioError.message);
-      }
-    } else if (user.phone_number && !twilioClient) {
-      console.log('Twilio not configured. Skipping SMS.');
-    }
+    // Filter user object to remove sensitive data like password
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      phone_number: user.phone_number,
+      company_name: user.company_name, // If brand
+      name: user.name // If creator
+    };
 
     return c.json({
-      message: 'OTP sent to your email' + (user.phone_number ? ' and phone' : ''),
-      userId: user.id,
-      requiresOtp: true
+      token,
+      user: userResponse
     });
   } catch (error) {
     console.error(error);
