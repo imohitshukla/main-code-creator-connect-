@@ -233,6 +233,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
         }
         : {
           name: signupData.name,
+          email: signupData.email,
           password: signupData.password,
           phone_number: signupData.phone_number || ''
         };
