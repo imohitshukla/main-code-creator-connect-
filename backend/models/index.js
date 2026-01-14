@@ -3,8 +3,18 @@ const path = require('path');
 const { Sequelize } = require('sequelize');
 const config = require('../config/config.json');
 
+// 1. Keep your env setup
 const env = process.env.NODE_ENV || 'production';
 const dbConfig = config[env];
+
+// 🔴 THE FIX: Force SSL for Neon Database
+// We add this manually so it works even if config.json is missing it
+dbConfig.dialectOptions = {
+  ssl: {
+    require: true,
+    rejectUnauthorized: false // This fixes the "Connection terminated" error
+  }
+};
 
 let sequelize;
 if (dbConfig.use_env_variable) {
@@ -18,22 +28,4 @@ const db = {
   Sequelize,
 };
 
-// Import all model files
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== path.basename(__filename)) && (file.slice(-3) === '.js');
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
-
-// Set up associations
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
-
-module.exports = db;
+// ... keep the rest of the file (fs.readdirSync...) exactly the same
