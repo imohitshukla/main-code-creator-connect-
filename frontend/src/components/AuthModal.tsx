@@ -124,8 +124,15 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       });
 
       if (!response.ok) {
-        if (response.status === 404) throw new Error('User not found');
-        throw new Error('Failed to send OTP');
+        const errorText = await response.text();
+        let errorMessage = 'Failed to send OTP';
+        try {
+          const err = JSON.parse(errorText);
+          errorMessage = err.error || err.details || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       toast({
@@ -159,8 +166,15 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Failed to reset password');
+        const errorText = await response.text();
+        let errorMessage = 'Failed to reset password';
+        try {
+          const err = JSON.parse(errorText);
+          errorMessage = err.error || err.details || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       toast({
@@ -245,13 +259,14 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
         let errorMessage = 'Signup failed';
+
         try {
-          const errorData = await response.json();
+          const errorData = JSON.parse(errorText);
           errorMessage = errorData.error || errorData.details || errorMessage;
         } catch (e) {
-          // If JSON parse fails, try to get text or use status
-          const errorText = await response.text();
+          // Fallback to raw text or status if JSON parse fails
           errorMessage = errorText || response.statusText || errorMessage;
         }
         throw new Error(errorMessage);

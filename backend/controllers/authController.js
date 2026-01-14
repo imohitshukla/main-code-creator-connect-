@@ -368,8 +368,11 @@ const signup = async (c) => {
       user: { id: userId, email, role: 'creator' }
     }, 201);
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
+    console.error("Signup Error:", error);
+    return c.json({
+      error: 'Signup failed',
+      details: error.message
+    }, 500);
   }
 };
 
