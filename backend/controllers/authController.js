@@ -21,10 +21,11 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
 const registerCreator = async (c) => {
   const { name, email, password, portfolio_link, phone_number } = c.req.valid('json');
 
-  // Reserve a client from the pool for the transaction
-  const db = await client.connect();
-
+  let db;
   try {
+    // Reserve a client from the pool for the transaction
+    db = await client.connect();
+
     // Check if user exists (can be done on pool or dedicated client, dedicated is safer for consistency)
     const userExists = await db.query(
       'SELECT id FROM users WHERE email = $1',
@@ -77,7 +78,7 @@ const registerCreator = async (c) => {
       details: error.message
     }, 500);
   } finally {
-    db.release();
+    if (db) db.release();
   }
 };
 
@@ -85,10 +86,10 @@ const registerCreator = async (c) => {
 const registerBrand = async (c) => {
   const { company_name, email, password, website, phone_number } = c.req.valid('json');
 
-  // Reserve a client from the pool for the transaction
-  const db = await client.connect();
-
+  let db;
   try {
+    // Reserve a client from the pool for the transaction
+    db = await client.connect();
     // Check if user exists
     const userExists = await db.query(
       'SELECT id FROM users WHERE email = $1',
@@ -141,7 +142,7 @@ const registerBrand = async (c) => {
       details: error.message
     }, 500);
   } finally {
-    db.release();
+    if (db) db.release();
   }
 };
 
