@@ -1,8 +1,14 @@
+import 'dotenv/config';
 import { Pool } from 'pg';
 
 const isProduction =
   process.env.NODE_ENV === 'production' ||
   (process.env.DB_HOST && process.env.DB_HOST.includes('render'));
+
+console.log('DEBUG: DB Config Loading...');
+console.log('DEBUG: DATABASE_URL is', process.env.DATABASE_URL ? 'PRESENT' : 'MISSING');
+console.log('DEBUG: DB_HOST is', process.env.DB_HOST || 'MISSING');
+console.log('DEBUG: NODE_ENV is', process.env.NODE_ENV);
 
 const poolConfig = process.env.DATABASE_URL
   ? {
