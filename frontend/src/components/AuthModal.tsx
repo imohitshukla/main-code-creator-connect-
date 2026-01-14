@@ -128,7 +128,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
         let errorMessage = 'Failed to send OTP';
         try {
           const err = JSON.parse(errorText);
-          errorMessage = err.error || err.details || errorMessage;
+          errorMessage = err.details || err.error || errorMessage;
         } catch (e) {
           errorMessage = errorText || response.statusText || errorMessage;
         }
@@ -170,7 +170,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
         let errorMessage = 'Failed to reset password';
         try {
           const err = JSON.parse(errorText);
-          errorMessage = err.error || err.details || errorMessage;
+          errorMessage = err.details || err.error || errorMessage;
         } catch (e) {
           errorMessage = errorText || response.statusText || errorMessage;
         }
@@ -264,7 +264,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
 
         try {
           const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorData.details || errorMessage;
+          errorMessage = errorData.details || errorData.error || errorMessage;
         } catch (e) {
           // Fallback to raw text or status if JSON parse fails
           errorMessage = errorText || response.statusText || errorMessage;

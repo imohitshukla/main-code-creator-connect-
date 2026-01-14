@@ -153,7 +153,7 @@ const login = async (c) => {
   try {
     // Find user
     const userResult = await client.query(
-      'SELECT id, email, password, role, phone_number, company_name, name FROM users LEFT JOIN brand_profiles ON users.id = brand_profiles.user_id LEFT JOIN creator_profiles ON users.id = creator_profiles.user_id WHERE email = $1',
+      'SELECT users.id, users.email, users.password, users.role, users.phone_number, brand_profiles.company_name, creator_profiles.name FROM users LEFT JOIN brand_profiles ON users.id = brand_profiles.user_id LEFT JOIN creator_profiles ON users.id = creator_profiles.user_id WHERE users.email = $1',
       [email]
     );
 
