@@ -3,34 +3,34 @@ import { Client } from 'pg';
 import 'dotenv/config';
 
 const setupSchema = async () => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const connectionString = process.env.DATABASE_URL;
+  const isProduction = process.env.NODE_ENV === 'production';
+  const connectionString = process.env.DATABASE_URL;
 
-    let clientConfig;
-    if (connectionString) {
-        clientConfig = {
-            connectionString,
-            ssl: isProduction || connectionString.includes('render.com') ? { rejectUnauthorized: false } : false,
-        };
-    } else {
-        clientConfig = {
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT,
-            database: process.env.DB_NAME,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            ssl: isProduction || (process.env.DB_HOST && process.env.DB_HOST.includes('render')) ? { rejectUnauthorized: false } : false,
-        };
-    }
+  let clientConfig;
+  if (connectionString) {
+    clientConfig = {
+      connectionString,
+      ssl: isProduction || connectionString.includes('render.com') || connectionString.includes('neon.tech') ? { rejectUnauthorized: false } : false,
+    };
+  } else {
+    clientConfig = {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      ssl: isProduction || (process.env.DB_HOST && process.env.DB_HOST.includes('render')) ? { rejectUnauthorized: false } : false,
+    };
+  }
 
-    const appClient = new Client(clientConfig);
+  const appClient = new Client(clientConfig);
 
-    try {
-        await appClient.connect();
-        console.log('Connected to database...');
+  try {
+    await appClient.connect();
+    console.log('Connected to database...');
 
-        // Create enum types
-        await appClient.query(`
+    // Create enum types
+    await appClient.query(`
       DO $$ 
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
@@ -39,9 +39,9 @@ const setupSchema = async () => {
       END $$;
     `);
 
-        // Drop tables if they exist to ensure schema is up to date
-        console.log('Resetting schema...');
-        await appClient.query(`
+    // Drop tables if they exist to ensure schema is up to date
+    console.log('Resetting schema...');
+    await appClient.query(`
       DROP TABLE IF EXISTS payments CASCADE;
       DROP TABLE IF EXISTS contracts CASCADE;
       DROP TABLE IF EXISTS analytics CASCADE;
@@ -59,9 +59,9 @@ const setupSchema = async () => {
       DROP TABLE IF EXISTS campaign_ai_matches CASCADE;
     `);
 
-        console.log('Creating tables...');
-        // Create tables
-        await appClient.query(`
+    console.log('Creating tables...');
+    // Create tables
+    await appClient.query(`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -265,12 +265,12 @@ const setupSchema = async () => {
 
     `);
 
-        console.log('Tables created successfully');
-    } catch (error) {
-        console.error('Error creating tables:', error);
-    } finally {
-        await appClient.end();
-    }
+    console.log('Tables created successfully');
+  } catch (error) {
+    console.error('Error creating tables:', error);
+  } finally {
+    await appClient.end();
+  }
 };
 
 setupSchema();
