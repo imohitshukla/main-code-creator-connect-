@@ -245,8 +245,16 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Signup failed');
+        let errorMessage = 'Signup failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (e) {
+          // If JSON parse fails, try to get text or use status
+          const errorText = await response.text();
+          errorMessage = errorText || response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

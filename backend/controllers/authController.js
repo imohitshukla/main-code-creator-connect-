@@ -71,8 +71,11 @@ const registerCreator = async (c) => {
     }, 201);
   } catch (error) {
     await db.query('ROLLBACK');
-    console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
+    console.error("Signup Error:", error);
+    return c.json({
+      error: 'Signup failed',
+      details: error.message
+    }, 500);
   } finally {
     db.release();
   }
@@ -132,8 +135,11 @@ const registerBrand = async (c) => {
     }, 201);
   } catch (error) {
     await db.query('ROLLBACK');
-    console.error(error);
-    return c.json({ error: 'Internal server error' }, 500);
+    console.error("Signup Error:", error);
+    return c.json({
+      error: 'Signup failed',
+      details: error.message
+    }, 500);
   } finally {
     db.release();
   }
