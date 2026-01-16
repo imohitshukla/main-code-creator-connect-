@@ -111,13 +111,19 @@ export const getCreatorById = async (c) => {
 export const updateCreatorProfile = async (c) => {
   try {
     const userId = c.get('userId');
-    const { bio, niche, social_links, portfolio_links, audience, budget } = await c.req.json();
+    const { bio, niche, social_links, portfolio_links, audience, budget, avatar } = await c.req.json();
 
+    // Update Creator Profile
     await client.query(`
       UPDATE creator_profiles
       SET bio = $1, niche = $2, social_links = $3, portfolio_links = $4, audience = $5, budget = $6, updated_at = NOW()
       WHERE user_id = $7
     `, [bio, niche, social_links, portfolio_links, audience, budget, userId]);
+
+    // Update User Avatar if provided
+    if (avatar) {
+      await client.query(`UPDATE users SET avatar = $1 WHERE id = $2`, [avatar, userId]);
+    }
 
     return c.json({ message: 'Profile updated successfully' });
   } catch (error) {

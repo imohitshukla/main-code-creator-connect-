@@ -27,6 +27,7 @@ export interface UserProfile {
   budgetRange: string;
   location: string;
   campaignGoals: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
@@ -79,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       budgetRange: '',
       location: '',
       campaignGoals: '',
+      avatar: userData.avatar || '',
     };
   };
 
@@ -220,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         portfolio_links: JSON.stringify([fullProfile.portfolio]),
         audience: JSON.stringify({ description: fullProfile.audience }), // Wrap as JSON
         budget: JSON.stringify({ range: fullProfile.budgetRange }),      // Wrap as JSON
+        avatar: fullProfile.avatar,
         // custom fields like campaignGoals, location might need schema update or appended to bio
       };
 
