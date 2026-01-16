@@ -62,6 +62,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Midnight Luxury Theme Extension
+        "rich-black": "#050505",
+        "glass-panel": "#121212",
+        "neutral-border": "#2A2A2A",
+        "success-green": "#10B981",
       },
       backgroundImage: {
         'gradient-hero': 'var(--gradient-hero)',
