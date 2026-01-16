@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Megaphone, Sparkles, TrendingUp, Zap, Star } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
+import SmartAvatar from '@/components/SmartAvatar';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
 
@@ -485,7 +486,14 @@ const CampaignPage = () => {
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold text-foreground mb-4">Creator: {selectedCreator?.username}</h4>
+                  <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <SmartAvatar
+                      name={selectedCreator?.username}
+                      type="creator"
+                      className="w-8 h-8"
+                    />
+                    Creator: {selectedCreator?.username}
+                  </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Base Price:</span>

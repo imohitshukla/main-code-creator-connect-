@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, DollarSign, Calendar, Users, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SmartAvatar from '@/components/SmartAvatar';
 
 export interface Campaign {
   id: number;
@@ -56,7 +57,11 @@ const CampaignCard = ({ campaign, onApply, isOwner, onClose }: CampaignCardProps
                 )}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Building className="w-4 h-4" />
+                <SmartAvatar
+                  type="brand"
+                  name={campaign.companyName}
+                  className="w-4 h-4 rounded-full"
+                />
                 {campaign.companyName}
               </div>
               <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-smooth">

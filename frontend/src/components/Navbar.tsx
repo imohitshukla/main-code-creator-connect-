@@ -24,6 +24,7 @@ import { useAuth, UserProfile } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import { cn } from "@/lib/utils";
 import Logo from '@/components/Logo';
+import SmartAvatar from '@/components/SmartAvatar';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -180,12 +181,13 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.avatar} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {profileInitial}
-                      </AvatarFallback>
-                    </Avatar>
+                    <SmartAvatar
+                      src={user?.avatar}
+                      type={user?.role === 'brand' ? 'brand' : 'creator'}
+                      name={profile?.name || user?.email}
+                      email={user?.email}
+                      className="h-10 w-10"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80" align="end" forceMount>

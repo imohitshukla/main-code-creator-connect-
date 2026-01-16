@@ -3,6 +3,7 @@ import { Star, Quote } from 'lucide-react';
 import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import SmartAvatar from '@/components/SmartAvatar';
 
 const TESTIMONIALS = [
     {
@@ -63,10 +64,12 @@ export function TestimonialCarousel() {
                                         </blockquote>
 
                                         <div className="flex items-center justify-center gap-4">
-                                            <img
+                                            <SmartAvatar
                                                 src={testimonial.image}
+                                                name={testimonial.author}
+                                                type="creator"
                                                 alt={testimonial.author}
-                                                className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/20"
+                                                className="w-14 h-14 rounded-full ring-2 ring-primary/20"
                                             />
                                             <div className="text-left">
                                                 <div className="font-bold text-lg">{testimonial.author}</div>

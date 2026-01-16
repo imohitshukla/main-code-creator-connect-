@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail } from 'lucide-react';
+import SmartAvatar from '@/components/SmartAvatar';
 
 export interface Creator {
   id: number;
@@ -27,10 +28,12 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <div className="relative">
-            <img
+            <SmartAvatar
               src={creator.image}
+              name={creator.name}
+              type="creator"
               alt={creator.name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 group-hover:border-primary/40 transition-smooth"
+              className="w-16 h-16 rounded-full border-2 border-primary/20 group-hover:border-primary/40 transition-smooth"
             />
             {creator.rating && (
               <div className="absolute -bottom-1 -right-1 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -38,7 +41,7 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
               <div>
@@ -50,17 +53,17 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
                 </p>
               </div>
             </div>
-            
+
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
               {creator.bio}
             </p>
-            
+
             {creator.followers && (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
                 {creator.followers} followers
               </p>
             )}
-            
+
             <div className="mt-4 flex gap-2">
               <Button
                 size="sm"
