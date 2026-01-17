@@ -51,12 +51,12 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
 
           <div className="flex flex-wrap gap-2 justify-center mb-4">
             <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-              {creator.niche}
+              {creator.niche || 'General'}
             </span>
           </div>
 
-          <p className="text-muted-foreground text-sm line-clamp-2 mb-6 max-w-[250px]">
-            {creator.bio}
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-6 max-w-[250px] min-h-[40px]">
+            {creator.bio || 'Open to collaborations'}
           </p>
 
           <div className="w-full grid grid-cols-2 gap-4 border-t border-border pt-4 mb-4">

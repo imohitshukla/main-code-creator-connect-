@@ -52,12 +52,13 @@ export const getCreators = async (c) => {
     console.log('getCreators query params:', { niche, minFollowers, minEngagement, maxBudget, search });
 
     let query = `
-      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
+      SELECT u.id, u.name, u.email, u.avatar,
+             cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
-             u.email, u.name, u.avatar, cp.is_verified
-      FROM creator_profiles cp
-      JOIN users u ON cp.user_id = u.id
-      WHERE 1=1
+             cp.is_verified
+      FROM users u
+      LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+      WHERE u.role = 'creator'
     `;
     const params = [];
 
@@ -90,10 +91,22 @@ export const getCreators = async (c) => {
     const creators = await client.query(query, params);
     console.log(`Found ${creators.rows.length} creators`);
 
-    return c.json({ creators: creators.rows });
+    // Normalize data (handle missing profile)
+    const normalizedCreators = creators.rows.map(row => ({
+      ...row,
+      niche: row.niche || 'General',
+      bio: row.bio || 'Open to collaborations',
+      follower_count: row.follower_count || 0,
+      engagement_rate: row.engagement_rate || 0
+    }));
+
+    return c.json({ creators: normalizedCreators });
   } catch (error) {
     console.error('Error in getCreators:', error);
-    return c.json({ error: 'Failed to fetch creators' }, 500);
+    // Return empty list instead of crashing if DB error, but log it
+    // return c.json({ creators: [] }); 
+    // Actually better to return 500 but clearer message
+    return c.json({ error: 'Failed to fetch creators', details: error.message }, 500);
   }
 };
 
