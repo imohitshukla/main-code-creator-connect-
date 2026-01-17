@@ -29,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
     is_phone_verified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    avatar: {
+      type: DataTypes.TEXT, // Changed to TEXT to support Base64
+      allowNull: true
     }
   }, {
     tableName: 'users'
@@ -36,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
 
   User.associate = (models) => {
     // Define associations here
-    User.hasOne(models.CreatorProfile, { foreignKey: 'user_id' });
+    User.hasOne(models.CreatorProfile, { foreignKey: 'user_id', as: 'creatorProfile' });
     User.hasOne(models.BrandProfile, { foreignKey: 'user_id' });
   };
 

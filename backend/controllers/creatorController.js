@@ -1,4 +1,6 @@
 import { client } from '../config/database.js';
+import { Op } from 'sequelize';
+import { User, CreatorProfile } from '../models/index.js';
 
 export const getCreatorByUsername = async (c) => {
   try {
@@ -46,51 +48,47 @@ export const getCreatorByUsername = async (c) => {
   }
 };
 
-exports.getCreators = async (c) => {
+export const getCreators = async (c) => {
   try {
     const { niche, search } = c.req.query();
-    console.log('getCreators query params:', { niche, search });
 
-    let query = `
-      SELECT u.id, u.name, u.email, u.avatar,
-             cp.bio, cp.niche, cp.portfolio_links,
-             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
-             cp.is_verified
-      FROM users u
-      LEFT JOIN creator_profiles cp ON u.id = cp.user_id
-      WHERE u.role = 'creator'
-    `;
-    const params = [];
+    // 1. Base Query: Find ALL users with role 'creator'
+    const whereClause = { role: 'creator' };
 
-    // Search Logic (Case Insensitive)
+    // 2. Add Search Logic (Case Insensitive)
     if (search) {
-      params.push(`%${search}%`);
-      query += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR cp.niche ILIKE $${params.length})`;
+      whereClause.name = { [Op.iLike]: `%${search}%` };
     }
 
-    // Niche Filter
-    if (niche && niche !== 'All') {
-      params.push(`%${niche}%`);
-      query += ` AND cp.niche ILIKE $${params.length}`;
-    }
+    // 3. The Query
+    const creators = await User.findAll({
+      where: whereClause,
+      attributes: ['id', 'name', 'email', 'avatar'], // Fetch the avatar!
+      include: [
+        {
+          model: CreatorProfile,
+          as: 'creatorProfile',
+          required: false, // <--- CRITICAL: Do not crash if profile is missing!
+          attributes: ['niche', 'bio', 'portfolio_links', 'social_media', 'follower_count', 'engagement_rate', 'audience', 'budget', 'is_verified'],
+          where: niche ? { niche: { [Op.iLike]: `%${niche}%` } } : undefined
+        }
+      ]
+    });
 
-    console.log('Executing query:', query, params);
-    const creators = await client.query(query, params);
-
-    // Safely Format Data
-    const formattedCreators = creators.rows.map(user => ({
+    // 4. Safely Format the Data for Frontend
+    const formattedCreators = creators.map(user => ({
       id: user.id,
       name: user.name,
+      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`, // Auto-fallback
+      avatar: user.avatar,
       email: user.email,
-      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
-      avatar: user.avatar, // Keep both for compatibility
-      niche: user.niche || 'General Creator',
-      bio: user.bio || 'Open to collaborations',
-      location: 'India', // Default as per request (column missing in DB)
-      followers: user.follower_count ? user.follower_count.toLocaleString() : 'New',
-      engagement_rate: user.engagement_rate || 0,
-      portfolio_links: user.portfolio_links,
-      social_links: user.social_links
+      niche: user.creatorProfile?.niche || 'General Creator', // Fallback text
+      bio: user.creatorProfile?.bio || 'Open to collaborations',
+      location: 'India', // user.creatorProfile?.location || 'India',
+      followers: user.creatorProfile?.follower_count ? user.creatorProfile.follower_count.toLocaleString() : 'New',
+      engagement_rate: user.creatorProfile?.engagement_rate || 0,
+      portfolio_links: user.creatorProfile?.portfolio_links,
+      social_links: user.creatorProfile?.social_media
     }));
 
     return c.json({ creators: formattedCreators });
