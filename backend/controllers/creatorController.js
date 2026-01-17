@@ -46,14 +46,14 @@ export const getCreatorByUsername = async (c) => {
   }
 };
 
-export const getCreators = async (c) => {
+exports.getCreators = async (c) => {
   try {
-    const { niche, minFollowers, minEngagement, maxBudget, search } = c.req.query();
-    console.log('getCreators query params:', { niche, minFollowers, minEngagement, maxBudget, search });
+    const { niche, search } = c.req.query();
+    console.log('getCreators query params:', { niche, search });
 
     let query = `
       SELECT u.id, u.name, u.email, u.avatar,
-             cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
+             cp.bio, cp.niche, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
              cp.is_verified
       FROM users u
@@ -62,51 +62,41 @@ export const getCreators = async (c) => {
     `;
     const params = [];
 
+    // Search Logic (Case Insensitive)
     if (search) {
       params.push(`%${search}%`);
       query += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR cp.niche ILIKE $${params.length})`;
     }
 
+    // Niche Filter
     if (niche && niche !== 'All') {
       params.push(`%${niche}%`);
       query += ` AND cp.niche ILIKE $${params.length}`;
     }
 
-    if (minFollowers) {
-      params.push(parseInt(minFollowers));
-      query += ` AND cp.follower_count >= $${params.length}`;
-    }
-
-    if (minEngagement) {
-      params.push(parseFloat(minEngagement));
-      query += ` AND cp.engagement_rate >= $${params.length}`;
-    }
-
-    if (maxBudget) {
-      params.push(parseFloat(maxBudget));
-      query += ` AND cp.budget <= $${params.length}`;
-    }
-
     console.log('Executing query:', query, params);
     const creators = await client.query(query, params);
-    console.log(`Found ${creators.rows.length} creators`);
 
-    // Normalize data (handle missing profile)
-    const normalizedCreators = creators.rows.map(row => ({
-      ...row,
-      niche: row.niche || 'General',
-      bio: row.bio || 'Open to collaborations',
-      follower_count: row.follower_count || 0,
-      engagement_rate: row.engagement_rate || 0
+    // Safely Format Data
+    const formattedCreators = creators.rows.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
+      avatar: user.avatar, // Keep both for compatibility
+      niche: user.niche || 'General Creator',
+      bio: user.bio || 'Open to collaborations',
+      location: 'India', // Default as per request (column missing in DB)
+      followers: user.follower_count ? user.follower_count.toLocaleString() : 'New',
+      engagement_rate: user.engagement_rate || 0,
+      portfolio_links: user.portfolio_links,
+      social_links: user.social_links
     }));
 
-    return c.json({ creators: normalizedCreators });
+    return c.json({ creators: formattedCreators });
   } catch (error) {
-    console.error('Error in getCreators:', error);
-    // Return empty list instead of crashing if DB error, but log it
-    // return c.json({ creators: [] }); 
-    // Actually better to return 500 but clearer message
-    return c.json({ error: 'Failed to fetch creators', details: error.message }, 500);
+    console.error("❌ SEARCH API CRASHED:", error);
+    return c.json({ error: "Failed to fetch creators", details: error.message }, 500);
   }
 };
 
