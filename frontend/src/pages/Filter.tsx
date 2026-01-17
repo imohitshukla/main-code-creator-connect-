@@ -53,9 +53,7 @@ const Filter = () => {
       if (followersRange[0] > 0) params.append('minFollowers', followersRange[0].toString());
       if (engagementRange[0] > 0) params.append('minEngagement', engagementRange[0].toString());
       if (budgetRange[0] > 0) params.append('maxBudget', budgetRange[0].toString());
-      // Note: Search term is typically handled on client side in this hybrid approach unless backend supports it
-      // Adding basic client side filtering for name search if backend doesn't support 'search' param yet,
-      // but assuming we fetch all filtered by numeric params first.
+      if (searchTerm) params.append('search', searchTerm); // Server-side search
 
       const response = await fetch(`${getApiUrl()}/api/creators?${params.toString()}`);
       if (response.ok) {
@@ -65,7 +63,10 @@ const Filter = () => {
           name: creator.name || creator.email?.split('@')[0] || `Creator ${creator.id}`,
           niche: creator.niche || 'General',
           bio: creator.bio || 'No bio available',
-          image: [creator1, creator2, creator3, creator4][index % 4],
+          // Prioritize backend avatar, then fallback loop, then empty
+          avatar: creator.avatar,
+          image: [creator1, creator2, creator3, creator4][index % 4], // Keep legacy as fallback for now
+          email: creator.email, // Needed for SmartAvatar fallback
           followers: creator.follower_count ? `${creator.follower_count.toLocaleString()}` : '0',
           followerCountRaw: creator.follower_count, // Keep raw for sorting/client logic if needed
           audience: creator.audience,
@@ -74,16 +75,7 @@ const Filter = () => {
           portfolio_links: creator.portfolio_links
         }));
 
-        // Client-side text search (until backend update)
-        if (searchTerm) {
-          const lowerTerm = searchTerm.toLowerCase();
-          transformedCreators = transformedCreators.filter(c =>
-            c.name.toLowerCase().includes(lowerTerm) ||
-            c.bio.toLowerCase().includes(lowerTerm) ||
-            c.niche.toLowerCase().includes(lowerTerm)
-          );
-        }
-
+        // Client-side text search removed as backend now handles 'search' param
         setCreators(transformedCreators);
       } else {
         console.error('Failed to fetch creators');

@@ -9,12 +9,14 @@ export interface Creator {
   niche: string;
   bio: string;
   image: string;
+  avatar?: string; // Added avatar field from backend
   followers?: string;
   rating?: number;
   audience?: any;
   budget?: any;
   social_links?: any;
   portfolio_links?: any;
+  email?: string; // Added for SmartAvatar fallback
 }
 
 interface CreatorCardProps {
@@ -24,57 +26,60 @@ interface CreatorCardProps {
 
 const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
   return (
-    <Card className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0">
-      <CardContent className="p-6">
-        <div className="flex items-start space-x-4">
-          <div className="relative">
+    <Card className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0 overflow-hidden cursor-pointer" onClick={() => window.location.href = `/profile/${creator.id}`}>
+      <CardContent className="p-0">
+        <div className="flex flex-col items-center p-8 text-center bg-card/50">
+          <div className="relative mb-4">
             <SmartAvatar
-              src={creator.image}
+              src={creator.avatar || creator.image}
               name={creator.name}
+              email={creator.email}
               type="creator"
               alt={creator.name}
-              className="w-16 h-16 rounded-full border-2 border-primary/20 group-hover:border-primary/40 transition-smooth"
+              className="w-24 h-24 rounded-full border-4 border-background shadow-lg group-hover:scale-105 transition-transform duration-300"
             />
             {creator.rating && (
-              <div className="absolute -bottom-1 -right-1 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+              <div className="absolute bottom-0 right-0 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                 {creator.rating}
               </div>
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-smooth">
-                  {creator.name}
-                </h3>
-                <p className="text-sm font-medium text-primary bg-primary-soft px-2 py-1 rounded-full inline-block">
-                  {creator.niche}
-                </p>
-              </div>
+          <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+            {creator.name}
+          </h3>
+
+          <div className="flex flex-wrap gap-2 justify-center mb-4">
+            <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+              {creator.niche}
+            </span>
+          </div>
+
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-6 max-w-[250px]">
+            {creator.bio}
+          </p>
+
+          <div className="w-full grid grid-cols-2 gap-4 border-t border-border pt-4 mb-4">
+            <div>
+              <p className="text-lg font-bold text-foreground">{creator.followers || '0'}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Followers</p>
             </div>
-
-            <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-              {creator.bio}
-            </p>
-
-            {creator.followers && (
-              <p className="text-xs text-muted-foreground mt-2 font-medium">
-                {creator.followers} followers
-              </p>
-            )}
-
-            <div className="mt-4 flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => onContact(creator)}
-                className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Contact
-              </Button>
+            <div>
+              <p className="text-lg font-bold text-foreground">{creator.audience?.engagement || 'N/A'}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Engagement</p>
             </div>
           </div>
+
+          <Button
+            className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300 rounded-xl"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent card click
+              onContact(creator);
+            }}
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Contact Creator
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -48,16 +48,23 @@ export const getCreatorByUsername = async (c) => {
 
 export const getCreators = async (c) => {
   try {
-    const { niche, minFollowers, minEngagement, maxBudget } = c.req.query();
+    const { niche, minFollowers, minEngagement, maxBudget, search } = c.req.query();
+    console.log('getCreators query params:', { niche, minFollowers, minEngagement, maxBudget, search });
+
     let query = `
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
-             u.email, u.name, cp.is_verified
+             u.email, u.name, u.avatar, cp.is_verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE 1=1
     `;
     const params = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+      query += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length} OR cp.niche ILIKE $${params.length})`;
+    }
 
     if (niche && niche !== 'All') {
       params.push(`%${niche}%`);
@@ -79,10 +86,13 @@ export const getCreators = async (c) => {
       query += ` AND cp.budget <= $${params.length}`;
     }
 
+    console.log('Executing query:', query, params);
     const creators = await client.query(query, params);
+    console.log(`Found ${creators.rows.length} creators`);
+
     return c.json({ creators: creators.rows });
   } catch (error) {
-    console.error(error);
+    console.error('Error in getCreators:', error);
     return c.json({ error: 'Failed to fetch creators' }, 500);
   }
 };
