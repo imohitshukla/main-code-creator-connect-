@@ -54,40 +54,47 @@ export const getCreators = async (c) => {
   try {
     const { niche, search } = c.req.query();
 
-    // 1. Base Query: Find ALL users with role 'creator'
+    // 1. Base Query
     const whereClause = { role: 'creator' };
-    const nameField = 'name'; // Confirmed 'name' exists in DB and now Model
 
     // 2. Add Search Logic (Case Insensitive)
+    // We must search on '$creatorProfile.name$' because 'name' is in the profile table, not users table.
     if (search) {
-      whereClause[nameField] = { [Op.iLike]: `%${search}%` };
+      whereClause[Op.or] = [
+        { email: { [Op.iLike]: `%${search}%` } },
+        { '$creatorProfile.name$': { [Op.iLike]: `%${search}%` } },
+        { '$creatorProfile.niche$': { [Op.iLike]: `%${search}%` } }
+      ];
     }
 
     // 3. The Query
     const creators = await User.findAll({
       where: whereClause,
-      attributes: ['id', nameField, 'email', 'avatar'], // Fetch the avatar!
+      attributes: ['id', 'email', 'avatar'], // User has NO name column
       include: [
         {
           model: CreatorProfile,
           as: 'creatorProfile',
-          required: false, // <--- CRITICAL: Do not crash if profile is missing!
-          attributes: ['niche', 'bio', 'portfolio_links', 'social_media', 'follower_count', 'engagement_rate', 'audience', 'budget', 'is_verified'],
+          required: false,
+          attributes: ['name', 'niche', 'bio', 'portfolio_links', 'social_media', 'follower_count', 'engagement_rate', 'audience', 'budget', 'is_verified'],
           where: niche ? { niche: { [Op.iLike]: `%${niche}%` } } : undefined
         }
-      ]
+      ],
+      // subQuery: false is often needed when querying on included columns with limits/offsets, 
+      // though here we don't have limit/offset yet, it's safer for $ reference.
+      subQuery: false
     });
 
     // 4. Safely Format the Data for Frontend
     const formattedCreators = creators.map(user => ({
       id: user.id,
-      name: user[nameField],
-      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`, // Auto-fallback
+      name: user.creatorProfile?.name || user.email?.split('@')[0] || 'Creator', // Get name from Profile
+      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
       avatar: user.avatar,
       email: user.email,
-      niche: user.creatorProfile?.niche || 'General Creator', // Fallback text
+      niche: user.creatorProfile?.niche || 'General Creator',
       bio: user.creatorProfile?.bio || 'Open to collaborations',
-      location: 'India', // user.creatorProfile?.location || 'India',
+      location: 'India',
       followers: user.creatorProfile?.follower_count ? user.creatorProfile.follower_count.toLocaleString() : 'New',
       engagement_rate: user.creatorProfile?.engagement_rate || 0,
       portfolio_links: user.creatorProfile?.portfolio_links,
