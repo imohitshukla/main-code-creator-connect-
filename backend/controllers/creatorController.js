@@ -2,7 +2,7 @@ import { client } from '../config/database.js';
 import { Op } from 'sequelize';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { User, CreatorProfile } = require('../models/index.js');
+const { User, CreatorProfile } = require('../models/index.cjs');
 
 export const getCreatorByUsername = async (c) => {
   try {
