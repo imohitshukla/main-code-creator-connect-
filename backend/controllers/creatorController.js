@@ -56,16 +56,17 @@ export const getCreators = async (c) => {
 
     // 1. Base Query: Find ALL users with role 'creator'
     const whereClause = { role: 'creator' };
+    const nameField = 'name'; // Confirmed 'name' exists in DB and now Model
 
     // 2. Add Search Logic (Case Insensitive)
     if (search) {
-      whereClause.name = { [Op.iLike]: `%${search}%` };
+      whereClause[nameField] = { [Op.iLike]: `%${search}%` };
     }
 
     // 3. The Query
     const creators = await User.findAll({
       where: whereClause,
-      attributes: ['id', 'name', 'email', 'avatar'], // Fetch the avatar!
+      attributes: ['id', nameField, 'email', 'avatar'], // Fetch the avatar!
       include: [
         {
           model: CreatorProfile,
@@ -80,7 +81,7 @@ export const getCreators = async (c) => {
     // 4. Safely Format the Data for Frontend
     const formattedCreators = creators.map(user => ({
       id: user.id,
-      name: user.name,
+      name: user[nameField],
       image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`, // Auto-fallback
       avatar: user.avatar,
       email: user.email,
