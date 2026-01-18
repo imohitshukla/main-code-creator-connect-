@@ -205,6 +205,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return nextProfile;
     });
 
+    // FIX: Also update User state if avatar is being updated (for Navbar sync)
+    if (updates.avatar) {
+      setUser((prev) => {
+        if (!prev) return null;
+        const updatedUser = { ...prev, avatar: updates.avatar };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return updatedUser;
+      });
+    }
+
     // 2. Sync with Backend
     try {
       const token = localStorage.getItem('token');
