@@ -85,7 +85,14 @@ const ProfileSetup = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      handleChange('avatar', base64String); // Save base64 to state
+      handleChange('avatar', base64String); // Update local form state
+
+      // Auto-save avatar to sync with Navbar immediately
+      updateProfile({ avatar: base64String });
+      toast({
+        title: 'Profile Picture Updated',
+        description: 'Your new avatar is live.',
+      });
     };
     reader.readAsDataURL(file);
   };
