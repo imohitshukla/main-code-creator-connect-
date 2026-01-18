@@ -180,13 +180,13 @@ const Navbar = () => {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
                     <SmartAvatar
                       src={user?.avatar}
                       type={user?.role === 'brand' ? 'brand' : 'creator'}
                       name={profile?.name || user?.email}
                       email={user?.email}
-                      className="h-10 w-10"
+                      className="h-full w-full"
                     />
                   </Button>
                 </DropdownMenuTrigger>
