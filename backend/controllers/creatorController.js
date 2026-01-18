@@ -114,7 +114,7 @@ export const getCreatorById = async (c) => {
     const creator = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
-             u.email, u.name
+             u.email, u.name, u.avatar, cp.is_verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.id = $1

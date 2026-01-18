@@ -140,7 +140,9 @@ const ProfileSetup = () => {
                     <Camera className="w-4 h-4" />
                   </label>
                 </div>
-                <p className="mt-3 text-sm text-muted-foreground">Click to upload your profile picture</p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {formState.avatar ? 'Click to change your profile picture' : 'Click to upload your profile picture'}
+                </p>
               </div>
 
               <Card className="bg-card/90 shadow-soft">
