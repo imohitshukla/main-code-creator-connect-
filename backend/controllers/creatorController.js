@@ -1,6 +1,7 @@
 import { client } from '../config/database.js';
 import { Op } from 'sequelize';
-import { User, CreatorProfile } from '../models/index.js';
+import db from '../models/index.js';
+const { User, CreatorProfile } = db;
 
 export const getCreatorByUsername = async (c) => {
   try {
