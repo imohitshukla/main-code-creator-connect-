@@ -234,17 +234,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const fullProfile = { ...(profile ?? buildDefaultProfile(user)), ...updates };
 
       const payload = {
+        displayName: fullProfile.name,
+        phone_number: fullProfile.phoneNumber,
+        primary_location: fullProfile.location,
+        primary_niche: fullProfile.niche,
+        total_followers: fullProfile.followers,
         bio: fullProfile.bio,
-        niche: fullProfile.niche,
-        social_links: JSON.stringify([
-          { platform: 'instagram', url: fullProfile.instagram },
-          { platform: 'youtube', url: fullProfile.youtube }
-        ]),
-        portfolio_links: JSON.stringify([fullProfile.portfolio]),
-        audience: JSON.stringify({ description: fullProfile.audience }), // Wrap as JSON
-        budget: JSON.stringify({ range: fullProfile.budgetRange }),      // Wrap as JSON
-        avatar: fullProfile.avatar,
-        // custom fields like campaignGoals, location might need schema update or appended to bio
+        instagram_link: fullProfile.instagram,
+        youtube_link: fullProfile.youtube,
+        portfolio_link: fullProfile.portfolio,
+        audience_breakdown: fullProfile.audience,
+        budget_range: fullProfile.budgetRange,
+        collaboration_goals: fullProfile.campaignGoals,
+        avatar: fullProfile.avatar
       };
 
       await fetch(`${getApiUrl()}/api/creators/profile`, {

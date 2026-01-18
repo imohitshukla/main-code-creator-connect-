@@ -114,6 +114,8 @@ export const getCreatorById = async (c) => {
     const creator = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
              cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
+             cp.phone_number, cp.location, cp.instagram_link, cp.youtube_link, 
+             cp.portfolio_link, cp.audience_breakdown, cp.budget_range, cp.collaboration_goals,
              u.email, u.name, u.avatar, cp.is_verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
@@ -132,24 +134,61 @@ export const getCreatorById = async (c) => {
 export const updateCreatorProfile = async (c) => {
   try {
     const userId = c.get('userId');
-    const { bio, niche, social_links, portfolio_links, audience, budget, avatar } = await c.req.json();
+    const {
+      displayName,
+      phone_number,
+      primary_location,
+      primary_niche,
+      total_followers,
+      bio,
+      instagram_link,
+      youtube_link,
+      portfolio_link,
+      audience_breakdown,
+      budget_range,
+      collaboration_goals,
+      avatar
+    } = await c.req.json();
 
-    // Update Creator Profile
-    await client.query(`
-      UPDATE creator_profiles
-      SET bio = $1, niche = $2, social_links = $3, portfolio_links = $4, audience = $5, budget = $6, updated_at = NOW()
-      WHERE user_id = $7
-    `, [bio, niche, social_links, portfolio_links, audience, budget, userId]);
+    // 1. Update User Table (Name/Email/Avatar if needed)
+    if (displayName || avatar) {
+      const userUpdates = {};
+      if (displayName) userUpdates.name = displayName;
+      if (avatar) userUpdates.avatar = avatar;
 
-    // Update User Avatar if provided
-    if (avatar) {
-      await client.query(`UPDATE users SET avatar = $1 WHERE id = $2`, [avatar, userId]);
+      if (Object.keys(userUpdates).length > 0) {
+        await User.update(userUpdates, { where: { id: userId } });
+      }
     }
 
-    return c.json({ message: 'Profile updated successfully' });
+    // 2. Update/Upsert CreatorProfile Table
+    const [profile, created] = await CreatorProfile.findOrCreate({
+      where: { user_id: userId },
+      defaults: { user_id: userId, name: displayName || 'Creator' }
+    });
+
+    // 3. Save all fields
+    await profile.update({
+      phone_number,
+      location: primary_location,
+      niche: primary_niche,
+      follower_count: total_followers ? parseInt(String(total_followers).replace(/,/g, '')) : 0, // Ensure integer
+      bio,
+      instagram_link,
+      youtube_link,
+      portfolio_link,
+      audience_breakdown,
+      budget_range,
+      collaboration_goals,
+      // Keep legacy JSON fields synced just in case, or ignore them. 
+      // User didn't ask to remove them, but prioritizing the new columns.
+      updated_at: new Date()
+    });
+
+    return c.json({ message: "Profile saved successfully", profile });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to update profile' }, 500);
+    console.error("Save Profile Error:", error);
+    return c.json({ error: "Failed to save profile", details: error.message }, 500);
   }
 };
 

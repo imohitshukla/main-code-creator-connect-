@@ -49,6 +49,38 @@ module.exports = (sequelize, DataTypes) => {
     is_verified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    location: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    instagram_link: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    youtube_link: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    portfolio_link: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    audience_breakdown: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    budget_range: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    collaboration_goals: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     tableName: 'creator_profiles'
