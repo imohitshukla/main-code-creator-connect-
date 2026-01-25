@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Layers, ArrowRight, Camera } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
-import SmartAvatar from '@/components/SmartAvatar';
+
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
 
@@ -101,7 +101,8 @@ const ProfileSetup = () => {
 
       const token = localStorage.getItem('token');
       // Direct API call to bypass JSON-only context
-      import { getApiUrl } from '@/lib/utils'; // Ensure import exists or add it
+      // Direct API call to bypass JSON-only context
+      // getApiUrl is imported at the top
 
       // ... inside component ...
       const response = await fetch(`${getApiUrl()}/api/creators/profile`, {

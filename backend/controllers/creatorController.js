@@ -110,6 +110,8 @@ export const getCreators = async (c) => {
 
 export const getCreatorById = async (c) => {
   try {
+    const body = await c.req.parseBody();
+    console.log('DEBUG: Received Update Body:', body); // <--- DEBUG LOG
     const id = c.req.param('id');
     const creator = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
