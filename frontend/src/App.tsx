@@ -18,6 +18,7 @@ import EducationHub from "./pages/EducationHub";
 import BrandDashboard from "./pages/BrandDashboard";
 import NotFound from "./pages/NotFound";
 import ProfileSetup from "./pages/ProfileSetup";
+import PublicProfile from "./pages/PublicProfile";
 
 import About from "./pages/About";
 import CMSPage from "./pages/CMSPage";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/campaign" element={<Campaign />} />
               <Route path="/agency" element={<AgencyPage />} />
               <Route path="/filter" element={<Filter />} />
+              <Route path="/profile/:id" element={<PublicProfile />} />
               <Route path="/stories" element={<CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." />} />
 
               {/* Resources & Support */}
