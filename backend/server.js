@@ -13,6 +13,7 @@ import analyticsRoutes from './routes/analytics.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
 import contactRoutes from './routes/contact.js';
+import newsletterRoutes from './routes/newsletter.js';
 import welcomeRoutes from './src/backend/routes/welcome.js';
 import testEmailRoutes from './src/backend/routes/testEmail.js';
 
@@ -43,6 +44,7 @@ app.route('/api/analytics', analyticsRoutes);
 app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
+app.route('/api/newsletter', newsletterRoutes);
 
 // Add the new welcome route
 app.route('/api/welcome', welcomeRoutes);

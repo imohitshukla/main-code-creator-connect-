@@ -8,15 +8,27 @@ import { toast } from 'sonner';
 const Footer = () => {
     const [email, setEmail] = useState('');
 
-    const handleSubscribe = (e: React.FormEvent) => {
+    const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
 
-        // Mock API call
-        setTimeout(() => {
-            toast.success("Thanks for subscribing! You're in the loop.");
-            setEmail('');
-        }, 500);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/newsletter/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success(data.message || "Thanks for subscribing!");
+                setEmail('');
+            } else {
+                toast.error(data.error || "Something went wrong.");
+            }
+        } catch (error) {
+            toast.error("Failed to subscribe. Please try again.");
+        }
     };
 
     return (

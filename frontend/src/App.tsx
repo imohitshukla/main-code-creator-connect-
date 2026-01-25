@@ -22,6 +22,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import About from "./pages/About";
 import CMSPage from "./pages/CMSPage";
 import LegalPage from "./pages/LegalPage";
+import { PlatformPage, AgencyPage, CareersPage } from "./pages/MarketingPages";
 
 const queryClient = new QueryClient();
 
@@ -41,15 +42,15 @@ const App = () => (
               <Route path="/ai-match" element={<AIMatch />} />
 
               {/* Product/Service Pages */}
-              <Route path="/platform" element={<CMSPage title="Platform Overview" subtitle="The complete toolkit for influencer marketing." />} />
+              <Route path="/platform" element={<PlatformPage />} />
               <Route path="/campaign" element={<Campaign />} />
-              <Route path="/agency" element={<CMSPage title="Agency Services" subtitle="White-glove service for enterprise brands." />} />
+              <Route path="/agency" element={<AgencyPage />} />
               <Route path="/filter" element={<Filter />} />
               <Route path="/stories" element={<CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." />} />
 
               {/* Resources & Support */}
               <Route path="/blog" element={<CMSPage title="Blog" subtitle="Insights, trends, and tips." />} />
-              <Route path="/careers" element={<CMSPage title="Careers" subtitle="Join our mission to democratize influence." />} />
+              <Route path="/careers" element={<CareersPage />} />
               <Route path="/education" element={<EducationHub />} />
               <Route path="/support/brand" element={<CMSPage title="Brand Support" subtitle="Help center for brands." />} />
               <Route path="/support/creator" element={<CMSPage title="Creator Support" subtitle="Help center for creators." />} />
