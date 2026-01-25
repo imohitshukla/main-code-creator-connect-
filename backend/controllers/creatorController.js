@@ -111,76 +111,56 @@ export const getCreators = async (c) => {
 export const getCreatorById = async (c) => {
   try {
     const id = c.req.param('id');
-    console.log(`DEBUG: getCreatorById called for ID: ${id}`);
-    console.log('DEBUG: Models check:', { User: !!User, CreatorProfile: !!CreatorProfile });
 
-    if (!User || !CreatorProfile) {
-      throw new Error('Sequelize Models are not loaded correctly.');
-    }
-
-    // 1. Fetch User + CreatorProfile safely
-    const user = await User.findOne({
-      where: { id },
-      attributes: ['id', 'name', 'email', 'avatar'], // Get avatar from User
-      include: [
-        {
-          model: CreatorProfile,
-          as: 'creatorProfile',
-          required: false, // Left Join
-          attributes: [
-            'niche',
-            'location',
-            'bio',
-            'instagram_link',
-            'youtube_link',
-            'portfolio_link',
-            'follower_count',
-            'engagement_rate',
-            'budget_range',
-            'audience_breakdown',
-            'collaboration_goals',
-            'is_verified'
-          ]
-        }
-      ]
+    // 1. Fetch the Core User (The "Product")
+    const user = await User.findByPk(id, {
+      attributes: ['id', 'name', 'email', 'avatar', 'niche', 'location', 'followers_count']
     });
 
     if (!user) {
       return c.json({ error: "Creator not found" }, 404);
     }
 
-    // 2. Format Response (Flatten for frontend)
-    const profileData = {
+    // 2. Fetch the Details (The "Specs")
+    // We query separately to prevent JOIN crashes if profile is missing.
+    // Note: Model uses 'user_id' as foreign key
+    const profile = await CreatorProfile.findOne({ where: { user_id: id } });
+
+    // 3. Merge & Standardize (The "Amazon Response")
+    const response = {
       id: user.id,
-      name: user.creatorProfile?.name || user.name || "Creator",
+      name: user.name || "Creator",
+      // Prefer User avatar (uploaded file), fallback to profile avatar (if any), fallback to generated
       image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
-      avatar: user.avatar, // Keep strictly for SmartAvatar
-      email: user.email,
-      niche: user.creatorProfile?.niche || "General",
-      location: user.creatorProfile?.location || "India",
-      bio: user.creatorProfile?.bio || "No bio yet.",
-      is_verified: user.creatorProfile?.is_verified,
+      avatar: user.avatar, // Keep for SmartAvatar
+
+      niche: profile?.niche || "General Creator",
+      location: profile?.location || "India",
+      bio: profile?.bio || "No bio added yet.",
+
       stats: {
-        followers: user.creatorProfile?.follower_count || "0",
-        engagement: user.creatorProfile?.engagement_rate || "N/A"
+        followers: profile?.follower_count || "0", // note: db column is follower_count
+        engagement: profile?.engagement_rate || "N/A"
       },
-      socials: {
-        instagram: user.creatorProfile?.instagram_link,
-        youtube: user.creatorProfile?.youtube_link,
-        portfolio: user.creatorProfile?.portfolio_link
+      pricing: {
+        budget: profile?.budget_range || "Open to offers"
+      },
+      contact: {
+        email: user.email,
+        instagram: profile?.instagram_link || "", // db column is instagram_link
+        youtube: profile?.youtube_link || "",
+        portfolio: profile?.portfolio_link || ""
       },
       details: {
-        budget_range: user.creatorProfile?.budget_range,
-        audience_breakdown: user.creatorProfile?.audience_breakdown,
-        collaboration_goals: user.creatorProfile?.collaboration_goals
-      }
+        audience_breakdown: profile?.audience_breakdown,
+        collaboration_goals: profile?.collaboration_goals
+      },
+      is_verified: profile?.is_verified
     };
 
-    return c.json({ creator: profileData });
+    return c.json({ creator: response }); // Frontend expects { creator: ... }
   } catch (error) {
-    console.error("❌ GET CREATOR ID ERROR for ID:", c.req.param('id'));
-    console.error("Error Stack:", error.stack);
-    console.error("Error Details:", error);
+    console.error("❌ PROFILE LOAD ERROR:", error);
     return c.json({ error: "Server Error", details: error.message }, 500);
   }
 };

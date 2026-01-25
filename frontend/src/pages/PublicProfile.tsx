@@ -21,17 +21,20 @@ interface PublicCreatorProfile {
     is_verified: boolean;
     stats: {
         followers: string;
-        engagement: number;
+        engagement: string | number;
     };
-    socials: {
-        instagram?: string;
-        youtube?: string;
-        portfolio?: string;
+    pricing: {
+        budget: string;
+    };
+    contact: {
+        email: string;
+        instagram: string;
+        youtube: string;
+        portfolio: string;
     };
     details: {
-        budget_range?: string;
-        audience_breakdown?: string;
-        collaboration_goals?: string;
+        audience_breakdown: string;
+        collaboration_goals: string;
     };
 }
 
@@ -65,15 +68,13 @@ const PublicProfile = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen pt-24 pb-16 px-4 max-w-6xl mx-auto space-y-8">
-                <Skeleton className="h-12 w-48" />
-                <div className="grid md:grid-cols-3 gap-8">
-                    <Skeleton className="h-[400px] rounded-xl" />
-                    <div className="md:col-span-2 space-y-4">
-                        <Skeleton className="h-12 w-3/4" />
-                        <Skeleton className="h-6 w-1/2" />
-                        <Skeleton className="h-32 w-full" />
-                    </div>
+            <div className="max-w-4xl mx-auto p-6 animate-pulse pt-24">
+                <div className="bg-gray-200 h-64 w-full rounded-xl mb-4"></div> {/* Image Skeleton */}
+                <div className="h-8 bg-gray-200 w-1/3 mb-2 rounded"></div> {/* Name Skeleton */}
+                <div className="h-4 bg-gray-200 w-1/4 rounded"></div> {/* Niche Skeleton */}
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                    <div className="h-32 bg-gray-200 rounded-lg"></div>
+                    <div className="h-32 bg-gray-200 rounded-lg"></div>
                 </div>
             </div>
         );
@@ -136,18 +137,18 @@ const PublicProfile = () => {
                                 <div className="pt-4 border-t">
                                     <p className="text-sm font-medium mb-3 text-center">Social Profiles</p>
                                     <div className="flex justify-center gap-4">
-                                        {creator.socials.instagram && (
-                                            <a href={creator.socials.instagram} target="_blank" rel="noreferrer" className="p-2 bg-pink-50 text-pink-600 rounded-full hover:bg-pink-100 transition-colors">
+                                        {creator.contact.instagram && (
+                                            <a href={creator.contact.instagram} target="_blank" rel="noreferrer" className="p-2 bg-pink-50 text-pink-600 rounded-full hover:bg-pink-100 transition-colors">
                                                 <Instagram className="w-5 h-5" />
                                             </a>
                                         )}
-                                        {creator.socials.youtube && (
-                                            <a href={creator.socials.youtube} target="_blank" rel="noreferrer" className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
+                                        {creator.contact.youtube && (
+                                            <a href={creator.contact.youtube} target="_blank" rel="noreferrer" className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
                                                 <Youtube className="w-5 h-5" />
                                             </a>
                                         )}
-                                        {creator.socials.portfolio && (
-                                            <a href={creator.socials.portfolio} target="_blank" rel="noreferrer" className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
+                                        {creator.contact.portfolio && (
+                                            <a href={creator.contact.portfolio} target="_blank" rel="noreferrer" className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
                                                 <Globe className="w-5 h-5" />
                                             </a>
                                         )}
@@ -176,7 +177,7 @@ const PublicProfile = () => {
                                     <CardContent className="p-6 space-y-4">
                                         <div className="space-y-1">
                                             <p className="text-sm text-muted-foreground">Starting from</p>
-                                            <p className="text-2xl font-bold text-foreground">{creator.details.budget_range || 'Contact for rates'}</p>
+                                            <p className="text-2xl font-bold text-foreground">{creator.pricing.budget || 'Contact for rates'}</p>
                                         </div>
                                         <Button className="w-full gap-2 bg-gradient-hero hover:shadow-glow" size="lg">
                                             <Mail className="w-4 h-4" /> Contact Creator

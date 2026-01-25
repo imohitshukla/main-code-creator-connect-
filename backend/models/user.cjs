@@ -33,6 +33,18 @@ module.exports = (sequelize, DataTypes) => {
     avatar: {
       type: DataTypes.TEXT, // Changed to TEXT to support Base64
       allowNull: true
+    },
+    niche: {
+      type: DataTypes.STRING,
+      defaultValue: 'General'
+    },
+    location: {
+      type: DataTypes.STRING,
+      defaultValue: 'India'
+    },
+    followers_count: {
+      type: DataTypes.STRING,
+      defaultValue: '0'
     }
   }, {
     tableName: 'users'
