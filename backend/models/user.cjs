@@ -1,6 +1,16 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    // Standard Auth Fields
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true // Changed to true just in case, though user said false
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -12,28 +22,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     role: {
       type: DataTypes.ENUM('creator', 'brand', 'admin'),
-      allowNull: false
-    },
-    phone_number: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    phone_otp: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    otp_expires_at: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    is_phone_verified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: 'creator'
     },
     avatar: {
-      type: DataTypes.TEXT, // Changed to TEXT to support Base64
-      allowNull: true
+      type: DataTypes.TEXT,
+      defaultValue: ''
     },
+
+    // ✅ NEW COLUMNS (Synced with DB)
     niche: {
       type: DataTypes.STRING,
       defaultValue: 'General Creator'
@@ -49,13 +45,17 @@ module.exports = (sequelize, DataTypes) => {
     instagram_handle: {
       type: DataTypes.STRING,
       allowNull: true
-    }
+    },
+
+    // Legacy fields validation (optional, can leave them out if DB allows)
+    phone_number: { type: DataTypes.STRING, allowNull: true },
+    is_phone_verified: { type: DataTypes.BOOLEAN, defaultValue: false }
   }, {
-    tableName: 'users'
+    tableName: 'users',
+    timestamps: true
   });
 
   User.associate = (models) => {
-    // Define associations here
     User.hasOne(models.CreatorProfile, { foreignKey: 'user_id', as: 'creatorProfile' });
     User.hasOne(models.BrandProfile, { foreignKey: 'user_id' });
   };
