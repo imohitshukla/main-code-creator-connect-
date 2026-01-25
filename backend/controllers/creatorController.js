@@ -132,16 +132,16 @@ export const getCreatorById = async (c) => {
     const response = {
       id: user.id,
       name: user.name || "Creator",
-      // Prefer User avatar (uploaded file), fallback to profile avatar (if any), fallback to generated
       image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
       avatar: user.avatar, // Keep for SmartAvatar
 
-      niche: profile?.niche || "General Creator",
-      location: profile?.location || "India",
+      // Prefer User table data (Single Table Truth)
+      niche: user.niche || profile?.niche || "General Creator",
+      location: user.location || profile?.location || "India",
       bio: profile?.bio || "No bio added yet.",
 
       stats: {
-        followers: profile?.follower_count || "0", // note: db column is follower_count
+        followers: user.followers_count || profile?.follower_count || "0",
         engagement: profile?.engagement_rate || "N/A"
       },
       pricing: {
@@ -149,7 +149,7 @@ export const getCreatorById = async (c) => {
       },
       contact: {
         email: user.email,
-        instagram: profile?.instagram_link || "", // db column is instagram_link
+        instagram: user.instagram_handle || profile?.instagram_link || "",
         youtube: profile?.youtube_link || "",
         portfolio: profile?.portfolio_link || ""
       },
