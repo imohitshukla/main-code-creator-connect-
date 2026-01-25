@@ -57,48 +57,50 @@ export const getCreators = async (c) => {
     // 1. Base Query
     const whereClause = { role: 'creator' };
 
-    // 2. Add Search Logic (Case Insensitive)
-    // We must search on '$creatorProfile.name$' because 'name' is in the profile table, not users table.
+    // 2. Add Search Logic (User Table Only)
     if (search) {
       whereClause[Op.or] = [
         { email: { [Op.iLike]: `%${search}%` } },
-        { '$creatorProfile.name$': { [Op.iLike]: `%${search}%` } },
-        { '$creatorProfile.niche$': { [Op.iLike]: `%${search}%` } }
+        { niche: { [Op.iLike]: `%${search}%` } } // Search directly in User.niche
       ];
     }
 
-    // 3. The Query
+    if (niche) {
+      whereClause.niche = { [Op.iLike]: `%${niche}%` }; // Filter directly in User.niche
+    }
+
+    // 3. The Query (Single Table usually, but we keep profile for extra data if widely available, or drop it)
+    // User requested "instead of joining". Let's try to stick to User table primarily.
+    // If we drop include, we lose 'bio', 'engagement_rate'. 
+    // But for "Search Cards", maybe we don't need them or we can accept defaults.
+    // Let's keep a loose include for data, but filter on User.
     const creators = await User.findAll({
       where: whereClause,
-      attributes: ['id', 'email', 'avatar'], // User has NO name column
+      attributes: ['id', 'email', 'avatar', 'niche', 'location', 'followers_count', 'instagram_handle'],
       include: [
         {
           model: CreatorProfile,
           as: 'creatorProfile',
-          required: false,
-          attributes: ['name', 'niche', 'bio', 'portfolio_links', 'social_media', 'follower_count', 'engagement_rate', 'audience', 'budget', 'is_verified'],
-          where: niche ? { niche: { [Op.iLike]: `%${niche}%` } } : undefined
+          required: false, // Left Join only for extra display info, not filtering
+          attributes: ['name', 'bio', 'engagement_rate']
         }
-      ],
-      // subQuery: false is often needed when querying on included columns with limits/offsets, 
-      // though here we don't have limit/offset yet, it's safer for $ reference.
-      subQuery: false
+      ]
     });
 
     // 4. Safely Format the Data for Frontend
     const formattedCreators = creators.map(user => ({
       id: user.id,
-      name: user.creatorProfile?.name || user.email?.split('@')[0] || 'Creator', // Get name from Profile
+      name: user.creatorProfile?.name || user.email?.split('@')[0] || 'Creator',
       image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
       avatar: user.avatar,
       email: user.email,
-      niche: user.creatorProfile?.niche || 'General Creator',
+      niche: user.niche || 'General Creator',
       bio: user.creatorProfile?.bio || 'Open to collaborations',
-      location: 'India',
-      followers: user.creatorProfile?.follower_count ? user.creatorProfile.follower_count.toLocaleString() : 'New',
+      location: user.location || 'India',
+      followers: user.followers_count || '0',
       engagement_rate: user.creatorProfile?.engagement_rate || 0,
-      portfolio_links: user.creatorProfile?.portfolio_links,
-      social_links: user.creatorProfile?.social_media
+      portfolio_links: [], // optimized out for list view
+      social_links: user.instagram_handle ? { instagram: user.instagram_handle } : {}
     }));
 
     return c.json({ creators: formattedCreators });

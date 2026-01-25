@@ -36,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     niche: {
       type: DataTypes.STRING,
-      defaultValue: 'General'
+      defaultValue: 'General Creator'
     },
     location: {
       type: DataTypes.STRING,
