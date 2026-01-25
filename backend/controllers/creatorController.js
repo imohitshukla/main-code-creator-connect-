@@ -173,6 +173,7 @@ export const updateCreatorProfile = async (c) => {
       location: primary_location,
       niche: primary_niche,
       follower_count: total_followers || '0',
+      engagement_rate: engagement_rate ? parseFloat(engagement_rate) : 0, // Updated this line
       bio,
       instagram_link,
       youtube_link,

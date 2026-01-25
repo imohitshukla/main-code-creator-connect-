@@ -70,7 +70,7 @@ const Filter = () => {
           email: creator.email, // Needed for SmartAvatar fallback
           followers: creator.follower_count ? `${creator.follower_count.toLocaleString()}` : '0',
           followerCountRaw: creator.follower_count, // Keep raw for sorting/client logic if needed
-          audience: creator.audience,
+          audience: creator.audience || { engagement: creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A' },
           budget: creator.budget,
           social_links: creator.social_links,
           portfolio_links: creator.portfolio_links

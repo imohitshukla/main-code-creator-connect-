@@ -32,6 +32,7 @@ const buildInitialProfile = (profile: UserProfile | null, userNameFallback: stri
   budgetRange: profile?.budgetRange || '',
   location: profile?.location || '',
   campaignGoals: profile?.campaignGoals || '',
+  engagement_rate: profile?.engagement_rate || '',
 });
 
 const ProfileSetup = () => {
@@ -70,7 +71,22 @@ const ProfileSetup = () => {
       // Append all text fields
       Object.entries(formState).forEach(([key, value]) => {
         if (key !== 'avatar') { // We handle avatar separately via file
-          formData.append(key === 'name' ? 'displayName' : key === 'phoneNumber' ? 'phone_number' : key === 'location' ? 'primary_location' : key === 'niche' ? 'primary_niche' : key === 'followers' ? 'total_followers' : key === 'instagram' ? 'instagram_link' : key === 'youtube' ? 'youtube_link' : key === 'portfolio' ? 'portfolio_link' : key === 'audience' ? 'audience_breakdown' : key === 'budgetRange' ? 'budget_range' : key === 'campaignGoals' ? 'collaboration_goals' : key, value || '');
+          // Map keys explicitly to match backend expectations or keep as is if backend matches
+          let backendKey = key;
+          if (key === 'name') backendKey = 'displayName';
+          else if (key === 'phoneNumber') backendKey = 'phone_number';
+          else if (key === 'location') backendKey = 'primary_location';
+          else if (key === 'niche') backendKey = 'primary_niche';
+          else if (key === 'followers') backendKey = 'total_followers';
+          else if (key === 'instagram') backendKey = 'instagram_link';
+          else if (key === 'youtube') backendKey = 'youtube_link';
+          else if (key === 'portfolio') backendKey = 'portfolio_link';
+          else if (key === 'audience') backendKey = 'audience_breakdown';
+          else if (key === 'budgetRange') backendKey = 'budget_range';
+          else if (key === 'campaignGoals') backendKey = 'collaboration_goals';
+          else if (key === 'engagement_rate') backendKey = 'engagement_rate';
+
+          formData.append(backendKey, value || '');
         }
       });
 
@@ -287,6 +303,16 @@ const ProfileSetup = () => {
                       value={formState.followers}
                       onChange={(e) => handleChange('followers', e.target.value)}
                       placeholder="e.g. 220K across Instagram + YouTube"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="setup-engagement">Engagement Rate (%)</Label>
+                    <Input
+                      id="setup-engagement"
+                      value={formState.engagement_rate || ''}
+                      onChange={(e) => handleChange('engagement_rate', e.target.value)}
+                      placeholder="e.g. 2.5"
                     />
                   </div>
 

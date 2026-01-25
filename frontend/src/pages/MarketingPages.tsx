@@ -114,48 +114,19 @@ export const AgencyPage = () => (
 /* --- Careers Page --- */
 export const CareersPage = () => (
     <CMSPage
-        title="Join the Mission"
-        subtitle="Help us build the financial infrastructure for the creator economy."
+        title="Careers"
+        subtitle="Join our team."
         content={
-            <div className="space-y-12">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <h3 className="text-2xl font-bold text-foreground mb-4">Why work here?</h3>
-                        <p className="text-lg text-muted-foreground mb-6">
-                            We're a remote-first team backed by top-tier VCs. We value ownership, speed, and deep empathy for creators.
-                        </p>
-                        <ul className="grid gap-4">
-                            {['Remote-first culture', 'Competitive equity packages', 'Unlimited PTO', 'Home office stipend'].map(perk => (
-                                <li key={perk} className="flex items-center gap-3">
-                                    <Globe2 className="w-5 h-5 text-purple-500" />
-                                    <span>{perk}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="bg-muted rounded-2xl p-8 flex items-center justify-center min-h-[300px]">
-                        <span className="text-muted-foreground">Team Photo / Culture Shot</span>
-                    </div>
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <span className="text-2xl">🚧</span>
                 </div>
-
-                <div>
-                    <h3 className="text-2xl font-bold text-foreground mb-6">Open Positions</h3>
-                    <div className="space-y-4">
-                        {[
-                            { role: 'Senior Full Stack Engineer', dept: 'Engineering', loc: 'Remote (US/EU)' },
-                            { role: 'Product Designer', dept: 'Design', loc: 'Remote' },
-                            { role: 'Creator Success Manager', dept: 'Operations', loc: 'New York, NY' },
-                            { role: 'Account Executive', dept: 'Sales', loc: 'London, UK' }
-                        ].map((job, i) => (
-                            <div key={i} className="flex items-center justify-between p-6 bg-card border rounded-xl hover:border-purple-500 transition-colors group">
-                                <div>
-                                    <h4 className="font-bold text-lg group-hover:text-purple-600 transition-colors">{job.role}</h4>
-                                    <p className="text-sm text-muted-foreground">{job.dept} • {job.loc}</p>
-                                </div>
-                                <Button variant="ghost">Apply &rarr;</Button>
-                            </div>
-                        ))}
-                    </div>
+                <h3 className="text-2xl font-bold">Under Updates</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                    We are currently updating our careers page and open positions. Please check back soon.
+                </p>
+                <div className="mt-8">
+                    <Button asChild variant="outline"><Link to="/">Back to Home</Link></Button>
                 </div>
             </div>
         }
