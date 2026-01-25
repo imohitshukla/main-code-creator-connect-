@@ -17,9 +17,10 @@ const poolConfig = process.env.DATABASE_URL
       isProduction || process.env.DATABASE_URL.includes('render.com') || process.env.DATABASE_URL.includes('neon.tech')
         ? { rejectUnauthorized: false }
         : false,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 30000, // Increased to 30s for cold starts
     idleTimeoutMillis: 30000,
     max: 10,
+    keepAlive: true, // Prevent dropped connections
   }
   : {
     user: process.env.DB_USER,
