@@ -110,8 +110,6 @@ export const getCreators = async (c) => {
 
 export const getCreatorById = async (c) => {
   try {
-    const body = await c.req.parseBody();
-    console.log('DEBUG: Received Update Body:', body); // <--- DEBUG LOG
     const id = c.req.param('id');
     const creator = await client.query(`
       SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
@@ -121,7 +119,7 @@ export const getCreatorById = async (c) => {
              u.email, u.name, u.avatar, cp.is_verified
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
-      WHERE cp.id = $1
+      WHERE u.id = $1
     `, [id]);
     if (creator.rows.length === 0) {
       return c.json({ error: 'Creator not found' }, 404);
