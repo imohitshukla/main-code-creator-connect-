@@ -19,14 +19,20 @@ interface PublicCreatorProfile {
     bio: string;
     location: string;
     is_verified: boolean;
-    follower_count: string;
-    engagement_rate: number;
-    instagram_link: string;
-    youtube_link: string;
-    portfolio_link: string;
-    collaboration_goals: string;
-    audience_breakdown: string;
-    budget_range: string;
+    stats: {
+        followers: string;
+        engagement: number;
+    };
+    socials: {
+        instagram?: string;
+        youtube?: string;
+        portfolio?: string;
+    };
+    details: {
+        budget_range?: string;
+        audience_breakdown?: string;
+        collaboration_goals?: string;
+    };
 }
 
 const PublicProfile = () => {
@@ -118,11 +124,11 @@ const PublicProfile = () => {
 
                                 <div className="grid grid-cols-2 gap-3 text-center">
                                     <div className="bg-primary/5 p-3 rounded-lg">
-                                        <p className="text-xl font-bold text-primary">{creator.follower_count || '0'}</p>
+                                        <p className="text-xl font-bold text-primary">{creator.stats.followers}</p>
                                         <p className="text-xs text-muted-foreground uppercase">Followers</p>
                                     </div>
                                     <div className="bg-primary/5 p-3 rounded-lg">
-                                        <p className="text-xl font-bold text-primary">{creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A'}</p>
+                                        <p className="text-xl font-bold text-primary">{creator.stats.engagement ? `${creator.stats.engagement}%` : 'N/A'}</p>
                                         <p className="text-xs text-muted-foreground uppercase">Engagement</p>
                                     </div>
                                 </div>
@@ -130,18 +136,18 @@ const PublicProfile = () => {
                                 <div className="pt-4 border-t">
                                     <p className="text-sm font-medium mb-3 text-center">Social Profiles</p>
                                     <div className="flex justify-center gap-4">
-                                        {creator.instagram_link && (
-                                            <a href={creator.instagram_link} target="_blank" rel="noreferrer" className="p-2 bg-pink-50 text-pink-600 rounded-full hover:bg-pink-100 transition-colors">
+                                        {creator.socials.instagram && (
+                                            <a href={creator.socials.instagram} target="_blank" rel="noreferrer" className="p-2 bg-pink-50 text-pink-600 rounded-full hover:bg-pink-100 transition-colors">
                                                 <Instagram className="w-5 h-5" />
                                             </a>
                                         )}
-                                        {creator.youtube_link && (
-                                            <a href={creator.youtube_link} target="_blank" rel="noreferrer" className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
+                                        {creator.socials.youtube && (
+                                            <a href={creator.socials.youtube} target="_blank" rel="noreferrer" className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
                                                 <Youtube className="w-5 h-5" />
                                             </a>
                                         )}
-                                        {creator.portfolio_link && (
-                                            <a href={creator.portfolio_link} target="_blank" rel="noreferrer" className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
+                                        {creator.socials.portfolio && (
+                                            <a href={creator.socials.portfolio} target="_blank" rel="noreferrer" className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
                                                 <Globe className="w-5 h-5" />
                                             </a>
                                         )}
@@ -170,7 +176,7 @@ const PublicProfile = () => {
                                     <CardContent className="p-6 space-y-4">
                                         <div className="space-y-1">
                                             <p className="text-sm text-muted-foreground">Starting from</p>
-                                            <p className="text-2xl font-bold text-foreground">{creator.budget_range || 'Contact for rates'}</p>
+                                            <p className="text-2xl font-bold text-foreground">{creator.details.budget_range || 'Contact for rates'}</p>
                                         </div>
                                         <Button className="w-full gap-2 bg-gradient-hero hover:shadow-glow" size="lg">
                                             <Mail className="w-4 h-4" /> Contact Creator
@@ -195,13 +201,13 @@ const PublicProfile = () => {
                                 <Card>
                                     <CardContent className="p-6">
                                         <h3 className="font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Audience</h3>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-line">{creator.audience_breakdown || 'No specific audience breakdown provided.'}</p>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-line">{creator.details.audience_breakdown || 'No specific audience breakdown provided.'}</p>
                                     </CardContent>
                                 </Card>
                                 <Card>
                                     <CardContent className="p-6">
                                         <h3 className="font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Campaign Goals</h3>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-line">{creator.collaboration_goals || 'Open to all types of ethical collaborations.'}</p>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-line">{creator.details.collaboration_goals || 'Open to all types of ethical collaborations.'}</p>
                                     </CardContent>
                                 </Card>
                             </div>

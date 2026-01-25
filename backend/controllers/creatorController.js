@@ -111,23 +111,68 @@ export const getCreators = async (c) => {
 export const getCreatorById = async (c) => {
   try {
     const id = c.req.param('id');
-    const creator = await client.query(`
-      SELECT cp.id, cp.bio, cp.niche, cp.social_links, cp.portfolio_links,
-             cp.follower_count, cp.engagement_rate, cp.audience, cp.budget,
-             cp.phone_number, cp.location, cp.instagram_link, cp.youtube_link, 
-             cp.portfolio_link, cp.audience_breakdown, cp.budget_range, cp.collaboration_goals,
-             u.email, u.name, u.avatar, cp.is_verified
-      FROM creator_profiles cp
-      JOIN users u ON cp.user_id = u.id
-      WHERE u.id = $1
-    `, [id]);
-    if (creator.rows.length === 0) {
-      return c.json({ error: 'Creator not found' }, 404);
+    // 1. Fetch User + CreatorProfile safely
+    const user = await User.findOne({
+      where: { id },
+      attributes: ['id', 'name', 'email', 'avatar'], // Get avatar from User
+      include: [
+        {
+          model: CreatorProfile,
+          as: 'creatorProfile',
+          required: false, // Left Join
+          attributes: [
+            'niche',
+            'location',
+            'bio',
+            'instagram_link',
+            'youtube_link',
+            'portfolio_link',
+            'follower_count',
+            'engagement_rate',
+            'budget_range',
+            'audience_breakdown',
+            'collaboration_goals',
+            'is_verified'
+          ]
+        }
+      ]
+    });
+
+    if (!user) {
+      return c.json({ error: "Creator not found" }, 404);
     }
-    return c.json({ creator: creator.rows[0] });
+
+    // 2. Format Response (Flatten for frontend)
+    const profileData = {
+      id: user.id,
+      name: user.creatorProfile?.name || user.name || "Creator",
+      image: user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
+      avatar: user.avatar, // Keep strictly for SmartAvatar
+      email: user.email,
+      niche: user.creatorProfile?.niche || "General",
+      location: user.creatorProfile?.location || "India",
+      bio: user.creatorProfile?.bio || "No bio yet.",
+      is_verified: user.creatorProfile?.is_verified,
+      stats: {
+        followers: user.creatorProfile?.follower_count || "0",
+        engagement: user.creatorProfile?.engagement_rate || "N/A"
+      },
+      socials: {
+        instagram: user.creatorProfile?.instagram_link,
+        youtube: user.creatorProfile?.youtube_link,
+        portfolio: user.creatorProfile?.portfolio_link
+      },
+      details: {
+        budget_range: user.creatorProfile?.budget_range,
+        audience_breakdown: user.creatorProfile?.audience_breakdown,
+        collaboration_goals: user.creatorProfile?.collaboration_goals
+      }
+    };
+
+    return c.json({ creator: profileData });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to fetch creator' }, 500);
+    console.error("❌ GET CREATOR ID ERROR:", error);
+    return c.json({ error: "Server Error", details: error.message }, 500);
   }
 };
 
