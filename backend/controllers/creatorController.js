@@ -111,6 +111,13 @@ export const getCreators = async (c) => {
 export const getCreatorById = async (c) => {
   try {
     const id = c.req.param('id');
+    console.log(`DEBUG: getCreatorById called for ID: ${id}`);
+    console.log('DEBUG: Models check:', { User: !!User, CreatorProfile: !!CreatorProfile });
+
+    if (!User || !CreatorProfile) {
+      throw new Error('Sequelize Models are not loaded correctly.');
+    }
+
     // 1. Fetch User + CreatorProfile safely
     const user = await User.findOne({
       where: { id },
@@ -171,7 +178,9 @@ export const getCreatorById = async (c) => {
 
     return c.json({ creator: profileData });
   } catch (error) {
-    console.error("❌ GET CREATOR ID ERROR:", error);
+    console.error("❌ GET CREATOR ID ERROR for ID:", c.req.param('id'));
+    console.error("Error Stack:", error.stack);
+    console.error("Error Details:", error);
     return c.json({ error: "Server Error", details: error.message }, 500);
   }
 };
