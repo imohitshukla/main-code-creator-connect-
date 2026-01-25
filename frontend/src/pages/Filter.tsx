@@ -65,7 +65,8 @@ const Filter = () => {
           bio: creator.bio || 'No bio available',
           // Prioritize backend avatar, then fallback loop, then empty
           avatar: creator.avatar,
-          image: [creator1, creator2, creator3, creator4][index % 4], // Keep legacy as fallback for now
+          avatar: creator.avatar,
+          image: creator.image, // Use backend provided image (Real upload or unique Pravatar)
           email: creator.email, // Needed for SmartAvatar fallback
           followers: creator.follower_count ? `${creator.follower_count.toLocaleString()}` : '0',
           followerCountRaw: creator.follower_count, // Keep raw for sorting/client logic if needed
