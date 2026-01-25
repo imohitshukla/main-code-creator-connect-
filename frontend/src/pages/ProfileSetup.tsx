@@ -115,7 +115,7 @@ const ProfileSetup = () => {
               {/* Profile Picture Section */}
               <div className="flex flex-col items-center justify-center mb-8">
                 <div className="relative group cursor-pointer">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-card shadow-lg">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-lg">
                     <SmartAvatar
                       src={formState.avatar}
                       type="creator"

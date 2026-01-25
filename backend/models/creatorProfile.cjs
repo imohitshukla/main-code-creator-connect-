@@ -31,8 +31,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     follower_count: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
+      type: DataTypes.STRING,
+      defaultValue: '0'
     },
     engagement_rate: {
       type: DataTypes.DECIMAL(5, 2),

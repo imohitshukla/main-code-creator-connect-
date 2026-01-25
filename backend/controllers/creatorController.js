@@ -172,7 +172,7 @@ export const updateCreatorProfile = async (c) => {
       phone_number,
       location: primary_location,
       niche: primary_niche,
-      follower_count: total_followers ? parseInt(String(total_followers).replace(/,/g, '')) : 0, // Ensure integer
+      follower_count: total_followers || '0',
       bio,
       instagram_link,
       youtube_link,
