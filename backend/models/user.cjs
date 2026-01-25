@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
     followers_count: {
       type: DataTypes.STRING,
       defaultValue: '0'
+    },
+    instagram_handle: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     tableName: 'users'
