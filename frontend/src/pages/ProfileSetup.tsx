@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Layers, ArrowRight, Camera } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
+import SmartAvatar from '@/components/SmartAvatar';
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '@/lib/utils';
 
 const niches = ['Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Music', 'Lifestyle'];
 const budgetRanges = ['₹10K - ₹25K', '₹25K - ₹75K', '₹75K - ₹150K', '₹150K+', 'Open to discussion'];
@@ -43,6 +45,7 @@ const ProfileSetup = () => {
   );
 
   const [formState, setFormState] = useState<UserProfile>(() => buildInitialProfile(profile, fallbackName));
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -59,14 +62,64 @@ const ProfileSetup = () => {
     }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    updateProfile(formState);
-    toast({
-      title: 'Profile saved',
-      description: 'Your creator profile is now ready for Filters and AI Match.',
-    });
-    navigate('/filter');
+
+    try {
+      const formData = new FormData();
+      // Append all text fields
+      Object.entries(formState).forEach(([key, value]) => {
+        if (key !== 'avatar') { // We handle avatar separately via file
+          formData.append(key === 'name' ? 'displayName' : key === 'phoneNumber' ? 'phone_number' : key === 'location' ? 'primary_location' : key === 'niche' ? 'primary_niche' : key === 'followers' ? 'total_followers' : key === 'instagram' ? 'instagram_link' : key === 'youtube' ? 'youtube_link' : key === 'portfolio' ? 'portfolio_link' : key === 'audience' ? 'audience_breakdown' : key === 'budgetRange' ? 'budget_range' : key === 'campaignGoals' ? 'collaboration_goals' : key, value || '');
+        }
+      });
+
+      // Append file if exists
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      } else if (formState.avatar && formState.avatar.startsWith('http')) {
+        // If it's an existing URL, pass it? or just let backend keep existing?
+        // Backend handles "string" avatar too.
+        formData.append('avatar', formState.avatar);
+      }
+
+      const token = localStorage.getItem('token');
+      // Direct API call to bypass JSON-only context
+      import { getApiUrl } from '@/lib/utils'; // Ensure import exists or add it
+
+      // ... inside component ...
+      const response = await fetch(`${getApiUrl()}/api/creators/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // No Content-Type for FormData, browser sets boundary
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Failed to update profile');
+
+      const data = await response.json();
+
+      // Sync Context
+      updateProfile({
+        ...formState,
+        avatar: data.profile?.avatar || formState.avatar // Update with new URL or keep old
+      });
+
+      toast({
+        title: 'Profile saved',
+        description: 'Your creator profile is now ready.',
+      });
+      navigate('/filter');
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save profile. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,13 +138,16 @@ const ProfileSetup = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      handleChange('avatar', base64String); // Update local form state
+      setAvatarFile(file); // Store file for upload
+      handleChange('avatar', base64String); // Update local preview
 
-      // Auto-save avatar to sync with Navbar immediately
-      updateProfile({ avatar: base64String });
+      // Auto-upload logic removed for now in favor of explicit save, 
+      // or we could implement auto-upload here too using same FormData logic.
+      // For simplicity/safety, let's just preview. User hits "Save Profile".
+
       toast({
-        title: 'Profile Picture Updated',
-        description: 'Your new avatar is live.',
+        title: 'Profile Picture Selected',
+        description: 'Click "Save profile" to apply changes.',
       });
     };
     reader.readAsDataURL(file);

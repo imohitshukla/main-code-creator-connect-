@@ -31,6 +31,13 @@ const corsOptions = {
 
 app.use('*', cors(corsOptions));
 app.use('*', logger());
+import { serveStatic } from '@hono/node-server/serve-static';
+
+// Serve uploaded files statically
+app.use('/uploads/*', serveStatic({
+  root: './backend',
+  rewriteRequestPath: (path) => path.replace('/uploads', '/uploads')
+}));
 
 // Routes
 app.route('/api/auth', authRoutes);
