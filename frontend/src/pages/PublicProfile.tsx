@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 export default function PublicProfile() {
-    const { id } = useParams();
-    const [creator, setCreator] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+  const { id } = useParams();
+  const [creator, setCreator] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        fetch(\`/api/creators/\${id}\`) // Using backticks for template literal
+  useEffect(() => {
+    fetch(`/api/creators/${id}`) // Using backticks for template literal
       .then(res => {
         if (!res.ok) throw new Error("Could not find creator");
         return res.json();
@@ -36,7 +36,7 @@ export default function PublicProfile() {
         <div className="w-full md:w-1/3 h-96 md:h-auto relative bg-gray-200">
           <img src={creator.image} alt={creator.name} className="w-full h-full object-cover" />
         </div>
-        
+
         {/* Right Side: Details */}
         <div className="w-full md:w-2/3 p-10 flex flex-col justify-center">
           <div className="flex justify-between items-start mb-4">
@@ -49,24 +49,24 @@ export default function PublicProfile() {
               <span className="text-xs text-gray-500 uppercase">Followers</span>
             </div>
           </div>
-          
+
           <div className="border-t border-b border-gray-100 py-6 my-6">
             <h3 className="text-gray-900 font-bold mb-2">About Creator</h3>
             <p className="text-gray-600 leading-relaxed">{creator.bio}</p>
           </div>
-          
+
           <div className="flex gap-4 mt-auto">
             <button className="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
               Contact & Book Now
             </button>
             {creator.contact?.instagram && creator.contact.instagram !== '#' && (
-              <a href={\`https://instagram.com/\${creator.contact.instagram}\`} target="_blank" rel="noreferrer" className="px-6 py-4 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition">
+              <a href={`https://instagram.com/${creator.contact.instagram}`} target="_blank" rel="noreferrer" className="px-6 py-4 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition">
                 📷 Instagram
               </a>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
