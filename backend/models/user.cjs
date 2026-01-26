@@ -19,13 +19,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    // Matches user's "profile_image" request, aliased to likely DB column or just added.
-    // Given the "Zombie" context, I'll add BOTH current avatar and requested profile_image logic if possible, 
-    // OR just use what the user provided. User provided `profile_image`. 
-    // If DB has `avatar`, I should probably map it. 
-    // But user snippet explicitly defines `profile_image`. 
-    // I will include `profile_image` definition.
-    // AND I will include `avatar` to be safe/compatible with existing DB content if it was populated there.
     profile_image: {
       type: DataTypes.STRING,
       defaultValue: ''
@@ -34,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       defaultValue: 'creator'
     },
-    // 👇 THE CRITICAL NEW COLUMNS
+    // ✅ NEW COLUMNS (Syncing with DB)
     niche: {
       type: DataTypes.STRING,
       defaultValue: 'General Creator'
@@ -51,13 +44,17 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    // Keeping avatar as it was present in previous file versions and likely holds data
+    bio: {
+      type: DataTypes.TEXT,
+      defaultValue: 'No bio added yet.'
+    },
+    // Explicitly adding avatar alias if DB uses it, to be safe, but focusing on user's schema
     avatar: {
       type: DataTypes.TEXT,
       defaultValue: ''
     }
   }, {
-    tableName: 'users', // Forces it to use the lowercase table
+    tableName: 'users',
     timestamps: true
   });
 
