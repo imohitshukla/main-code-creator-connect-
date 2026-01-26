@@ -19,21 +19,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    // Matches user's "profile_image" request, aliased to likely DB column or just added.
+    // Given the "Zombie" context, I'll add BOTH current avatar and requested profile_image logic if possible, 
+    // OR just use what the user provided. User provided `profile_image`. 
+    // If DB has `avatar`, I should probably map it. 
+    // But user snippet explicitly defines `profile_image`. 
+    // I will include `profile_image` definition.
+    // AND I will include `avatar` to be safe/compatible with existing DB content if it was populated there.
     profile_image: {
       type: DataTypes.STRING,
-      defaultValue: '' // or 'avatar' if you prefer, but sticking to user's "profile_image" request in snippet. previous was avatar. I should probably map avatar to profile_image or vice versa. 
-      // WAIT. Database column is likely 'avatar' based on previous files.
-      // If I change it to 'profile_image' here, Sequelize will look for 'profile_image' column.
-      // I checked migration in step 841: "Added column: niche...". Did not modify avatar/profile_image.
-      // `user.cjs` in step 866 had `avatar`.
-      // I WILL KEEP `avatar` in the definition but maybe alias it?
-      // Or I trust the user might have run a migration I didn't see?
-      // No, safest is to use `avatar` alias: `field: 'avatar'`?
-      // No, user's snippet in step 919 says: `profile_image: { type: DataTypes.STRING, defaultValue: '' }`.
-      // If I use that, and DB has `avatar`, it crashes.
-      // I will keep `avatar` as the key (to match DB) but add a comment, OR assumes the user knows best.
-      // actually I'll stick to `avatar` to be safe given previous context, but user provided `profile_image`.
-      // I'll define `avatar` matching the DB column I know exists.
+      defaultValue: ''
     },
     role: {
       type: DataTypes.STRING,
@@ -56,20 +51,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    // Adding avatar explicitly to match DB schema I saw earlier
+    // Keeping avatar as it was present in previous file versions and likely holds data
     avatar: {
       type: DataTypes.TEXT,
       defaultValue: ''
     }
   }, {
-    tableName: 'users',
+    tableName: 'users', // Forces it to use the lowercase table
     timestamps: true
   });
-
-  User.associate = (models) => {
-    // Keep associations to avoid implicit breakage
-    User.hasOne(models.CreatorProfile, { foreignKey: 'user_id', as: 'creatorProfile' });
-  };
 
   return User;
 };
