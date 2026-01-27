@@ -4,45 +4,56 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { User, CreatorProfile } = require('../models/index.cjs');
 
-// 1. SEARCH: Safe Mode (Debug 500 Error)
+// 1. LIST VIEW (Fixes "0 Followers" on the cards)
+// Backend for /api/creators?search=...
 export const getCreators = async (c) => {
   try {
-    console.log("🔍 Attempting to fetch creators (Safe Mode)...");
+    const { niche, search } = c.req.query();
 
-    // 1. Fetch ALL users first (Removing 'where' clause to prevent crashes)
-    // We select only the columns we verified exist in your SQL console
-    // Explicitly avoiding 'role' check for now to debug
+    // Explicitly fetching columns needed for the card
+    // Removing 'role' check if it was causing issues, or keeping it if safe. 
+    // User requested removing it in "Safe Mode", but here they just said "Replace".
+    // I'll keep it simple: findAll users.
+    const whereClause = {};
+    if (search) {
+      whereClause[Op.or] = [
+        { email: { [Op.iLike]: `%${search}%` } },
+        { name: { [Op.iLike]: `%${search}%` } },
+        { niche: { [Op.iLike]: `%${search}%` } }
+      ];
+    }
+    if (niche) {
+      whereClause.niche = { [Op.iLike]: `%${niche}%` };
+    }
+
     const users = await User.findAll({
-      attributes: ['id', 'name', 'profile_image', 'avatar', 'niche', 'followers_count', 'location', 'email']
+      where: whereClause,
+      attributes: ['id', 'name', 'profile_image', 'avatar', 'niche', 'followers_count', 'location', 'bio', 'email']
     });
 
-    console.log(`✅ Found ${users.length} users.`);
-
-    // 2. Format the data safely
-    const formatted = users.map(u => ({
-      id: u.id,
-      name: u.name || "Anonymous",
-      image: u.profile_image || u.avatar || `https://i.pravatar.cc/150?u=${u.email}`,
-      niche: u.niche || "General",
-      followers: u.followers_count || "0",
-      location: u.location || "India"
+    const formatted = users.map(user => ({
+      id: user.id,
+      name: user.name,
+      // Logic from user snippet + fallback
+      image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
+      niche: user.niche || "General",
+      // Map BOTH followers (for new frontend) and follower_count (for existing Filter.tsx)
+      followers: user.followers_count || "0",
+      follower_count: user.followers_count || "0",
+      location: user.location || "India",
+      bio: user.bio || "No bio available"
     }));
 
+    // Return wrapped object because Filter.tsx expects data.creators.map
     return c.json({ creators: formatted });
 
   } catch (error) {
-    console.error("🔥 SEARCH API CRASH:", error);
-
-    // Send the ACTUAL error details to the frontend so we can see it
-    return c.json({
-      error: "Failed to load creators",
-      details: error.message,
-      suggestion: "Check if table 'users' exists and has columns: niche, location"
-    }, 500);
+    console.error("List Error:", error);
+    return c.json({ error: "Failed to load list", details: error.message }, 500);
   }
 };
 
-// 2. VIEW: Get Single Profile
+// 2. PROFILE VIEW (Fixes Blank Page & Missing Bio)
 export const getCreatorById = async (c) => {
   try {
     const id = c.req.param('id');
@@ -50,34 +61,50 @@ export const getCreatorById = async (c) => {
 
     if (!user) return c.json({ error: "Creator not found" }, 404);
 
+    // ✅ STRICT JSON STRUCTURE matching frontend expectation
     const response = {
       id: user.id,
       name: user.name,
       image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
       niche: user.niche || "General Creator",
-      location: user.location || "India",
-      bio: user.bio || "No bio added yet.",
+      location: user.location || "Global",
+      bio: user.bio || "This creator hasn't added a bio yet.",
+      // The frontend expects a 'stats' object. We must provide it.
       stats: {
-        followers: user.followers_count || "0",
+        followers: user.followers_count || "0", // Maps DB column to Frontend key
         engagement: "N/A"
       },
       contact: {
         instagram: user.instagram_handle || "#"
       },
+      // Keep details to prevent crash if other components use it
       details: {
         audience_breakdown: "Not available",
         collaboration_goals: "Not specified"
       }
     };
 
-    return c.json({ creator: response });
+    return c.json({ creator: response }); // Frontend fetching /api/creators/:id needs to extract this?
+    // User Step 2 Code: .then(res => res.json()).then(data => setCreator(data));
+    // User Step 2 Code also says: if (!creator || !creator.name) ...
+    // If I return { creator: { name: ... } }, then data.name is undefined.
+    // I MUST return the object DIRECTLY for the NEW Frontend.
+    // BUT previous frontend (PublicProfile.tsx in Step 982) did `setCreator(data.creator || data)`.
+    // The NEW frontend code provided in this prompt (Step 1044) does `setCreator(data)`.
+    // So I should return the object directly: `c.json(response)`.
+    // BUT wait, `Filter.tsx` (List) expects `{ creators: [] }`. That is a different route.
+    // So `getCreators` (List) -> `{ creators: [] }`.
+    // `getCreatorById` (Profile) -> `response` (Flat Object).
+    // I will do that.
+    return c.json(response);
+
   } catch (error) {
-    console.error("Profile Load Error:", error);
+    console.error("Profile Error:", error);
     return c.json({ error: "Server Error" }, 500);
   }
 };
 
-// 3. SAVE: Update Profile
+// 3. SAVE: Update Profile (Preserved)
 export const updateCreatorProfile = async (c) => {
   try {
     const id = c.get('userId');
@@ -102,9 +129,6 @@ export const updateCreatorProfile = async (c) => {
     if (!user) return c.json({ error: "User not found" }, 404);
 
     await user.update(updates);
-
-    console.log(`✅ Profile Updated for User ${id}`);
-
     return c.json({ success: true, message: "Profile updated successfully!", user });
   } catch (error) {
     console.error("Update Error:", error);
@@ -112,7 +136,7 @@ export const updateCreatorProfile = async (c) => {
   }
 };
 
-// 4. GET BY USERNAME
+// 4. GET BY USERNAME (Preserved)
 export const getCreatorByUsername = async (c) => {
   try {
     const username = c.req.param('username');
@@ -139,12 +163,11 @@ export const getCreatorByUsername = async (c) => {
 
     return c.json({ creator: response });
   } catch (error) {
-    console.error("Get By Username Error:", error);
     return c.json({ error: "Server Error" }, 500);
   }
 };
 
-// 5. VERIFY CREATOR
+// 5. VERIFY CREATOR (Preserved)
 export const verifyCreator = async (c) => {
   try {
     return c.json({ message: 'Creator verified successfully (Mock)' });
@@ -153,7 +176,7 @@ export const verifyCreator = async (c) => {
   }
 };
 
-// 6. GET VERIFIED CREATORS
+// 6. GET VERIFIED CREATORS (Preserved)
 export const getVerifiedCreators = async (c) => {
   try {
     return c.json({ creators: [] });
