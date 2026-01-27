@@ -35,8 +35,10 @@ import { serveStatic } from '@hono/node-server/serve-static';
 
 // Serve uploaded files statically
 app.use('/uploads/*', serveStatic({
-  root: './backend',
-  rewriteRequestPath: (path) => path.replace('/uploads', '/uploads')
+  // IMPORTANT: this backend runs with CWD already at "/backend"
+  // so uploaded files live at "./uploads", not "./backend/uploads".
+  root: './',
+  rewriteRequestPath: (path) => path
 }));
 
 // Routes

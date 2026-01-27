@@ -4,6 +4,94 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { User, CreatorProfile } = require('../models/index.cjs');
 
+function buildAbsoluteUrl(c, maybeRelativeUrl) {
+  if (!maybeRelativeUrl) return '';
+  const value = String(maybeRelativeUrl).trim();
+  if (!value) return '';
+
+  // Already absolute
+  if (/^https?:\/\//i.test(value)) return value;
+
+  // Normalize "uploads/..." -> "/uploads/..."
+  const normalized = value.startsWith('uploads/') ? `/${value}` : value;
+
+  // If it's a root-relative path (e.g. "/uploads/x.png"), prefix API origin.
+  if (normalized.startsWith('/')) {
+    if (!c) return normalized;
+    const origin = new URL(c.req.url).origin;
+    return `${origin}${normalized}`;
+  }
+
+  // As-is fallback
+  return normalized;
+}
+
+function getFallbackAvatar(email) {
+  return `https://i.pravatar.cc/150?u=${encodeURIComponent(email || 'user')}`;
+}
+
+async function buildPublicCreatorResponse(c, user, creatorProfile) {
+  const email = user?.email || '';
+  const profileImage =
+    creatorProfile?.profile_image ||
+    creatorProfile?.avatar ||
+    user?.profile_image ||
+    user?.avatar ||
+    '';
+
+  const image = buildAbsoluteUrl(c, profileImage) || getFallbackAvatar(email);
+
+  const niche = creatorProfile?.niche || user?.niche || 'General Creator';
+  const location = creatorProfile?.location || user?.location || 'Global';
+  const bio =
+    creatorProfile?.bio ||
+    user?.bio ||
+    "This creator hasn't added a bio yet.";
+
+  const followers =
+    creatorProfile?.follower_count ||
+    user?.followers_count ||
+    '0';
+
+  const engagement =
+    creatorProfile?.engagement_rate != null
+      ? String(creatorProfile.engagement_rate)
+      : 'N/A';
+
+  const instagram =
+    creatorProfile?.instagram_link ||
+    user?.instagram_handle ||
+    '';
+
+  const youtube = creatorProfile?.youtube_link || '';
+  const portfolio = creatorProfile?.portfolio_link || '';
+
+  return {
+    id: user.id,
+    name: creatorProfile?.name || user.name,
+    image,
+    niche,
+    location,
+    bio,
+    stats: {
+      followers: String(followers || '0'),
+      engagement
+    },
+    contact: {
+      instagram: instagram || '#',
+      youtube: youtube || '#',
+      portfolio: portfolio || '#'
+    },
+    details: {
+      audience_breakdown: creatorProfile?.audience_breakdown || 'Not available',
+      collaboration_goals: creatorProfile?.collaboration_goals || 'Not specified',
+      budget_range: creatorProfile?.budget_range || 'Not specified'
+    },
+    // Backwards compatibility: older frontends sometimes expect data.creator
+    creator: undefined
+  };
+}
+
 // 1. LIST VIEW (Fixes "0 Followers" on the cards)
 // Backend for /api/creators?search=...
 export const getCreators = async (c) => {
@@ -35,7 +123,7 @@ export const getCreators = async (c) => {
       id: user.id,
       name: user.name,
       // Logic from user snippet + fallback
-      image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
+      image: buildAbsoluteUrl(c, user.profile_image || user.avatar) || getFallbackAvatar(user.email),
       niche: user.niche || "General",
       // Map BOTH followers (for new frontend) and follower_count (for existing Filter.tsx)
       followers: user.followers_count || "0",
@@ -61,41 +149,11 @@ export const getCreatorById = async (c) => {
 
     if (!user) return c.json({ error: "Creator not found" }, 404);
 
-    // ✅ STRICT JSON STRUCTURE matching frontend expectation
-    const response = {
-      id: user.id,
-      name: user.name,
-      image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
-      niche: user.niche || "General Creator",
-      location: user.location || "Global",
-      bio: user.bio || "This creator hasn't added a bio yet.",
-      // The frontend expects a 'stats' object. We must provide it.
-      stats: {
-        followers: user.followers_count || "0", // Maps DB column to Frontend key
-        engagement: "N/A"
-      },
-      contact: {
-        instagram: user.instagram_handle || "#"
-      },
-      // Keep details to prevent crash if other components use it
-      details: {
-        audience_breakdown: "Not available",
-        collaboration_goals: "Not specified"
-      }
-    };
+    const creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
+    const response = await buildPublicCreatorResponse(c, user, creatorProfile);
+    response.creator = { ...response };
+    delete response.creator.creator;
 
-    return c.json({ creator: response }); // Frontend fetching /api/creators/:id needs to extract this?
-    // User Step 2 Code: .then(res => res.json()).then(data => setCreator(data));
-    // User Step 2 Code also says: if (!creator || !creator.name) ...
-    // If I return { creator: { name: ... } }, then data.name is undefined.
-    // I MUST return the object DIRECTLY for the NEW Frontend.
-    // BUT previous frontend (PublicProfile.tsx in Step 982) did `setCreator(data.creator || data)`.
-    // The NEW frontend code provided in this prompt (Step 1044) does `setCreator(data)`.
-    // So I should return the object directly: `c.json(response)`.
-    // BUT wait, `Filter.tsx` (List) expects `{ creators: [] }`. That is a different route.
-    // So `getCreators` (List) -> `{ creators: [] }`.
-    // `getCreatorById` (Profile) -> `response` (Flat Object).
-    // I will do that.
     return c.json(response);
 
   } catch (error) {
@@ -151,19 +209,45 @@ export const getCreatorByUsername = async (c) => {
 
     if (!user) return c.json({ error: "Creator not found" }, 404);
 
-    const response = {
-      id: user.id,
-      name: user.name,
-      image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
-      niche: user.niche || "General",
-      bio: user.bio || "",
-      stats: { followers: user.followers_count || "0" },
-      contact: { instagram: user.instagram_handle || "#" }
-    };
+    const creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
+    const response = await buildPublicCreatorResponse(c, user, creatorProfile);
+    response.creator = { ...response };
+    delete response.creator.creator;
 
-    return c.json({ creator: response });
+    return c.json(response);
   } catch (error) {
     return c.json({ error: "Server Error" }, 500);
+  }
+};
+
+// 4b. GET BY IDENTIFIER (id or username/email)
+export const getCreatorByIdentifier = async (c) => {
+  try {
+    const identifier = c.req.param('identifier');
+    if (!identifier) return c.json({ error: 'Creator not found' }, 404);
+
+    let user;
+    if (/^\d+$/.test(identifier)) {
+      user = await User.findByPk(identifier);
+    } else {
+      user = await User.findOne({
+        where: {
+          [Op.or]: [{ email: identifier }, { name: identifier }]
+        }
+      });
+    }
+
+    if (!user) return c.json({ error: 'Creator not found' }, 404);
+
+    const creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
+    const response = await buildPublicCreatorResponse(c, user, creatorProfile);
+    response.creator = { ...response };
+    delete response.creator.creator;
+
+    return c.json(response);
+  } catch (error) {
+    console.error('Identifier Error:', error);
+    return c.json({ error: 'Server Error' }, 500);
   }
 };
 
