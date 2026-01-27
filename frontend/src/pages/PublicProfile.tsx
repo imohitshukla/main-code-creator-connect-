@@ -98,11 +98,11 @@ export default function PublicProfile() {
   }, [followers]);
 
   const engagementRate = useMemo(() => {
-    const raw = creator.stats?.engagement ?? '';
+    const raw = creator?.stats?.engagement ?? '';
     const cleaned = String(raw).replace(/[^\d.]/g, '');
     const parsed = parseFloat(cleaned);
     return Number.isFinite(parsed) ? parsed : 0;
-  }, [creator.stats?.engagement]);
+  }, [creator?.stats?.engagement]);
 
   const growthData = useMemo(() => {
     const base = numericFollowers || 10000;
