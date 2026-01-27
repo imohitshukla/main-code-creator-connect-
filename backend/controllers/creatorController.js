@@ -229,8 +229,36 @@ export const updateCreatorProfile = async (c) => {
     const user = await User.findByPk(id);
     if (!user) return c.json({ error: "User not found" }, 404);
 
+    // 1) Update core fields on the User row
     await user.update(updates);
-    return c.json({ success: true, message: "Profile updated successfully!", user });
+
+    // 2) Persist richer creator-specific fields (audience, budget, goals, etc.)
+    //    into CreatorProfile so the public portfolio page can read them back.
+    let creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
+    if (!creatorProfile) {
+      creatorProfile = await CreatorProfile.create({
+        user_id: user.id,
+        name: body.displayName || user.name,
+      });
+    }
+
+    const profileUpdates = {};
+    if (body.audience_breakdown) profileUpdates.audience_breakdown = body.audience_breakdown;
+    if (body.budget_range) profileUpdates.budget_range = body.budget_range;
+    if (body.collaboration_goals) profileUpdates.collaboration_goals = body.collaboration_goals;
+
+    // Keep these in sync as well when present
+    if (body.primary_location) profileUpdates.location = body.primary_location;
+    if (body.primary_niche) profileUpdates.niche = body.primary_niche;
+    if (body.bio) profileUpdates.bio = body.bio;
+    if (body.instagram_link) profileUpdates.instagram_link = body.instagram_link;
+    if (body.total_followers) profileUpdates.follower_count = body.total_followers.toString();
+
+    if (Object.keys(profileUpdates).length > 0) {
+      await creatorProfile.update(profileUpdates);
+    }
+
+    return c.json({ success: true, message: "Profile updated successfully!", user, creatorProfile });
   } catch (error) {
     console.error("Update Error:", error);
     return c.json({ error: "Failed to update profile", details: error.message }, 500);
