@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { getApiUrl } from '@/lib/utils';
 import SmartAvatar from '@/components/SmartAvatar';
 import { BarChart, Bar, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -31,11 +31,19 @@ interface PublicCreator {
 
 export default function PublicProfile() {
   const { id } = useParams();
-  const [creator, setCreator] = useState<PublicCreator | null>(null);
+  const location = useLocation() as { state?: { creator?: PublicCreator } };
+  const [creator, setCreator] = useState<PublicCreator | null>(location.state?.creator || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // If we already have full creator data from navigation state (clicked card),
+    // show the page immediately without waiting for API and skip the network call.
+    if (location.state?.creator) {
+      setLoading(false);
+      return;
+    }
+
     if (!id) {
       setError('Missing creator id');
       setLoading(false);
@@ -60,7 +68,7 @@ export default function PublicProfile() {
         setError('Unable to load this creator profile right now.');
         setLoading(false);
       });
-  }, [id]);
+  }, [id, location.state?.creator]);
 
   if (loading) return <div className="p-10 text-center animate-pulse">Loading Profile...</div>;
 

@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
+import { useNavigate } from 'react-router-dom';
 
 export interface Creator {
   id: number;
@@ -25,8 +26,13 @@ interface CreatorCardProps {
 }
 
 const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
+  const navigate = useNavigate();
+
   return (
-    <Card className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0 overflow-hidden cursor-pointer" onClick={() => window.location.href = `/profile/${creator.id}`}>
+    <Card
+      className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0 overflow-hidden cursor-pointer"
+      onClick={() => navigate(`/profile/${creator.id}`, { state: { creator } })}
+    >
       <CardContent className="p-0">
         <div className="flex flex-col items-center p-8 text-center bg-card/50">
           <div className="relative mb-4">
