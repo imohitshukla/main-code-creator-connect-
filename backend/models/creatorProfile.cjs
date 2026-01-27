@@ -83,7 +83,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     }
   }, {
-    tableName: 'creator_profiles'
+    tableName: 'creator_profiles',
+    // Disable automatic timestamp columns so Sequelize
+    // does NOT try to read/write `createdAt` / `updatedAt`,
+    // which do not exist on this table in your database.
+    timestamps: false
   });
 
   CreatorProfile.associate = (models) => {
