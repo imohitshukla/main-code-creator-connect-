@@ -67,51 +67,43 @@ const ProfileSetup = () => {
     event.preventDefault();
 
     try {
-      const formData = new FormData();
-      // Append all text fields
-      Object.entries(formState).forEach(([key, value]) => {
-        if (key !== 'avatar') { // We handle avatar separately via file
-          // Map keys explicitly to match backend expectations or keep as is if backend matches
-          let backendKey = key;
-          if (key === 'name') backendKey = 'displayName';
-          else if (key === 'phoneNumber') backendKey = 'phone_number';
-          else if (key === 'location') backendKey = 'primary_location';
-          else if (key === 'niche') backendKey = 'primary_niche';
-          else if (key === 'followers') backendKey = 'total_followers';
-          else if (key === 'instagram') backendKey = 'instagram_link';
-          else if (key === 'youtube') backendKey = 'youtube_link';
-          else if (key === 'portfolio') backendKey = 'portfolio_link';
-          else if (key === 'audience') backendKey = 'audience_breakdown';
-          else if (key === 'budgetRange') backendKey = 'budget_range';
-          else if (key === 'campaignGoals') backendKey = 'collaboration_goals';
-          else if (key === 'engagement_rate') backendKey = 'engagement_rate';
+      // Create JSON payload instead of FormData to match backend expectation
+      const payload: Record<string, any> = {};
 
-          formData.append(backendKey, value || '');
-        }
+      Object.entries(formState).forEach(([key, value]) => {
+        let backendKey = key;
+        // Map keys to match backend controller
+        if (key === 'name') backendKey = 'displayName';
+        else if (key === 'phoneNumber') backendKey = 'phone_number';
+        else if (key === 'location') backendKey = 'primary_location';
+        else if (key === 'niche') backendKey = 'primary_niche';
+        else if (key === 'followers') backendKey = 'total_followers';
+        else if (key === 'instagram') backendKey = 'instagram_link';
+        else if (key === 'youtube') backendKey = 'youtube_link';
+        else if (key === 'portfolio') backendKey = 'portfolio_link';
+        else if (key === 'audience') backendKey = 'audience_breakdown';
+        else if (key === 'budgetRange') backendKey = 'budget_range';
+        else if (key === 'campaignGoals') backendKey = 'collaboration_goals';
+        else if (key === 'engagement_rate') backendKey = 'engagement_rate';
+
+        payload[backendKey] = value;
       });
 
-      // Append file if exists
-      if (avatarFile) {
-        formData.append('avatar', avatarFile);
-      } else if (formState.avatar && formState.avatar.startsWith('http')) {
-        // If it's an existing URL, pass it? or just let backend keep existing?
-        // Backend handles "string" avatar too.
-        formData.append('avatar', formState.avatar);
+      // Send avatar as Base64 string (already in formState.avatar from handleImageUpload)
+      // If user selected a file, handleImageUpload converted it to Base64
+      if (formState.avatar) {
+        payload.avatar = formState.avatar;
       }
 
       const token = localStorage.getItem('token');
-      // Direct API call to bypass JSON-only context
-      // Direct API call to bypass JSON-only context
-      // getApiUrl is imported at the top
 
-      // ... inside component ...
       const response = await fetch(`${getApiUrl()}/api/creators/profile`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
-          // No Content-Type for FormData, browser sets boundary
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' // Explicitly set JSON
         },
-        body: formData
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
