@@ -55,7 +55,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     tableName: 'users',
-    timestamps: true
+    timestamps: true,
+    // Our DB uses snake_case timestamp columns (not createdAt/updatedAt)
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   return User;

@@ -168,7 +168,9 @@ export const updateCreatorProfile = async (c) => {
     const id = c.get('userId');
     const body = await c.req.json();
 
-    const updates = { updated_at: new Date() };
+    // Sequelize will map this to `updated_at` because the User model
+    // is configured with `updatedAt: 'updated_at'`.
+    const updates = { updatedAt: new Date() };
 
     if (body.primary_niche) updates.niche = body.primary_niche;
     if (body.primary_location) updates.location = body.primary_location;
