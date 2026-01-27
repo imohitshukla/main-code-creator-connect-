@@ -126,3 +126,60 @@ export const updateCreatorProfile = async (c) => {
     return c.json({ error: "Failed to update profile", details: error.message }, 500);
   }
 };
+
+// 4. GET BY USERNAME (Restored for Route Compatibility)
+export const getCreatorByUsername = async (c) => {
+  try {
+    const username = c.req.param('username');
+    // Assuming username map to email or name for now, or just ID
+    // Previous logic searched by email.
+    const user = await User.findOne({
+      where: {
+        [Op.or]: [
+          { email: username },
+          { name: username }
+        ]
+      }
+    });
+
+    if (!user) return c.json({ error: "Creator not found" }, 404);
+
+    // Reuse the same response structure
+    const response = {
+      id: user.id,
+      name: user.name,
+      image: user.profile_image || user.avatar || `https://i.pravatar.cc/150?u=${user.email}`,
+      niche: user.niche || "General",
+      bio: user.bio || "",
+      stats: { followers: user.followers_count || "0" },
+      contact: { instagram: user.instagram_handle || "#" }
+    };
+
+    return c.json({ creator: response });
+  } catch (error) {
+    console.error("Get By Username Error:", error);
+    return c.json({ error: "Server Error" }, 500);
+  }
+};
+
+// 5. VERIFY CREATOR (Restored Placeholder)
+export const verifyCreator = async (c) => {
+  try {
+    // Current User model doesn't have 'verified' column yet.
+    // Just return success to satisfy the route.
+    return c.json({ message: 'Creator verified successfully (Mock)' });
+  } catch (error) {
+    return c.json({ error: 'Failed to verify creator' }, 500);
+  }
+};
+
+// 6. GET VERIFIED CREATORS (Restored Placeholder)
+export const getVerifiedCreators = async (c) => {
+  try {
+    // Return empty list or all creators for now
+    // logic: const creators = await User.findAll({ where: { role: 'creator' } });
+    return c.json({ creators: [] });
+  } catch (error) {
+    return c.json({ error: 'Failed to fetch verified creators' }, 500);
+  }
+};
