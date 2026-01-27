@@ -32,11 +32,12 @@ function getFallbackAvatar(email) {
 
 async function buildPublicCreatorResponse(c, user, creatorProfile) {
   const email = user?.email || '';
+  // Prefer the most recently updated avatar over legacy profile_image
   const profileImage =
-    creatorProfile?.profile_image ||
     creatorProfile?.avatar ||
-    user?.profile_image ||
+    creatorProfile?.profile_image ||
     user?.avatar ||
+    user?.profile_image ||
     '';
 
   const image = buildAbsoluteUrl(c, profileImage) || getFallbackAvatar(email);
@@ -69,6 +70,7 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
   return {
     id: user.id,
     name: creatorProfile?.name || user.name,
+    // Unified image field used by both cards and public profile
     image,
     niche,
     location,
@@ -122,8 +124,8 @@ export const getCreators = async (c) => {
     const formatted = users.map(user => ({
       id: user.id,
       name: user.name,
-      // Logic from user snippet + fallback
-      image: buildAbsoluteUrl(c, user.profile_image || user.avatar) || getFallbackAvatar(user.email),
+      // Prefer `avatar` over legacy `profile_image` so newly uploaded photos win
+      image: buildAbsoluteUrl(c, user.avatar || user.profile_image) || getFallbackAvatar(user.email),
       niche: user.niche || "General",
       // Map BOTH followers (for new frontend) and follower_count (for existing Filter.tsx)
       followers: user.followers_count || "0",
