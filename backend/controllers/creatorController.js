@@ -151,8 +151,47 @@ export const getCreatorById = async (c) => {
 
     if (!user) return c.json({ error: "Creator not found" }, 404);
 
-    const creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
-    const response = await buildPublicCreatorResponse(c, user, creatorProfile);
+    // Be defensive: if the joined CreatorProfile query fails for any reason,
+    // still return a valid public profile built only from the User row instead
+    // of bubbling up a 500 to the client.
+    let creatorProfile = null;
+    try {
+      creatorProfile = await CreatorProfile.findOne({ where: { user_id: user.id } });
+    } catch (profileError) {
+      console.error("CreatorProfile lookup error:", profileError);
+      creatorProfile = null;
+    }
+
+    let response;
+    try {
+      response = await buildPublicCreatorResponse(c, user, creatorProfile);
+    } catch (buildError) {
+      console.error("Public creator response build error:", buildError);
+      // Fallback: minimal, but safe, profile derived only from User
+      response = {
+        id: user.id,
+        name: user.name,
+        image: buildAbsoluteUrl(c, user.avatar || user.profile_image) || getFallbackAvatar(user.email),
+        niche: user.niche || "General Creator",
+        location: user.location || "Global",
+        bio: user.bio || "This creator hasn't added a bio yet.",
+        stats: {
+          followers: String(user.followers_count || "0"),
+          engagement: "N/A",
+        },
+        contact: {
+          instagram: user.instagram_handle || "#",
+          youtube: "#",
+          portfolio: "#",
+        },
+        details: {
+          audience_breakdown: "Not available",
+          collaboration_goals: "Not specified",
+          budget_range: "Not specified",
+        },
+      };
+    }
+
     response.creator = { ...response };
     delete response.creator.creator;
 
