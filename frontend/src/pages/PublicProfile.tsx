@@ -42,7 +42,9 @@ export default function PublicProfile() {
       return;
     }
 
-    fetch(`${getApiUrl()}/api/creators/${id}`)
+    // Use the explicit /id/:id route on the backend to avoid any ambiguity
+    // with the generic "/:identifier" route.
+    fetch(`${getApiUrl()}/api/creators/id/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
         return res.json();
