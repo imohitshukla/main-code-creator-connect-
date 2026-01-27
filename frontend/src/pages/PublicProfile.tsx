@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { getApiUrl } from '@/lib/utils';
+import SmartAvatar from '@/components/SmartAvatar';
 
 export default function PublicProfile() {
   const { id } = useParams();
@@ -7,11 +9,12 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(\`/api/creators/\${id}\`)
+    fetch(`${getApiUrl()}/api/creators/${id}`)
       .then(res => res.json())
       .then(data => {
-        console.log("✅ API Data Received:", data); // Check Console if issues persist
-        setCreator(data);
+        console.log("✅ API Data Received:", data);
+        // Handle wrapped { creator: ... } or flat object
+        setCreator(data.creator || data);
         setLoading(false);
       })
       .catch(err => {
@@ -32,13 +35,13 @@ export default function PublicProfile() {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
         {/* IMAGE SECTION */}
         <div className="w-full md:w-1/3 h-80 md:h-auto bg-gray-200 relative">
-          <img 
-            src={creator.image} 
-            alt={creator.name} 
-            className="w-full h-full object-cover" 
+          <img
+            src={creator.image}
+            alt={creator.name}
+            className="w-full h-full object-cover"
           />
         </div>
-        
+
         {/* DETAILS SECTION */}
         <div className="w-full md:w-2/3 p-8 flex flex-col">
           <div className="flex justify-between items-start mb-6">
@@ -46,7 +49,7 @@ export default function PublicProfile() {
               <h1 className="text-4xl font-bold text-gray-900">{creator.name}</h1>
               <p className="text-purple-600 font-medium text-lg mt-1">{creator.niche} • {creator.location}</p>
             </div>
-            
+
             {/* FOLLOWER COUNT */}
             <div className="text-center bg-gray-50 p-4 rounded-xl border border-gray-100">
               <span className="block text-3xl font-extrabold text-gray-900">
@@ -55,14 +58,14 @@ export default function PublicProfile() {
               <span className="text-xs text-gray-500 uppercase font-bold tracking-wide">Followers</span>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-100 py-6 mb-6">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">About Creator</h3>
             <p className="text-gray-700 text-lg leading-relaxed">
               {creator.bio}
             </p>
           </div>
-          
+
           <div className="mt-auto">
             <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
               Contact & Book Now
