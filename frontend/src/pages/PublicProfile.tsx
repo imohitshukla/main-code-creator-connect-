@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
@@ -31,6 +32,7 @@ export default function PublicProfile() {
   const { id } = useParams();
   const location = useLocation() as { state?: { creator?: PublicCreator } };
   const stateCreator = location.state?.creator ?? null;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: creator, isLoading, error, isError } = useQuery({
     queryKey: ['creator', id],
@@ -125,8 +127,12 @@ export default function PublicProfile() {
             )}
           </div>
 
-          <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-lg hover:shadow-xl transition">
-            Contact Creator
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="w-full max-w-sm bg-black text-white font-bold py-4 rounded-xl hover:bg-gray-900 shadow-xl transition flex justify-center items-center gap-2"
+          >
+            <span>✨</span> Request Collaboration
           </button>
         </div>
 
@@ -194,6 +200,75 @@ export default function PublicProfile() {
           </div>
         </div>
       </div>
+
+      {/* Book Creator / Request Collaboration Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-2xl animate-in fade-in duration-200">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-black font-bold"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-xl font-bold mb-1">Hire {creator.name}</h2>
+            <p className="text-sm text-gray-500 mb-6">Send a collaboration request directly.</p>
+
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setIsModalOpen(false);
+              }}
+            >
+              <div>
+                <label htmlFor="modal-brand" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                  Brand Name
+                </label>
+                <input
+                  id="modal-brand"
+                  type="text"
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black outline-none"
+                  placeholder="e.g. Nike, Zomato"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="modal-budget" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                  Budget
+                </label>
+                <select id="modal-budget" className="w-full p-3 border rounded-lg bg-white">
+                  <option>Select Budget</option>
+                  <option>₹10k - ₹50k</option>
+                  <option>₹50k - ₹1 Lakh</option>
+                  <option>₹1 Lakh+</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="modal-message" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                  Message
+                </label>
+                <textarea
+                  id="modal-message"
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black outline-none h-24"
+                  placeholder="Describe your campaign..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition"
+              >
+                Send Proposal 🚀
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
