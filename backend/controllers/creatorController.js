@@ -116,9 +116,12 @@ export const getCreators = async (c) => {
       whereClause.niche = { [Op.iLike]: `%${niche}%` };
     }
 
+    const limit = Math.min(parseInt(c.req.query('limit'), 10) || 100, 200);
     const users = await User.findAll({
       where: whereClause,
-      attributes: ['id', 'name', 'profile_image', 'avatar', 'niche', 'followers_count', 'location', 'bio', 'email']
+      attributes: ['id', 'name', 'profile_image', 'avatar', 'niche', 'followers_count', 'location', 'bio', 'email'],
+      limit,
+      order: [['id', 'ASC']]
     });
 
     const formatted = users.map(user => ({

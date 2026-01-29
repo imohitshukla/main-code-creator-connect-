@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
 import SmartAvatar from '@/components/SmartAvatar';
 
@@ -29,43 +29,41 @@ type PublicCreator = {
 
 export default function PublicProfile() {
   const { id } = useParams();
-  const [creator, setCreator] = useState<PublicCreator | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const location = useLocation() as { state?: { creator?: PublicCreator } };
+  const stateCreator = location.state?.creator ?? null;
 
-  useEffect(() => {
-    if (!id) {
-      setError('Missing creator id');
-      setLoading(false);
-      return;
-    }
+  const { data: creator, isLoading, error, isError } = useQuery({
+    queryKey: ['creator', id],
+    queryFn: async () => {
+      const res = await fetch(`${getApiUrl()}/api/creators/id/${id}`);
+      if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
+      const data = await res.json();
+      return (data.creator || data) as PublicCreator;
+    },
+    enabled: !!id && !stateCreator,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    initialData: stateCreator ?? undefined,
+  });
 
-    fetch(`${getApiUrl()}/api/creators/id/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
-        return res.json();
-      })
-      .then((data) => {
-        const payload = (data.creator || data) as PublicCreator;
-        setCreator(payload);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError('Unable to load this creator profile right now.');
-        setLoading(false);
-      });
-  }, [id]);
+  if (!id) {
+    return (
+      <div className="max-w-xl mx-auto p-10 pt-32 text-center">
+        <p className="mb-4 text-red-500 font-semibold">Missing creator id.</p>
+        <Link to="/filter" className="text-primary hover:underline">← Back to creator search</Link>
+      </div>
+    );
+  }
 
-  if (loading) {
+  if (isLoading && !creator) {
     return <div className="p-10 text-center animate-pulse">Loading profile…</div>;
   }
 
-  if (error || !creator) {
+  if (isError || !creator) {
     return (
       <div className="max-w-xl mx-auto p-10 pt-32 text-center">
         <p className="mb-4 text-red-500 font-semibold">
-          {error || 'Profile not found.'}
+          {error?.message || 'Profile not found.'}
         </p>
         <Link to="/filter" className="text-primary hover:underline">
           ← Back to creator search

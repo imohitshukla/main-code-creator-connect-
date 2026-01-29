@@ -1,17 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider'; // Ensure this matches your component path
+import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Search, Filter as FilterIcon, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import CreatorCard, { Creator } from '@/components/CreatorCard';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
-import creator1 from '@/assets/creator1.jpg';
-import creator2 from '@/assets/creator2.jpg';
-import creator3 from '@/assets/creator3.jpg';
-import creator4 from '@/assets/creator4.jpg';
 import {
   Sheet,
   SheetContent,
@@ -23,76 +19,74 @@ import {
   SheetClose
 } from "@/components/ui/sheet"
 
+const DEBOUNCE_MS = 280;
+
+function transformCreator(creator: any): Creator {
+  return {
+    id: creator.id,
+    name: creator.name || creator.email?.split('@')[0] || `Creator ${creator.id}`,
+    niche: creator.niche || 'General',
+    bio: creator.bio || 'No bio available',
+    avatar: creator.avatar,
+    image: creator.image,
+    email: creator.email,
+    followers: creator.follower_count ? `${creator.follower_count}` : '0',
+    audience: creator.audience || { engagement: creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A' },
+    budget: creator.budget,
+    social_links: creator.social_links,
+    portfolio_links: creator.portfolio_links
+  };
+}
+
 const Filter = () => {
-  // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('All');
-  const [followersRange, setFollowersRange] = useState([0]); // Min followers
-  const [engagementRange, setEngagementRange] = useState([0]); // Min engagement
-  const [budgetRange, setBudgetRange] = useState([0]); // Max budget (0 means any/max)
+  const [followersRange, setFollowersRange] = useState([0]);
+  const [engagementRange, setEngagementRange] = useState([0]);
+  const [budgetRange, setBudgetRange] = useState([0]);
 
-  const [creators, setCreators] = useState<Creator[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const { toast } = useToast();
-
   const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Travel', 'Lifestyle'];
 
-  // Debounce helper
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCreators();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm, selectedNiche, followersRange, engagementRange, budgetRange]);
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-  const fetchCreators = async () => {
-    setIsLoading(true);
-    try {
+  const queryKey = useMemo(
+    () => ['creators', debouncedSearch, selectedNiche, followersRange[0], engagementRange[0], budgetRange[0]],
+    [debouncedSearch, selectedNiche, followersRange, engagementRange, budgetRange]
+  );
+
+  const { data: creators = [], isLoading, error, isFetching } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedNiche !== 'All') params.append('niche', selectedNiche);
       if (followersRange[0] > 0) params.append('minFollowers', followersRange[0].toString());
       if (engagementRange[0] > 0) params.append('minEngagement', engagementRange[0].toString());
       if (budgetRange[0] > 0) params.append('maxBudget', budgetRange[0].toString());
-      if (searchTerm) params.append('search', searchTerm); // Server-side search
+      if (debouncedSearch) params.append('search', debouncedSearch);
+      const res = await fetch(`${getApiUrl()}/api/creators?${params.toString()}`);
+      if (!res.ok) throw new Error('Failed to fetch creators');
+      const data = await res.json();
+      return (data.creators || []).map(transformCreator);
+    },
+    staleTime: 90 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
 
-      const response = await fetch(`${getApiUrl()}/api/creators?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        let transformedCreators: Creator[] = data.creators.map((creator: any, index: number) => ({
-          id: creator.id,
-          name: creator.name || creator.email?.split('@')[0] || `Creator ${creator.id}`,
-          niche: creator.niche || 'General',
-          bio: creator.bio || 'No bio available',
-          // Prioritize backend avatar, then fallback loop, then empty
-          avatar: creator.avatar,
-          avatar: creator.avatar,
-          image: creator.image, // Use backend provided image (Real upload or unique Pravatar)
-          email: creator.email, // Needed for SmartAvatar fallback
-          followers: creator.follower_count ? `${creator.follower_count.toLocaleString()}` : '0',
-          followerCountRaw: creator.follower_count, // Keep raw for sorting/client logic if needed
-          audience: creator.audience || { engagement: creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A' },
-          budget: creator.budget,
-          social_links: creator.social_links,
-          portfolio_links: creator.portfolio_links
-        }));
-
-        // Client-side text search removed as backend now handles 'search' param
-        setCreators(transformedCreators);
-      } else {
-        console.error('Failed to fetch creators');
-        // fallback to empty or show error
-      }
-    } catch (error) {
-      console.error('Error fetching creators:', error);
+  useEffect(() => {
+    if (error) {
       toast({
         title: 'Connection Error',
         description: 'Failed to load creators. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [error, toast]);
 
   const handleContact = (creator: Creator) => {
     toast({

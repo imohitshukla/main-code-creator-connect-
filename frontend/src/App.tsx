@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,24 +9,39 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
-import Filter from "./pages/Filter";
-import AIMatch from "./pages/AIMatch";
-import Campaign from "./pages/Campaign";
+import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
-import Messages from "./pages/Messages";
-import EducationHub from "./pages/EducationHub";
-import BrandDashboard from "./pages/BrandDashboard";
 import NotFound from "./pages/NotFound";
-import ProfileSetup from "./pages/ProfileSetup";
-import PublicProfile from "./pages/PublicProfile";
-
-import About from "./pages/About";
 import CMSPage from "./pages/CMSPage";
 import LegalPage from "./pages/LegalPage";
 import { PlatformPage, AgencyPage, CareersPage } from "./pages/MarketingPages";
 
-const queryClient = new QueryClient();
+const Filter = lazy(() => import("./pages/Filter"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
+const AIMatch = lazy(() => import("./pages/AIMatch"));
+const Campaign = lazy(() => import("./pages/Campaign"));
+const Messages = lazy(() => import("./pages/Messages"));
+const EducationHub = lazy(() => import("./pages/EducationHub"));
+const BrandDashboard = lazy(() => import("./pages/BrandDashboard"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function PageFallback() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="animate-pulse rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+    </div>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -40,20 +56,20 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/ai-match" element={<AIMatch />} />
+              <Route path="/ai-match" element={<Suspense fallback={<PageFallback />}><AIMatch /></Suspense>} />
 
               {/* Product/Service Pages */}
               <Route path="/platform" element={<PlatformPage />} />
-              <Route path="/campaign" element={<Campaign />} />
+              <Route path="/campaign" element={<Suspense fallback={<PageFallback />}><Campaign /></Suspense>} />
               <Route path="/agency" element={<AgencyPage />} />
-              <Route path="/filter" element={<Filter />} />
-              <Route path="/profile/:id" element={<PublicProfile />} />
+              <Route path="/filter" element={<Suspense fallback={<PageFallback />}><Filter /></Suspense>} />
+              <Route path="/profile/:id" element={<Suspense fallback={<PageFallback />}><PublicProfile /></Suspense>} />
               <Route path="/stories" element={<CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." />} />
 
               {/* Resources & Support */}
               <Route path="/blog" element={<CMSPage title="Blog" subtitle="Insights, trends, and tips." />} />
               <Route path="/careers" element={<CareersPage />} />
-              <Route path="/education" element={<EducationHub />} />
+              <Route path="/education" element={<Suspense fallback={<PageFallback />}><EducationHub /></Suspense>} />
               <Route path="/support/brand" element={<CMSPage title="Brand Support" subtitle="Help center for brands." />} />
               <Route path="/support/creator" element={<CMSPage title="Creator Support" subtitle="Help center for creators." />} />
               <Route path="/partners" element={<CMSPage title="Partner Program" subtitle="Grow with us." />} />
@@ -72,12 +88,12 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
 
               <Route element={<ProtectedRoute />}>
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/brand-dashboard" element={<BrandDashboard />} />
-                <Route path="/profile-setup" element={<ProfileSetup />} />
+                <Route path="/messages" element={<Suspense fallback={<PageFallback />}><Messages /></Suspense>} />
+                <Route path="/brand-dashboard" element={<Suspense fallback={<PageFallback />}><BrandDashboard /></Suspense>} />
+                <Route path="/profile-setup" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
                 {/* Aliases for user-friendly URLs */}
                 <Route path="/dashboard" element={<BrandDashboard />} />
-                <Route path="/profile" element={<ProfileSetup />} />
+                <Route path="/profile" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
