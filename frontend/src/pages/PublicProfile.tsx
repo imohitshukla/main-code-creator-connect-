@@ -1,4 +1,4 @@
-import { useState } from 'react';
+cdimport { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
@@ -12,10 +12,14 @@ type PublicCreator = {
   niche?: string;
   location?: string;
   bio?: string;
+  /** From profile API */
   stats?: {
     followers?: string;
     engagement?: string;
   };
+  /** From list/card when navigating from Filter */
+  followers?: string;
+  audience?: { engagement?: string };
   contact?: {
     instagram?: string;
     youtube?: string;
@@ -74,8 +78,10 @@ export default function PublicProfile() {
     );
   }
 
-  const followers = creator.stats?.followers ?? '0';
-  const engagement = creator.stats?.engagement ?? 'N/A';
+  const followers =
+    creator.stats?.followers ?? creator.followers ?? '0';
+  const engagement =
+    creator.stats?.engagement ?? creator.audience?.engagement ?? 'N/A';
 
   // Use stored audience breakdown when available; otherwise fall back to a
   // realistic, opinionated default tailored for creators like Divyansh.
