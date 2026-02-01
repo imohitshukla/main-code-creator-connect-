@@ -49,23 +49,22 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
     user?.bio ||
     "This creator hasn't added a bio yet.";
 
-  const followers =
-    creatorProfile?.follower_count ||
-    user?.followers_count ||
-    '0';
+  const followersRaw =
+    creatorProfile?.follower_count ??
+    user?.followers_count ??
+    user?.follower_count;
+  const followers = followersRaw != null && String(followersRaw).trim() !== ''
+    ? String(followersRaw).trim()
+    : '0';
 
   const engagement =
     creatorProfile?.engagement_rate != null
       ? String(creatorProfile.engagement_rate)
       : 'N/A';
 
-  const instagram =
-    creatorProfile?.instagram_link ||
-    user?.instagram_handle ||
-    '';
-
-  const youtube = creatorProfile?.youtube_link || '';
-  const portfolio = creatorProfile?.portfolio_link || '';
+  const instagram = (creatorProfile?.instagram_link || user?.instagram_handle || '').trim();
+  const youtube = (creatorProfile?.youtube_link || '').trim();
+  const portfolio = (creatorProfile?.portfolio_link || '').trim();
 
   return {
     id: user.id,
@@ -76,13 +75,13 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
     location,
     bio,
     stats: {
-      followers: String(followers || '0'),
+      followers: String(followers),
       engagement
     },
     contact: {
-      instagram: instagram || '#',
-      youtube: youtube || '#',
-      portfolio: portfolio || '#'
+      instagram: instagram || '',
+      youtube: youtube || '',
+      portfolio: portfolio || ''
     },
     details: {
       audience_breakdown: creatorProfile?.audience_breakdown || 'Not available',
@@ -254,8 +253,10 @@ export const updateCreatorProfile = async (c) => {
     if (body.primary_location) profileUpdates.location = body.primary_location;
     if (body.primary_niche) profileUpdates.niche = body.primary_niche;
     if (body.bio) profileUpdates.bio = body.bio;
-    if (body.instagram_link) profileUpdates.instagram_link = body.instagram_link;
-    if (body.total_followers) profileUpdates.follower_count = body.total_followers.toString();
+    if (body.instagram_link !== undefined) profileUpdates.instagram_link = body.instagram_link || null;
+    if (body.youtube_link !== undefined) profileUpdates.youtube_link = body.youtube_link || null;
+    if (body.portfolio_link !== undefined) profileUpdates.portfolio_link = body.portfolio_link || null;
+    if (body.total_followers !== undefined) profileUpdates.follower_count = body.total_followers ? String(body.total_followers).trim() : '0';
 
     if (Object.keys(profileUpdates).length > 0) {
       await creatorProfile.update(profileUpdates);

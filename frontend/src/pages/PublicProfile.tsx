@@ -1,4 +1,4 @@
-cdimport { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
@@ -83,6 +83,13 @@ export default function PublicProfile() {
   const engagement =
     creator.stats?.engagement ?? creator.audience?.engagement ?? 'N/A';
 
+  const hasLink = (url: string | undefined) =>
+    !!url && url.trim() !== '' && url !== '#';
+  const instagramUrl = creator.contact?.instagram;
+  const youtubeUrl = creator.contact?.youtube;
+  const portfolioUrl = creator.contact?.portfolio;
+  const hasAnyLink = hasLink(instagramUrl) || hasLink(youtubeUrl) || hasLink(portfolioUrl);
+
   // Use stored audience breakdown when available; otherwise fall back to a
   // realistic, opinionated default tailored for creators like Divyansh.
   const audienceText =
@@ -165,9 +172,9 @@ export default function PublicProfile() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">Links & Social</h2>
             <div className="flex flex-wrap gap-3 text-sm">
-              {creator.contact?.instagram && (
+              {hasLink(instagramUrl) && (
                 <a
-                  href={creator.contact.instagram}
+                  href={instagramUrl!.startsWith('http') ? instagramUrl : `https://${instagramUrl}`}
                   target="_blank"
                   rel="noreferrer"
                   className="px-3 py-2 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium"
@@ -175,9 +182,9 @@ export default function PublicProfile() {
                   Instagram
                 </a>
               )}
-              {creator.contact?.youtube && (
+              {hasLink(youtubeUrl) && (
                 <a
-                  href={creator.contact.youtube}
+                  href={youtubeUrl!.startsWith('http') ? youtubeUrl : `https://${youtubeUrl}`}
                   target="_blank"
                   rel="noreferrer"
                   className="px-3 py-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 font-medium"
@@ -185,9 +192,9 @@ export default function PublicProfile() {
                   YouTube
                 </a>
               )}
-              {creator.contact?.portfolio && (
+              {hasLink(portfolioUrl) && (
                 <a
-                  href={creator.contact.portfolio}
+                  href={portfolioUrl!.startsWith('http') ? portfolioUrl : `https://${portfolioUrl}`}
                   target="_blank"
                   rel="noreferrer"
                   className="px-3 py-2 rounded-full bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium"
@@ -195,13 +202,11 @@ export default function PublicProfile() {
                   Portfolio / Media Kit
                 </a>
               )}
-              {!creator.contact?.instagram &&
-                !creator.contact?.youtube &&
-                !creator.contact?.portfolio && (
-                  <p className="text-gray-600 text-sm">
-                    This creator hasn&apos;t added external links yet.
-                  </p>
-                )}
+              {!hasAnyLink && (
+                <p className="text-gray-600 text-sm">
+                  This creator hasn&apos;t added external links yet.
+                </p>
+              )}
             </div>
           </div>
         </div>
