@@ -47,8 +47,9 @@ export default function PublicProfile() {
       return (data.creator || data) as PublicCreator;
     },
     enabled: !!id && !stateCreator,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000,
     gcTime: 10 * 60 * 1000,
+    refetchOnMount: true,
     initialData: stateCreator ?? undefined,
   });
 

@@ -218,7 +218,7 @@ export const updateCreatorProfile = async (c) => {
     if (body.primary_niche) updates.niche = body.primary_niche;
     if (body.primary_location) updates.location = body.primary_location;
     if (body.bio) updates.bio = body.bio;
-    if (body.instagram_link) updates.instagram_handle = body.instagram_link;
+    if (body.instagram_link !== undefined) updates.instagram_handle = (body.instagram_link && String(body.instagram_link).trim()) || null;
     if (body.total_followers) updates.followers_count = body.total_followers.toString();
     if (body.displayName) updates.name = body.displayName;
     if (body.avatar) updates.avatar = body.avatar;
@@ -253,7 +253,7 @@ export const updateCreatorProfile = async (c) => {
     if (body.primary_location) profileUpdates.location = body.primary_location;
     if (body.primary_niche) profileUpdates.niche = body.primary_niche;
     if (body.bio) profileUpdates.bio = body.bio;
-    if (body.instagram_link !== undefined) profileUpdates.instagram_link = body.instagram_link || null;
+    if (body.instagram_link !== undefined) profileUpdates.instagram_link = (body.instagram_link && String(body.instagram_link).trim()) || null;
     if (body.youtube_link !== undefined) profileUpdates.youtube_link = body.youtube_link || null;
     if (body.portfolio_link !== undefined) profileUpdates.portfolio_link = body.portfolio_link || null;
     if (body.total_followers !== undefined) profileUpdates.follower_count = body.total_followers ? String(body.total_followers).trim() : '0';
