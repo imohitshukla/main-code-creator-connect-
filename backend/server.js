@@ -19,38 +19,31 @@ import testEmailRoutes from './src/backend/routes/testEmail.js';
 
 const app = new Hono();
 
-// Configure CORS to allow your Vercel frontend
-// 1. Define allowed domains explicitly
-const allowedOrigins = [
-  "https://creatorconnect.tech",
-  "https://www.creatorconnect.tech",
-  "https://main-code-creator-connect.vercel.app", // Old Vercel URL
-  "https://niche-connect-project.vercel.app",
-  "http://localhost:5173",                          // Localhost
-  "http://localhost:3000"
-];
+// --- UNIVERSAL CORS FIX START ---
+app.use('*', async (c, next) => {
+  // 1. Allow any origin (Mirror the request origin)
+  const origin = c.req.header('Origin');
+  if (origin) {
+    c.header('Access-Control-Allow-Origin', origin);
+  }
 
-// 2. Robust CORS Options with Debugging
-const corsOptions = {
-  origin: (origin) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return allowedOrigins[0]; // Return a valid origin or null depending on preference, Hono usually expects a string return for success
+  // 2. Allow specific methods
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 
-    if (allowedOrigins.includes(origin)) {
-      return origin;
-    } else {
-      console.log("BLOCKED BY CORS:", origin); // Logs the blocked URL to Render console
-      return null; // Blocks the CORS request by not returning the origin
-    }
-  },
-  credentials: true,
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
-  maxAge: 600,
-};
+  // 3. Allow specific headers
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
-app.use('*', cors(corsOptions));
+  // 4. Allow Credentials
+  c.header('Access-Control-Allow-Credentials', 'true');
+
+  // 5. Handle "Preflight" OPTIONS requests immediately
+  if (c.req.method === 'OPTIONS') {
+    return c.text('', 200);
+  }
+
+  await next();
+});
+// --- UNIVERSAL CORS FIX END ---
 app.use('*', logger());
 import { serveStatic } from '@hono/node-server/serve-static';
 
