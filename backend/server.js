@@ -20,14 +20,34 @@ import testEmailRoutes from './src/backend/routes/testEmail.js';
 const app = new Hono();
 
 // Configure CORS to allow your Vercel frontend
+// 1. Define allowed domains explicitly
+const allowedOrigins = [
+  "https://creatorconnect.tech",
+  "https://www.creatorconnect.tech",
+  "https://main-code-creator-connect.vercel.app", // Old Vercel URL
+  "https://niche-connect-project.vercel.app",
+  "http://localhost:5173",                          // Localhost
+  "http://localhost:3000"
+];
+
+// 2. Robust CORS Options with Debugging
 const corsOptions = {
-  origin: [
-    "https://creatorconnect.tech",
-    "https://www.creatorconnect.tech",
-    "https://main-code-creator-connect.vercel.app",
-    "http://localhost:5173"
-  ],
-  credentials: true
+  origin: (origin) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return allowedOrigins[0]; // Return a valid origin or null depending on preference, Hono usually expects a string return for success
+
+    if (allowedOrigins.includes(origin)) {
+      return origin;
+    } else {
+      console.log("BLOCKED BY CORS:", origin); // Logs the blocked URL to Render console
+      return null; // Blocks the CORS request by not returning the origin
+    }
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+  maxAge: 600,
 };
 
 app.use('*', cors(corsOptions));
