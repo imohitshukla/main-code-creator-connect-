@@ -22,9 +22,10 @@ const app = new Hono();
 // Configure CORS to allow your Vercel frontend
 const corsOptions = {
   origin: [
-    "https://main-code-creator-connect.vercel.app", // <--- THIS is the one you are using now
-    "https://niche-connect-project.vercel.app",     // Keep this just in case
-    "http://localhost:5173"                           // For local testing
+    "https://creatorconnect.tech",
+    "https://www.creatorconnect.tech",
+    "https://main-code-creator-connect.vercel.app",
+    "http://localhost:5173"
   ],
   credentials: true
 };
