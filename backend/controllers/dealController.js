@@ -1,8 +1,9 @@
 import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { Deal, DealTimelineLog, User } = require('../models/index.cjs');
+const { Deal, DealTimelineLog, User, Conversation } = require('../models/index.cjs');
 import { validateStageMetadata, validateDealCreation } from '../validators/dealValidators.js';
+import { addSystemMessage } from './messageController.js';
 
 // Stage transition rules
 const VALID_TRANSITIONS = {
@@ -120,6 +121,33 @@ export const updateDealStage = async (c) => {
       metadata: metadataValidation.data,
       notes: `Stage updated from ${deal.current_stage} to ${stage}`
     });
+
+    // Create or get conversation for this deal
+    let conversation = await Conversation.findOne({
+      where: { deal_id: deal.id }
+    });
+
+    if (!conversation) {
+      // Create conversation from deal
+      conversation = await Conversation.create({
+        participant_1_id: deal.brand_id,
+        participant_2_id: deal.creator_id,
+        deal_id: deal.id
+      });
+    }
+
+    // Add system message about stage change
+    const stageMessages = {
+      SHIPPING_LOGISTICS: `📦 ${metadataValidation.data.courier_name || 'Brand'} marked item as Shipped. Tracking: ${metadataValidation.data.tracking_number || 'N/A'}`,
+      SCRIPT_APPROVAL: `📝 ${metadataValidation.data.brand_feedback ? 'Brand provided feedback on script' : 'Script submitted for approval'}`,
+      DRAFT_REVIEW: `🎬 Draft video ${metadataValidation.data.final_approval ? 'approved' : 'submitted for review'}`,
+      GO_LIVE: `🚀 Content is now live! Platform: ${metadataValidation.data.platform || 'Social Media'}`,
+      PAYMENT_RELEASE: `💰 Payment released and deal completed! Rating: ${metadataValidation.data.rating_given || 'Not provided'}/5`
+    };
+
+    const systemMessage = stageMessages[stage] || `📋 Deal stage updated to ${stage.replace('_', ' ')}`;
+    
+    await addSystemMessage(conversation.id, systemMessage, metadataValidation.data);
 
     return c.json({ success: true, deal: await Deal.findByPk(dealId) });
   } catch (error) {
