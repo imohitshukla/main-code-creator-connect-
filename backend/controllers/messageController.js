@@ -3,26 +3,26 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { Conversation, Message, User, Deal } = require('../models/index.cjs');
 import { sendEmailNotification, generateMessageEmailHTML } from '../services/emailService.js';
-import { Op } from 'sequelize';
 
 // Create or get conversation
 export const createOrGetConversation = async (participant1Id, participant2Id, dealId = null) => {
   try {
-    // Check if conversation already exists
-    const existingConversation = await Conversation.findOne({
+    // Check if conversation already exists using two separate queries
+    let existingConversation = await Conversation.findOne({
       where: {
-        [Op.or]: [
-          {
-            participant_1_id: participant1Id,
-            participant_2_id: participant2Id
-          },
-          {
-            participant_1_id: participant2Id,
-            participant_2_id: participant1Id
-          }
-        ]
+        participant_1_id: participant1Id,
+        participant_2_id: participant2Id
       }
     });
+
+    if (!existingConversation) {
+      existingConversation = await Conversation.findOne({
+        where: {
+          participant_1_id: participant2Id,
+          participant_2_id: participant1Id
+        }
+      });
+    }
 
     if (existingConversation) {
       return existingConversation;
