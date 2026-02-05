@@ -41,15 +41,16 @@ export default function PublicProfile() {
   const { data: creator, isLoading, error, isError } = useQuery({
     queryKey: ['creator', id],
     queryFn: async () => {
-      const res = await fetch(`${getApiUrl()}/api/creators/id/${id}`);
+      const res = await fetch(`${getApiUrl()}/api/creators/id/${id}?t=${Date.now()}`);
       if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
       const data = await res.json();
       return (data.creator || data) as PublicCreator;
     },
     enabled: !!id && !stateCreator,
-    staleTime: 30 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 0, // Disable cache
+    gcTime: 0, // Disable cache
     refetchOnMount: true,
+    refetchOnWindowFocus: true,
     initialData: stateCreator ?? undefined,
   });
 
