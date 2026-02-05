@@ -1,7 +1,7 @@
 import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { Conversation, Message, User, Deal } = require('../models/index.cjs');
+const { Conversation, Message, User, Deal, sequelize } = require('../models/index.cjs');
 import { sendEmailNotification, generateMessageEmailHTML } from '../services/emailService.js';
 
 // Create or get conversation
