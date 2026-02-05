@@ -21,6 +21,8 @@ const corsOptions = {
   origin: [
     "https://main-code-creator-connect.vercel.app", // <--- THIS is the one you are using now
     "https://niche-connect-project.vercel.app",     // Keep this just in case
+    "https://creatorconnect.tech",
+    "https://www.creatorconnect.tech",
     "http://localhost:5173"                           // For local testing
   ],
   credentials: true
