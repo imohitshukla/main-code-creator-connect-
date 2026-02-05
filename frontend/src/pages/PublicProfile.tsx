@@ -51,6 +51,9 @@ export default function PublicProfile() {
   const location = useLocation() as { state?: { creator?: PublicCreator } };
   const stateCreator = location.state?.creator ?? null;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [brandName, setBrandName] = useState('');
+  const [budget, setBudget] = useState('');
+  const [message, setMessage] = useState('');
 
   const { data: creator, isLoading, error, isError } = useQuery({
     queryKey: ['creator', id, Date.now()], // Force cache invalidation
@@ -115,16 +118,54 @@ export default function PublicProfile() {
   const portfolioUrl = creator.portfolio_links?.portfolio;
   const hasAnyLink = hasLink(instagramUrl) || hasLink(youtubeUrl) || hasLink(portfolioUrl);
 
-  // Debug logging
-  console.log('Creator Data:', creator);
-  console.log('Creator Keys:', Object.keys(creator || {}));
-  console.log('Social Links:', creator.social_links);
-  console.log('Portfolio Links:', creator.portfolio_links);
-  console.log('Instagram URL:', instagramUrl);
-  console.log('Youtube URL:', youtubeUrl);
-  console.log('Portfolio URL:', portfolioUrl);
-  console.log('Has Instagram Link:', hasLink(instagramUrl));
-  console.log('Has Any Link:', hasAnyLink);
+  // Debug-First Handler
+  const handleSendProposal = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent page refresh
+    console.log("🔴 BUTTON CLICKED - Handler Started"); // Step 1: Prove it clicks
+    
+    // Log the data we are trying to send
+    console.log("Payload:", { brandName, budget, message });
+    
+    if (!brandName || !message) { 
+      alert("Please fill in all fields"); // Temporary fallback alert 
+      return; 
+    }
+
+    try {
+      console.log("🟡 Sending Request to API...");
+      
+      // Ensure the endpoint matches your Hono Backend
+      const response = await fetch(`${getApiUrl()}/api/proposals`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          creatorId: creator?.id, 
+          brandName, 
+          budget, 
+          message 
+        }),
+      });
+
+      const data = await response.json();
+      console.log("🟢 API Response:", data);
+      
+      if (response.ok) {
+        alert("Proposal Sent Successfully!");
+        setIsModalOpen(false); // Close modal on success
+        // Reset form
+        setBrandName('');
+        setBudget('');
+        setMessage('');
+      } else {
+        alert(`Error: ${data.message || "Failed to send"}`);
+      }
+    } catch (error) {
+      console.error("🔴 CRITICAL FAILURE:", error);
+      alert("Network Error - Check Console");
+    }
+  };
 
   // Use stored audience breakdown when available; otherwise fall back to a
   // realistic, opinionated default tailored for creators like Divyansh.
@@ -266,10 +307,7 @@ export default function PublicProfile() {
 
             <form
               className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsModalOpen(false);
-              }}
+              onSubmit={handleSendProposal}
             >
               <div>
                 <label htmlFor="modal-brand" className="text-xs font-bold text-gray-500 uppercase block mb-1">
@@ -280,6 +318,8 @@ export default function PublicProfile() {
                   type="text"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black outline-none"
                   placeholder="e.g. Nike, Zomato"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
                 />
               </div>
 
@@ -287,11 +327,11 @@ export default function PublicProfile() {
                 <label htmlFor="modal-budget" className="text-xs font-bold text-gray-500 uppercase block mb-1">
                   Budget
                 </label>
-                <select id="modal-budget" className="w-full p-3 border rounded-lg bg-white">
-                  <option>Select Budget</option>
-                  <option>₹10k - ₹50k</option>
-                  <option>₹50k - ₹1 Lakh</option>
-                  <option>₹1 Lakh+</option>
+                <select id="modal-budget" className="w-full p-3 border rounded-lg bg-white" value={budget} onChange={(e) => setBudget(e.target.value)}>
+                  <option value="">Select Budget</option>
+                  <option value="₹10k - ₹50k">₹10k - ₹50k</option>
+                  <option value="₹50k - ₹1 Lakh">₹50k - ₹1 Lakh</option>
+                  <option value="₹1 Lakh+">₹1 Lakh+</option>
                 </select>
               </div>
 
@@ -303,6 +343,8 @@ export default function PublicProfile() {
                   id="modal-message"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black outline-none h-24"
                   placeholder="Describe your campaign..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
 
