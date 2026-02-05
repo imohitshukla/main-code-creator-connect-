@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth.js';
-import { getCreators, getCreatorById, getCreatorByUsername, getCreatorByIdentifier, updateCreatorProfile, verifyCreator, getVerifiedCreators } from '../controllers/creatorController.js';
+import { getCreators, getCreatorById, getCreatorByUsername, getCreatorByIdentifier, updateCreatorProfile, verifyCreator, getVerifiedCreators, sendProposal } from '../controllers/creatorController.js';
 
 const router = new Hono();
 
@@ -19,5 +19,6 @@ router.get('/:identifier', getCreatorByIdentifier);
 router.use('*', authMiddleware);
 router.put('/profile', updateCreatorProfile);
 router.put('/:id/verify', verifyCreator);
+router.post('/proposals', sendProposal);
 
 export default router;

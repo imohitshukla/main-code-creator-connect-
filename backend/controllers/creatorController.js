@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { User, CreatorProfile } = require('../models/index.cjs');
+import { sendEmailNotification, generateMessageEmailHTML } from '../services/emailService.js';
 
 function buildAbsoluteUrl(c, maybeRelativeUrl) {
   if (!maybeRelativeUrl) return '';
@@ -357,6 +358,109 @@ export const verifyCreator = async (c) => {
     return c.json({ message: 'Creator verified successfully (Mock)' });
   } catch (error) {
     return c.json({ error: 'Failed to verify creator' }, 500);
+  }
+};
+
+// 6. GET VERIFIED CREATORS (Preserved)
+export const sendProposal = async (c) => {
+  try {
+    const { creatorId, brandName, budget, message } = await c.req.json();
+    const userId = c.get('userId'); // Brand user ID
+
+    // Validate required fields
+    if (!creatorId || !brandName || !message) {
+      return c.json({ error: 'Missing required fields: creatorId, brandName, message' }, 400);
+    }
+
+    // Get creator details including email
+    const creator = await User.findByPk(creatorId);
+    if (!creator) {
+      return c.json({ error: 'Creator not found' }, 404);
+    }
+
+    const brandUser = await User.findByPk(userId);
+    const brandNameFinal = brandName || brandUser?.name || 'A Brand';
+
+    // Generate proposal email HTML
+    const proposalEmailHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+          .content { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .proposal-details { background: white; padding: 15px; border-left: 4px solid #667eea; margin: 10px 0; }
+          .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+          .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎨 Creator Connect</h1>
+            <p>New Collaboration Proposal</p>
+          </div>
+          
+          <div class="content">
+            <h2>📋 Proposal Details</h2>
+            <div class="proposal-details">
+              <p><strong>From:</strong> ${brandNameFinal}</p>
+              <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
+              <p><strong>Message:</strong></p>
+              <div style="background: white; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                ${message.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="https://creatorconnect.tech/inbox" class="button">
+                View Proposal in Creator Connect
+              </a>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>This collaboration proposal was sent via Creator Connect platform.</p>
+            <p>Click the button above to view and respond to this proposal.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Send email to creator
+    const emailResult = await sendEmailNotification({
+      to: creator.email,
+      subject: `🎨 New Collaboration Proposal from ${brandNameFinal}`,
+      html: proposalEmailHTML
+    });
+
+    if (!emailResult.success) {
+      console.error('Failed to send proposal email:', emailResult.error);
+      return c.json({ error: 'Failed to send proposal email', details: emailResult.error }, 500);
+    }
+
+    console.log(`Proposal sent from brand ${userId} to creator ${creatorId}`);
+    
+    return c.json({ 
+      success: true, 
+      message: 'Proposal sent successfully',
+      proposal: {
+        creatorId,
+        brandName: brandNameFinal,
+        budget,
+        message,
+        sentAt: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Send proposal error:', error);
+    return c.json({ error: 'Failed to send proposal', details: error.message }, 500);
   }
 };
 

@@ -135,7 +135,7 @@ export default function PublicProfile() {
       console.log("🟡 Sending Request to API...");
       
       // Ensure the endpoint matches your Hono Backend
-      const response = await fetch(`${getApiUrl()}/api/proposals`, {
+      const response = await fetch(`${getApiUrl()}/api/creators/proposals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
