@@ -137,9 +137,10 @@ export default function PublicProfile() {
       // Ensure the endpoint matches your Hono Backend
       const response = await fetch(`${getApiUrl()}/api/creators/proposals`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        headers: { 
+          "Content-Type": "application/json" 
         },
+        credentials: "include", // Include auth cookies
         body: JSON.stringify({ 
           creatorId: creator?.id, 
           brandName, 
