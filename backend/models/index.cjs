@@ -5,11 +5,11 @@ const process = require('process');
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'production';
-const config = require('../config/config.json')[env];
+const config = require('../config/config.json')[env] || {};
 const db = {};
 
 let sequelize;
-const dbConfig = config[env];
+const dbConfig = config;
 
 // Force SSL for Neon/Production
 if (env === 'production' && dbConfig) {
@@ -23,8 +23,11 @@ if (env === 'production' && dbConfig) {
 
 if (dbConfig.use_env_variable) {
     sequelize = new Sequelize(process.env[dbConfig.use_env_variable], dbConfig);
-} else {
+} else if (dbConfig.database && dbConfig.username && dbConfig.password) {
     sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
+} else {
+    console.error('Database configuration missing. Check config.json for environment:', env);
+    throw new Error('Database configuration not found');
 }
 
 fs
