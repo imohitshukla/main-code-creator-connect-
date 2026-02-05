@@ -1,7 +1,9 @@
+import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { Conversation, Message, User, Deal } = require('../models/index.cjs');
 import { sendEmailNotification, generateMessageEmailHTML } from '../services/emailService.js';
+import { Op } from 'sequelize';
 
 // Create or get conversation
 export const createOrGetConversation = async (participant1Id, participant2Id, dealId = null) => {
