@@ -103,7 +103,7 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
       engagement
     },
     contact: {
-      instagram: displayInstagram,
+      instagram: instagram || displayInstagram,
       youtube: youtube || '',
       portfolio: portfolio || ''
     },
