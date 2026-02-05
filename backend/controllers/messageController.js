@@ -147,7 +147,7 @@ export const getConversationMessages = async (c) => {
       { 
         where: { 
           conversation_id: conversationId,
-          sender_id: { [Op.ne]: userId }
+          sender_id: { [sequelize.Sequelize.Op.ne]: userId }
         }
       }
     );
@@ -166,7 +166,7 @@ export const getUserConversations = async (c) => {
 
     const conversations = await Conversation.findAll({
       where: {
-        [Op.or]: [
+        [sequelize.Sequelize.Op.or]: [
           { participant_1_id: userId },
           { participant_2_id: userId }
         ]
