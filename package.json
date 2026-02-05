@@ -19,6 +19,7 @@
   "homepage": "https://github.com/imohitshukla/main-code-creator-connect-#readme",
   "dependencies": {
     "dotenv": "^17.2.3",
-    "nodemailer": "^7.0.11"
+    "nodemailer": "^7.0.11",
+    "resend": "^6.9.1"
   }
 }
