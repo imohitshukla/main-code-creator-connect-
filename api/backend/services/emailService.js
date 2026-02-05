@@ -1,9 +1,30 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend = null;
+
+// Initialize Resend only if API key exists
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log('✅ Resend email service initialized');
+} else {
+  console.warn('⚠️ RESEND_API_KEY missing. Email sending disabled.');
+}
 
 export const sendEmailNotification = async ({ to, subject, html, from }) => {
   try {
+    // Check if Resend is available
+    if (!resend) {
+      console.warn('📧 Email service disabled - RESEND_API_KEY missing');
+      console.log(`📧 Simulated email: ${subject} to ${to}`);
+      return { 
+        success: true, 
+        data: { 
+          id: 'mock-' + Date.now(),
+          message: 'Email simulated - service disabled'
+        } 
+      };
+    }
+
     const { data, error } = await resend.emails.send({
       from: from || 'noreply@creatorconnect.tech',
       to: [to],
