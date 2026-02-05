@@ -21,6 +21,7 @@ const app = new Hono();
 
 // --- UNIVERSAL CORS FIX START ---
 // --- DYNAMIC ORIGIN CORS FIX ---
+console.log("DEPLOY_CHECK_TIMESTAMP_" + Date.now()); // Verify deployment
 app.use('*', cors({
   origin: (origin) => {
     return origin || 'https://creatorconnect.tech'; // Dynamic allow: echoes origin, falls back to main domain
