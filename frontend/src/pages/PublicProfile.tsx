@@ -39,16 +39,24 @@ export default function PublicProfile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: creator, isLoading, error, isError } = useQuery({
-    queryKey: ['creator', id],
+    queryKey: ['creator', id, Date.now()], // Force cache invalidation
     queryFn: async () => {
-      const res = await fetch(`${getApiUrl()}/api/creators/id/${id}?t=${Date.now()}`);
+      const res = await fetch(`${getApiUrl()}/api/creators/id/${id}?v=${Date.now()}`, {
+        cache: 'no-store', // Disable browser cache
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
       const data = await res.json();
+      console.log('API Response:', data); // Debug log
       return (data.creator || data) as PublicCreator;
     },
     enabled: !!id && !stateCreator,
-    staleTime: 0, // Disable cache
-    gcTime: 0, // Disable cache
+    staleTime: 0,
+    gcTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     initialData: stateCreator ?? undefined,
@@ -91,6 +99,12 @@ export default function PublicProfile() {
   const youtubeUrl = creator.contact?.youtube;
   const portfolioUrl = creator.contact?.portfolio;
   const hasAnyLink = hasLink(instagramUrl) || hasLink(youtubeUrl) || hasLink(portfolioUrl);
+
+  // Debug logging
+  console.log('Creator Data:', creator);
+  console.log('Instagram URL:', instagramUrl);
+  console.log('Has Instagram Link:', hasLink(instagramUrl));
+  console.log('Has Any Link:', hasAnyLink);
 
   // Use stored audience breakdown when available; otherwise fall back to a
   // realistic, opinionated default tailored for creators like Divyansh.
