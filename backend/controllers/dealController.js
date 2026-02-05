@@ -1,7 +1,8 @@
 import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { Deal, User } = require('../models/index.cjs');
+const { Deal, DealTimelineLog, User } = require('../models/index.cjs');
+import { validateStageMetadata, validateDealCreation } from '../validators/dealValidators.js';
 
 // Stage transition rules
 const VALID_TRANSITIONS = {
@@ -18,7 +19,18 @@ const EARLY_STAGES = ['AGREEMENT_SIGNED', 'SHIPPING_LOGISTICS', 'SCRIPT_APPROVAL
 // Create new deal
 export const createDeal = async (c) => {
   try {
-    const { brand_id, creator_id, title, description, budget } = await c.req.json();
+    const body = await c.req.json();
+    
+    // Validate input data
+    const validation = validateDealCreation(body);
+    if (!validation.isValid) {
+      return c.json({ 
+        error: 'Invalid deal data', 
+        details: validation.error 
+      }, 400);
+    }
+    
+    const { brand_id, creator_id, title, description, budget } = validation.data;
     
     const deal = await Deal.create({
       brand_id,
@@ -29,6 +41,15 @@ export const createDeal = async (c) => {
       current_stage: 'AGREEMENT_SIGNED',
       stage_metadata: {},
       agreement_signed_at: new Date()
+    });
+
+    // Log the creation
+    await DealTimelineLog.create({
+      deal_id: deal.id,
+      old_stage: null,
+      new_stage: 'AGREEMENT_SIGNED',
+      changed_by: c.get('userId'),
+      notes: 'Deal created'
     });
 
     return c.json({ success: true, deal });
@@ -66,13 +87,21 @@ export const updateDealStage = async (c) => {
       }, 400);
     }
 
+    // Validate metadata for this stage
+    const metadataValidation = validateStageMetadata(stage, metadata);
+    if (!metadataValidation.isValid) {
+      return c.json({ 
+        error: 'Invalid metadata for this stage', 
+        details: metadataValidation.error 
+      }, 400);
+    }
+
     // Update stage and metadata
     const updateData = {
       current_stage: stage,
       stage_metadata: {
         ...deal.stage_metadata,
-        ...metadata,
-        updated_at: new Date().toISOString()
+        ...metadataValidation.data
       }
     };
 
@@ -81,6 +110,16 @@ export const updateDealStage = async (c) => {
     }
 
     await deal.update(updateData);
+
+    // Log the stage change
+    await DealTimelineLog.create({
+      deal_id: deal.id,
+      old_stage: deal.current_stage,
+      new_stage: stage,
+      changed_by: userId,
+      metadata: metadataValidation.data,
+      notes: `Stage updated from ${deal.current_stage} to ${stage}`
+    });
 
     return c.json({ success: true, deal: await Deal.findByPk(dealId) });
   } catch (error) {
