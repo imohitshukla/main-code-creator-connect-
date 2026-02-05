@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import authRoutes from '../../routes/auth.js';
 import creatorRoutes from '../../routes/creators.js';
@@ -16,20 +15,31 @@ import contactRoutes from '../../routes/contact.js';
 
 const app = new Hono();
 
-// Configure CORS to allow your Vercel frontend
-const corsOptions = {
-  origin: [
-    "https://main-code-creator-connect.vercel.app", // <--- THIS is the one you are using now
-    "https://niche-connect-project.vercel.app",     // Keep this just in case
-    "https://creatorconnect.tech",
-    "https://www.creatorconnect.tech",
-    "http://localhost:5173"                           // For local testing
-  ],
-  credentials: true
-};
+// --- 🛡️ BRUTE FORCE CORS MIDDLEWARE ---
+app.use('*', async (c, next) => {
+  // 1. Get the frontend origin
+  const origin = c.req.header('Origin');
+
+  // 2. Allow that origin explicitly
+  if (origin) {
+    c.header('Access-Control-Allow-Origin', origin);
+  }
+
+  // 3. Essential Headers
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  c.header('Access-Control-Allow-Credentials', 'true');
+
+  // 4. Handle Preflight immediately
+  if (c.req.method === 'OPTIONS') {
+    return c.newResponse(null, { status: 200 });
+  }
+
+  await next();
+});
+// ---------------------------------------
 
 // Middleware
-app.use('*', cors(corsOptions));
 app.use('*', logger());
 
 // Routes
