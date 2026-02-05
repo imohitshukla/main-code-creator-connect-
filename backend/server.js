@@ -19,18 +19,18 @@ import testEmailRoutes from './src/backend/routes/testEmail.js';
 
 const app = new Hono();
 
-// --- UNIVERSAL CORS FIX START ---
-// --- DYNAMIC ORIGIN CORS FIX ---
-console.log("DEPLOY_CHECK_TIMESTAMP_" + Date.now()); // Verify deployment
+// --- 🚀 UNIVERSAL CORS FIX ---
+// This allows the frontend to connect from ANY verified domain (Vercel, Custom Domain, etc.)
 app.use('*', cors({
-  origin: (origin) => {
-    return origin || 'https://creatorconnect.tech'; // Dynamic allow: echoes origin, falls back to main domain
-  },
+  origin: true, // Dynamic allow: automatically reflects the requesting origin
+  credentials: true, // Essential for cookies/sessions
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-// --- UNIVERSAL CORS FIX END ---
+
+// Handle "Preflight" OPTIONS requests manually to prevent 404s/Auth errors
+app.options('*', cors());
+// -----------------------------
 app.use('*', logger());
 import { serveStatic } from '@hono/node-server/serve-static';
 
@@ -62,7 +62,7 @@ app.route('/api/test-email', testEmailRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {
-  return c.json({ status: 'OK', message: 'CreatorConnect API is running' });
+  return c.json({ status: 'OK', message: 'CreatorConnect API is running', version: 'NUCLEAR_CORS_FIX_V1' });
 });
 
 // 404 handler
