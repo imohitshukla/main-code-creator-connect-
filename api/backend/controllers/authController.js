@@ -235,8 +235,17 @@ const verifyLoginOtp = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
+    // PILLAR 2: Cross-Site Safe Cookie Attributes
+    await c.cookie('auth_token', token, {
+      httpOnly: true,    // JavaScript cannot read it (Security)
+      secure: true,      // MUST be true for SameSite=None
+      sameSite: 'None',  // 🚨 CRITICAL: Allows cookie to travel between Vercel & Render
+      path: '/',         // Available on all routes
+      maxAge: 60 * 60 * 24 * 7, // 7 Days
+    });
+
     return c.json({
-      token,
+      success: true,
       user: { id: user.id, email: user.email, role: user.role }
     });
   } catch (error) {

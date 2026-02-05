@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { serve } from '@hono/node-server'; // Moved to top
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -8,7 +8,7 @@ import { logger } from 'hono/logger';
 import authRoutes from './backend/routes/auth.js';
 import creatorRoutes from './backend/routes/creators.js';
 import campaignRoutes from './backend/routes/campaigns.js';
-import aiRoutes from './backend/routes/ai.js'; // <--- FIXED PATH
+import aiRoutes from './backend/routes/ai.js';
 import messageRoutes from './backend/routes/messages.js';
 import mediaKitRoutes from './backend/routes/mediakits.js';
 import educationRoutes from './backend/routes/education.js';
@@ -21,20 +21,15 @@ import dealRoutes from './backend/routes/deals.js';
 const app = new Hono();
 const port = process.env.PORT || 10000;
 
-// Configure CORS - Proper Hono CORS with dynamic origin function
-const corsOptions = {
-  origin: (origin, c) => {
-    // Allow any origin that requests access
-    return origin || '*';
-  },
+// PILLAR 1: Strict CORS with Credentials
+app.use('/*', cors({
+  origin: ['https://www.creatorconnect.tech', 'https://creatorconnect.tech', 'http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-};
+  allowHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Middleware
-app.use('*', cors(corsOptions));
-app.options('*', cors()); // Handle preflight requests
 app.use('*', logger());
 
 // Routes
@@ -49,8 +44,9 @@ app.route('/api/analytics', analyticsRoutes);
 app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
+app.route('/api/deals', dealRoutes);
 
-// Health check
+// Health check endpoint
 app.get('/api/health', (c) => {
   return c.json({ status: 'OK', message: 'CreatorConnect API is running' });
 });
@@ -70,7 +66,7 @@ app.onError((err, c) => {
 serve({
   fetch: app.fetch,
   port: port,
-  hostname: '0.0.0.0' // Required for Render
+  hostname: '0.0.0.0'
 }, (info) => {
   console.log(`Server is running on port ${info.port}`);
 });
