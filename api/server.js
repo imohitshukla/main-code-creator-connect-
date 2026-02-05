@@ -5,17 +5,18 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
 // Route Imports
-import authRoutes from '../backend/routes/auth.js';
-import creatorRoutes from '../backend/routes/creators.js';
-import campaignRoutes from '../backend/routes/campaigns.js';
-import aiRoutes from '../backend/routes/ai.js'; // <--- FIXED PATH
-import messageRoutes from '../backend/routes/messages.js';
-import mediaKitRoutes from '../backend/routes/mediakits.js';
-import educationRoutes from '../backend/routes/education.js';
-import analyticsRoutes from '../backend/routes/analytics.js';
-import paymentsRoutes from '../backend/routes/payments.js';
-import adminRoutes from '../backend/routes/admin.js';
-import contactRoutes from '../backend/routes/contact.js';
+import authRoutes from './backend/routes/auth.js';
+import creatorRoutes from './backend/routes/creators.js';
+import campaignRoutes from './backend/routes/campaigns.js';
+import aiRoutes from './backend/routes/ai.js'; // <--- FIXED PATH
+import messageRoutes from './backend/routes/messages.js';
+import mediaKitRoutes from './backend/routes/mediakits.js';
+import educationRoutes from './backend/routes/education.js';
+import analyticsRoutes from './backend/routes/analytics.js';
+import paymentsRoutes from './backend/routes/payments.js';
+import adminRoutes from './backend/routes/admin.js';
+import contactRoutes from './backend/routes/contact.js';
+import dealRoutes from './backend/routes/deals.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
