@@ -20,18 +20,17 @@ import contactRoutes from '../backend/routes/contact.js';
 const app = new Hono();
 const port = process.env.PORT || 10000;
 
-// Configure CORS
+// Configure CORS - Dynamic origin handling for maximum compatibility
 const corsOptions = {
-  origin: [
-    "https://main-code-creator-connect.vercel.app", 
-    "https://niche-connect-project.vercel.app",     
-    "http://localhost:5173"                           
-  ],
-  credentials: true
+  origin: true, // Dynamically allows any origin that requests it
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
 // Middleware
 app.use('*', cors(corsOptions));
+app.options('*', cors()); // Handle preflight requests
 app.use('*', logger());
 
 // Routes
