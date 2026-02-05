@@ -20,12 +20,15 @@ import contactRoutes from '../backend/routes/contact.js';
 const app = new Hono();
 const port = process.env.PORT || 10000;
 
-// Configure CORS - Dynamic origin handling for maximum compatibility
+// Configure CORS - Proper Hono CORS with dynamic origin function
 const corsOptions = {
-  origin: true, // Dynamically allows any origin that requests it
+  origin: (origin, c) => {
+    // Allow any origin that requests access
+    return origin || '*';
+  },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 };
 
 // Middleware

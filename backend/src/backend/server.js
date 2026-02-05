@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import authRoutes from '../../routes/auth.js';
 import creatorRoutes from '../../routes/creators.js';
@@ -15,29 +16,21 @@ import contactRoutes from '../../routes/contact.js';
 
 const app = new Hono();
 
-// --- 🛡️ BRUTE FORCE CORS MIDDLEWARE ---
-app.use('*', async (c, next) => {
-  // 1. Get the frontend origin
-  const origin = c.req.header('Origin');
+// --- � PROPER HONO CORS CONFIGURATION ---
+// Dynamic origin handling for maximum compatibility
+app.use('*', cors({
+  origin: (origin, c) => {
+    // Allow any origin that requests access
+    return origin || '*';
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
 
-  // 2. Allow that origin explicitly
-  if (origin) {
-    c.header('Access-Control-Allow-Origin', origin);
-  }
-
-  // 3. Essential Headers
-  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  c.header('Access-Control-Allow-Credentials', 'true');
-
-  // 4. Handle Preflight immediately
-  if (c.req.method === 'OPTIONS') {
-    return c.newResponse(null, { status: 200 });
-  }
-
-  await next();
-});
-// ---------------------------------------
+// Handle preflight OPTIONS requests
+app.options('*', cors());
+// -------------------------------------
 
 // Middleware
 app.use('*', logger());
