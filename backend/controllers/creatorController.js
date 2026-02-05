@@ -68,9 +68,27 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
 
   // Generate sample Instagram link if empty to match the desired appearance
   const displayInstagram = instagram || `https://instagram.com/${user.name.toLowerCase().replace(/\s+/g, '_')}`;
-  const displayBudget = creatorProfile?.budget_range || '₹10K - ₹25K';
-  const displayAudience = creatorProfile?.audience_breakdown || 'Gender split: 65% male, 35% female. Age groups: 18–24 years (55%), 25–34 years (25%), 13–17 years (15%), 35+ years (5%). Top cities: Varanasi, Lucknow, Delhi, Patna.';
-  const displayGoals = creatorProfile?.collaboration_goals || 'Looking to collaborate with travel, lifestyle, and fashion brands to create engaging content.';
+  
+  // Override placeholder values with better defaults
+  const displayBudget = creatorProfile?.budget_range && 
+    creatorProfile.budget_range !== 'Flexible / on request.' && 
+    creatorProfile.budget_range !== 'Not specified' && 
+    creatorProfile.budget_range.trim() !== '' 
+    ? creatorProfile.budget_range 
+    : '₹10K - ₹25K';
+    
+  const displayAudience = creatorProfile?.audience_breakdown && 
+    creatorProfile.audience_breakdown !== 'Not available' && 
+    creatorProfile.audience_breakdown.trim() !== '' 
+    ? creatorProfile.audience_breakdown 
+    : 'Gender split: 65% male, 35% female. Age groups: 18–24 years (55%), 25–34 years (25%), 13–17 years (15%), 35+ years (5%). Top cities: Varanasi, Lucknow, Delhi, Patna.';
+    
+  const displayGoals = creatorProfile?.collaboration_goals && 
+    creatorProfile.collaboration_goals !== 'Not specified' && 
+    creatorProfile.collaboration_goals !== 'Open to a variety of brand collaborations.' && 
+    creatorProfile.collaboration_goals.trim() !== '' 
+    ? creatorProfile.collaboration_goals 
+    : 'Looking to collaborate with travel, lifestyle, and fashion brands to create engaging content.';
 
   return {
     id: user.id,
