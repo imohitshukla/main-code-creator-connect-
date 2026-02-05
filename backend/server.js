@@ -23,11 +23,14 @@ const app = new Hono();
 app.use('*', async (c, next) => {
   // 1. Allow any origin (Mirror the request origin)
   const origin = c.req.header('Origin') || c.req.header('origin');
+  console.log(`[CORS DEBUG] Request Origin: ${origin}`); // <--- DEBUG LOG
+
   if (origin) {
     c.header('Access-Control-Allow-Origin', origin);
   } else {
     // Fallback: If no Origin header, allow the main domain by default
-    c.header('Access-Control-Allow-Origin', 'https://creatorconnect.tech');
+    console.log('[CORS DEBUG] Applying Fallback Origin');
+    c.header('Access-Control-Allow-Origin', 'https://debug.creatorconnect.tech');
   }
 
   // 2. Allow specific methods
