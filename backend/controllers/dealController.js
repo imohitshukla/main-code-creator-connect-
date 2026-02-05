@@ -1,9 +1,9 @@
 import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { Deal, DealTimelineLog, User, Conversation } = require('../models/index.cjs');
+const { Deal, DealTimelineLog, User } = require('../models/index.cjs');
 import { validateStageMetadata, validateDealCreation } from '../validators/dealValidators.js';
-import { addSystemMessage } from './messageController.js';
+import { logDealEvent } from '../helpers/dealLogger.js';
 
 // Stage transition rules
 const VALID_TRANSITIONS = {
@@ -44,13 +44,11 @@ export const createDeal = async (c) => {
       agreement_signed_at: new Date()
     });
 
-    // Log the creation
-    await DealTimelineLog.create({
-      deal_id: deal.id,
-      old_stage: null,
-      new_stage: 'AGREEMENT_SIGNED',
-      changed_by: c.get('userId'),
-      notes: 'Deal created'
+    // Log creation using clean helper
+    await logDealEvent(deal.id, '📋 Deal created and agreement signed', {
+      brand_id: brand_id,
+      creator_id: creator_id,
+      budget: budget
     });
 
     return c.json({ success: true, deal });
@@ -136,7 +134,7 @@ export const updateDealStage = async (c) => {
       });
     }
 
-    // Add system message about stage change
+    // Add system message about stage change using clean helper
     const stageMessages = {
       SHIPPING_LOGISTICS: `📦 ${metadataValidation.data.courier_name || 'Brand'} marked item as Shipped. Tracking: ${metadataValidation.data.tracking_number || 'N/A'}`,
       SCRIPT_APPROVAL: `📝 ${metadataValidation.data.brand_feedback ? 'Brand provided feedback on script' : 'Script submitted for approval'}`,
@@ -147,7 +145,8 @@ export const updateDealStage = async (c) => {
 
     const systemMessage = stageMessages[stage] || `📋 Deal stage updated to ${stage.replace('_', ' ')}`;
     
-    await addSystemMessage(conversation.id, systemMessage, metadataValidation.data);
+    // Use the clean helper function
+    await logDealEvent(deal.id, systemMessage, metadataValidation.data);
 
     return c.json({ success: true, deal: await Deal.findByPk(dealId) });
   } catch (error) {
