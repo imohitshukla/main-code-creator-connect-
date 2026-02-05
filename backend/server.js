@@ -20,35 +20,15 @@ import testEmailRoutes from './src/backend/routes/testEmail.js';
 const app = new Hono();
 
 // --- UNIVERSAL CORS FIX START ---
-app.use('*', async (c, next) => {
-  // 1. Allow any origin (Mirror the request origin)
-  const origin = c.req.header('Origin') || c.req.header('origin');
-  console.log(`[CORS DEBUG] Request Origin: ${origin}`); // <--- DEBUG LOG
-
-  if (origin) {
-    c.header('Access-Control-Allow-Origin', origin);
-  } else {
-    // Fallback: If no Origin header, allow the main domain by default
-    console.log('[CORS DEBUG] Applying Fallback Origin');
-    c.header('Access-Control-Allow-Origin', 'https://debug.creatorconnect.tech');
-  }
-
-  // 2. Allow specific methods
-  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-
-  // 3. Allow specific headers
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-
-  // 4. Allow Credentials
-  c.header('Access-Control-Allow-Credentials', 'true');
-
-  // 5. Handle "Preflight" OPTIONS requests immediately
-  if (c.req.method === 'OPTIONS') {
-    return c.text('', 200);
-  }
-
-  await next();
-});
+// --- DYNAMIC ORIGIN CORS FIX ---
+app.use('*', cors({
+  origin: (origin) => {
+    return origin || 'https://creatorconnect.tech'; // Dynamic allow: echoes origin, falls back to main domain
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 // --- UNIVERSAL CORS FIX END ---
 app.use('*', logger());
 import { serveStatic } from '@hono/node-server/serve-static';
