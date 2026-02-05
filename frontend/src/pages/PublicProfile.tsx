@@ -25,6 +25,13 @@ type PublicCreator = {
     youtube?: string;
     portfolio?: string;
   };
+  social_links?: {
+    instagram?: string;
+    youtube?: string;
+  };
+  portfolio_links?: {
+    portfolio?: string;
+  };
   creator?: {
     contact?: {
       instagram?: string;
@@ -103,19 +110,19 @@ export default function PublicProfile() {
   const hasLink = (url: string | undefined) =>
     !!url && url.trim() !== '' && url !== '#';
     
-  // Handle both direct and nested data structures
-  const contactData = creator.contact || creator.creator?.contact || {};
-  const instagramUrl = contactData.instagram;
-  const youtubeUrl = contactData.youtube;
-  const portfolioUrl = contactData.portfolio;
+  const instagramUrl = creator.social_links?.instagram;
+  const youtubeUrl = creator.social_links?.youtube;
+  const portfolioUrl = creator.portfolio_links?.portfolio;
   const hasAnyLink = hasLink(instagramUrl) || hasLink(youtubeUrl) || hasLink(portfolioUrl);
 
   // Debug logging
   console.log('Creator Data:', creator);
   console.log('Creator Keys:', Object.keys(creator || {}));
-  console.log('Contact Object:', creator.contact);
-  console.log('Creator Object:', creator.creator);
+  console.log('Social Links:', creator.social_links);
+  console.log('Portfolio Links:', creator.portfolio_links);
   console.log('Instagram URL:', instagramUrl);
+  console.log('Youtube URL:', youtubeUrl);
+  console.log('Portfolio URL:', portfolioUrl);
   console.log('Has Instagram Link:', hasLink(instagramUrl));
   console.log('Has Any Link:', hasAnyLink);
 
