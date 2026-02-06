@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 interface RoleSelectionProps {
-  onSelect: (role: 'BRAND' | 'CREATOR') => void;
+  onSelect: (role: 'brand' | 'creator') => void;
 }
 
 const RoleSelection = ({ onSelect }: RoleSelectionProps) => {
@@ -15,7 +15,7 @@ const RoleSelection = ({ onSelect }: RoleSelectionProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
         {/* Card 1: Brand */}
         <div 
-          onClick={() => onSelect('BRAND')}
+          onClick={() => onSelect('brand')}
           className="cursor-pointer bg-white p-8 rounded-xl shadow-md hover:shadow-xl hover:border-indigo-500 border-2 border-transparent transition-all group"
         >
           <div className="h-12 w-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-4 text-2xl">
@@ -27,7 +27,7 @@ const RoleSelection = ({ onSelect }: RoleSelectionProps) => {
 
         {/* Card 2: Creator */}
         <div 
-          onClick={() => onSelect('CREATOR')}
+          onClick={() => onSelect('creator')}
           className="cursor-pointer bg-white p-8 rounded-xl shadow-md hover:shadow-xl hover:border-indigo-500 border-2 border-transparent transition-all group"
         >
           <div className="h-12 w-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-4 text-2xl">

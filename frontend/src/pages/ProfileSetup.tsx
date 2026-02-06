@@ -60,7 +60,7 @@ const ProfileSetup = () => {
   }, [isAuthenticated, profile, navigate, fallbackName, user?.role]);
 
   // Handle role selection
-  const handleRoleSelect = async (selectedRole: 'BRAND' | 'CREATOR') => {
+  const handleRoleSelect = async (selectedRole: 'brand' | 'creator') => {
     try {
       const response = await fetch(`${getApiUrl()}/api/users/role`, {
         method: 'PUT',
@@ -68,14 +68,14 @@ const ProfileSetup = () => {
           'Content-Type': 'application/json' 
         },
         credentials: 'include',
-        body: JSON.stringify({ role: selectedRole }),
+        body: JSON.stringify({ role: selectedRole.toUpperCase() }),
       });
 
       if (response.ok) {
-        setCurrentRole(selectedRole);
+        setCurrentRole(selectedRole.toUpperCase());
         toast({
           title: 'Role Updated',
-          description: `You are now set up as a ${selectedRole.toLowerCase()}`,
+          description: `You are now set up as a ${selectedRole}`,
         });
       }
     } catch (error) {
@@ -94,7 +94,7 @@ const ProfileSetup = () => {
   }
 
   // Show brand-specific form if user is a brand
-  if (currentRole === 'BRAND') {
+  if (currentRole === 'brand') {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
