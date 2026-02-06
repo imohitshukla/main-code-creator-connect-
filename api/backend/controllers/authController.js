@@ -237,11 +237,12 @@ const verifyLoginOtp = async (c) => {
 
     // PILLAR 2: Cross-Site Safe Cookie Attributes
     await c.cookie('auth_token', token, {
-      httpOnly: true,    // JavaScript cannot read it (Security)
-      secure: true,      // MUST be true for SameSite=None
-      sameSite: 'None',  // 🚨 CRITICAL: Allows cookie to travel between Vercel & Render
-      path: '/',         // Available on all routes
-      maxAge: 60 * 60 * 24 * 7, // 7 Days
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',                // ✅ Now you can use 'Lax' (More compatible than None)
+      domain: '.creatorconnect.tech', // ✅ The most important line. Covers api. and www.
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return c.json({
