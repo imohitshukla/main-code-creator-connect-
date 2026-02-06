@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Layers, ArrowRight, Camera } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
+import RoleSelection from '@/components/onboarding/RoleSelection';
 
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
@@ -47,6 +48,7 @@ const ProfileSetup = () => {
 
   const [formState, setFormState] = useState<UserProfile>(() => buildInitialProfile(profile, fallbackName));
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [currentRole, setCurrentRole] = useState<string | null>(user?.role || null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -54,7 +56,73 @@ const ProfileSetup = () => {
       return;
     }
     setFormState(buildInitialProfile(profile, fallbackName));
-  }, [isAuthenticated, profile, navigate, fallbackName]);
+    setCurrentRole(user?.role || null);
+  }, [isAuthenticated, profile, navigate, fallbackName, user?.role]);
+
+  // Handle role selection
+  const handleRoleSelect = async (selectedRole: 'BRAND' | 'CREATOR') => {
+    try {
+      const response = await fetch(`${getApiUrl()}/api/users/role`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        credentials: 'include',
+        body: JSON.stringify({ role: selectedRole }),
+      });
+
+      if (response.ok) {
+        setCurrentRole(selectedRole);
+        toast({
+          title: 'Role Updated',
+          description: `You are now set up as a ${selectedRole.toLowerCase()}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to set role', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update role. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Show role selection if role is not set
+  if (!currentRole || currentRole === 'PENDING') {
+    return <RoleSelection onSelect={handleRoleSelect} />;
+  }
+
+  // Show brand-specific form if user is a brand
+  if (currentRole === 'BRAND') {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Tell Creators More About You</h1>
+            <p className="mt-2 text-lg text-gray-600">Complete your business profile to find the perfect creator partnerships</p>
+          </div>
+          
+          <Card className="bg-white shadow-lg">
+            <CardHeader>
+              <CardTitle>Brand Profile Setup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="text-center py-8">
+                  <div className="h-12 w-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4 text-2xl">
+                    💼
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Brand Onboarding</h3>
+                  <p className="text-gray-600">Brand profile form will be implemented here with company identity, business details, and campaign preferences.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (field: keyof UserProfile, value: string) => {
     setFormState((prev) => ({
