@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Layers, ArrowRight, Camera } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
 import RoleSelection from '@/components/onboarding/RoleSelection';
+import BrandOnboarding from '@/components/onboarding/BrandOnboarding';
 
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
@@ -97,29 +98,7 @@ const ProfileSetup = () => {
   if (currentRole === 'brand') {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Tell Creators More About You</h1>
-            <p className="mt-2 text-lg text-gray-600">Complete your business profile to find the perfect creator partnerships</p>
-          </div>
-          
-          <Card className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle>Brand Profile Setup</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center py-8">
-                  <div className="h-12 w-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4 text-2xl">
-                    💼
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Brand Onboarding</h3>
-                  <p className="text-gray-600">Brand profile form will be implemented here with company identity, business details, and campaign preferences.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <BrandOnboarding />
       </div>
     );
   }
