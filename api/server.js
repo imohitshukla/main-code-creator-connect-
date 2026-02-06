@@ -17,6 +17,7 @@ import paymentsRoutes from './backend/routes/payments.js';
 import adminRoutes from './backend/routes/admin.js';
 import contactRoutes from './backend/routes/contact.js';
 import dealRoutes from './backend/routes/deals.js';
+import dashboardRoutes from './backend/routes/dashboard.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
@@ -45,6 +46,7 @@ app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
 app.route('/api/deals', dealRoutes);
+app.route('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {
