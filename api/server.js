@@ -25,26 +25,74 @@ import brandRoutes from './backend/routes/brands.js';
 const app = new Hono();
 const port = process.env.PORT || 10000;
 
-// 🛡️ COOKIE DEBUGGING: Track cookie setting and sending
+// 🛡️ PROFESSIONAL: Add comprehensive request logging for debugging
 app.use('*', async (c, next) => {
-  console.log('🔍 DEBUG: === COOKIE TRACKING ===');
-  console.log('🔍 DEBUG: Request URL:', c.req.url);
-  console.log('🔍 DEBUG: Request method:', c.req.method);
-  console.log('🔍 DEBUG: Request headers:', {
+  const start = Date.now();
+  const url = c.req.url;
+  const method = c.req.method;
+  
+  console.log('🔍 DEBUG: === REQUEST START ===');
+  console.log('🔍 DEBUG: Request URL:', url);
+  console.log('🔍 DEBUG: Request method:', method);
+  
+  // 🛡️ LOG ALL HEADERS FOR DEBUGGING
+  const allHeaders = {
     'cookie': c.req.header('Cookie'),
+    'content-type': c.req.header('Content-Type'),
+    'authorization': c.req.header('Authorization'),
+    'user-agent': c.req.header('User-Agent'),
     'origin': c.req.header('Origin'),
     'referer': c.req.header('Referer'),
-    'user-agent': c.req.header('User-Agent')
-  });
+    'accept': c.req.header('Accept'),
+    'accept-language': c.req.header('Accept-Language'),
+    'accept-encoding': c.req.header('Accept-Encoding'),
+    'connection': c.req.header('Connection'),
+    'upgrade-insecure-requests': c.req.header('Upgrade-Insecure-Requests'),
+    'sec-fetch-dest': c.req.header('Sec-Fetch-Dest'),
+    'sec-fetch-mode': c.req.header('Sec-Fetch-Mode'),
+    'sec-fetch-site': c.req.header('Sec-Fetch-Site'),
+    'sec-fetch-user': c.req.header('Sec-Fetch-User'),
+    'cache-control': c.req.header('Cache-Control'),
+    'pragma': c.req.header('Pragma'),
+  };
+  
+  console.log('🔍 DEBUG: Request headers:', allHeaders);
+  
+  // 🛡️ SPECIAL DEBUGGING FOR LOGIN REQUESTS
+  if (url.includes('/api/auth/login')) {
+    console.log('🔍 DEBUG: === LOGIN REQUEST DETECTED ===');
+    console.log('🔍 DEBUG: This is a login request - will monitor cookie setting...');
+  }
+  
+  // 🛡️ SPECIAL DEBUGGING FOR BRAND PROFILE REQUESTS
+  if (url.includes('/api/brands/profile')) {
+    console.log('🔍 DEBUG: === BRAND PROFILE REQUEST DETECTED ===');
+    console.log('🔍 DEBUG: This is a brand profile request - checking for cookie...');
+    if (!c.req.header('Cookie')) {
+      console.log('❌ CRITICAL: No cookie header found in brand profile request');
+      console.log('❌ This means login cookie was not set or not being sent');
+    } else {
+      console.log('✅ Cookie header found in brand profile request');
+    }
+  }
   
   await next();
   
+  const duration = Date.now() - start;
+  
+  // 🛡️ LOG RESPONSE HEADERS FOR DEBUGGING
+  const responseHeaders = {};
+  for (const [key, value] of c.res.headers.entries()) {
+    responseHeaders[key] = value;
+  }
+  
   console.log('🔍 DEBUG: Response headers set:', {
-    'set-cookie': c.res.headers.get('Set-Cookie'),
-    'access-control-allow-credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
-    'access-control-allow-origin': c.res.headers.get('Access-Control-Allow-Origin')
+    'set-cookie': responseHeaders['set-cookie'] || null,
+    'access-control-allow-credentials': responseHeaders['access-control-allow-credentials'],
+    'access-control-allow-origin': responseHeaders['access-control-allow-origin'],
   });
-  console.log('🔍 DEBUG: === COOKIE TRACKING END ===');
+  
+  console.log(`🔍 DEBUG: === REQUEST END (${duration}ms) ===`);
 });
 
 // PILLAR 1: Strict CORS with Credentials
