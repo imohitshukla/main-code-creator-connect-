@@ -36,7 +36,7 @@ app.use('/*', cors({
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000'
   ],
-  credentials: true,
+  credentials: true, // 🛡️ CRITICAL: Allow credentials for cross-domain
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
