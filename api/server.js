@@ -25,11 +25,34 @@ import brandRoutes from './backend/routes/brands.js';
 const app = new Hono();
 const port = process.env.PORT || 10000;
 
+// 🛡️ COOKIE DEBUGGING: Track cookie setting and sending
+app.use('*', async (c, next) => {
+  console.log('🔍 DEBUG: === COOKIE TRACKING ===');
+  console.log('🔍 DEBUG: Request URL:', c.req.url);
+  console.log('🔍 DEBUG: Request method:', c.req.method);
+  console.log('🔍 DEBUG: Request headers:', {
+    'cookie': c.req.header('Cookie'),
+    'origin': c.req.header('Origin'),
+    'referer': c.req.header('Referer'),
+    'user-agent': c.req.header('User-Agent')
+  });
+  
+  await next();
+  
+  console.log('🔍 DEBUG: Response headers set:', {
+    'set-cookie': c.res.headers.get('Set-Cookie'),
+    'access-control-allow-credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
+    'access-control-allow-origin': c.res.headers.get('Access-Control-Allow-Origin')
+  });
+  console.log('🔍 DEBUG: === COOKIE TRACKING END ===');
+});
+
 // PILLAR 1: Strict CORS with Credentials
 app.use('/*', cors({
   origin: [
     'https://www.creatorconnect.tech', 
     'https://creatorconnect.tech', 
+    'https://api.creatorconnect.tech', // 🛡️ Include API domain itself
     'http://localhost:5173', 
     'http://localhost:3000',
     'http://localhost:4173', // Vite preview
@@ -38,7 +61,8 @@ app.use('/*', cors({
   ],
   credentials: true, // 🛡️ CRITICAL: Allow credentials for cross-domain
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'], // 🛡️ Explicitly allow Cookie header
+  exposedHeaders: ['Set-Cookie'], // 🛡️ Expose cookie headers to frontend
 }));
 
 // 🛡️ PRODUCTION SAFETY: Ensure brand_profiles table exists on startup

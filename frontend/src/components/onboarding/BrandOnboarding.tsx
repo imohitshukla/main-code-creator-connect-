@@ -94,6 +94,16 @@ const BrandOnboarding = () => {
 
     // 🛡️ COMPREHENSIVE DEBUGGING: Track every step
     console.log('🔍 DEBUG: === BRAND PROFILE SUBMISSION START ===');
+    
+    // 🍪 COOKIE DEBUGGING: Check cookies before request
+    console.log('🍪 DEBUG: Browser cookies:', document.cookie);
+    console.log('🍪 DEBUG: Cookie details:', {
+      'document.cookie': document.cookie,
+      'cookie length': document.cookie.length,
+      'cookie keys': document.cookie.split(';').map(c => c.split('=')[0].trim()),
+      'auth_token present': document.cookie.includes('auth_token')
+    });
+    
     console.log('🔍 DEBUG: Current form state:', formData);
     console.log('🔍 DEBUG: Form field validation:');
     console.log('  - company_name:', formData.company_name, 'Length:', formData.company_name.length);
@@ -143,6 +153,12 @@ const BrandOnboarding = () => {
         },
         credentials: 'include',  // 🚨 MANDATORY: Send auth cookie
         body: JSON.stringify(payload)
+      });
+
+      // 🍪 COOKIE DEBUGGING: Check response headers
+      console.log('🍪 DEBUG: Response headers received:');
+      response.headers.forEach((value, key) => {
+        console.log(`  ${key}: ${value}`);
       });
 
       console.log('🔍 DEBUG: Response status:', response.status);

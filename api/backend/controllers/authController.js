@@ -236,15 +236,18 @@ const verifyLoginOtp = async (c) => {
     );
 
     // PILLAR 2: Cross-Site Safe Cookie Attributes
-    const cookieDomain = '.creatorconnect.tech'; // 🛡️ FIX: Always use domain for cross-domain
+    const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
     
     await c.cookie('auth_token', token, {
       httpOnly: true,
-      secure: true, // 🛡️ FIX: Always secure for cross-domain
-      sameSite: 'None', // 🛡️ FIX: None for cross-domain cookies
-      domain: cookieDomain,
+      secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
+      sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
+      domain: cookieDomain, // 🛡️ CRITICAL: Share across subdomains
       path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
+      partitioned: false, // 🛡️ Don't partition cookies
+      priority: 'high', // 🛡️ High priority for secure cookies
     });
 
     return c.json({
