@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
 import { client } from '../config/database.js';
 import { sendEmail } from '../utils/emailService.js';
+import { setCookie } from 'hono/cookie'; // 🛡️ CRITICAL: Import Hono cookie helper
 
 // Initialize Twilio client conditionally
 let twilioClient;
@@ -220,8 +221,8 @@ const login = async (c) => {
     try {
       const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
       
-      // 🛡️ HONO COOKIE SYNTAX FIX: Use correct Hono cookie method
-      c.cookie('auth_token', token, {
+      // 🛡️ HONO COOKIE SYNTAX FIX: Use imported setCookie function
+      setCookie(c, 'auth_token', token, {
         httpOnly: true,
         secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
         sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
@@ -314,8 +315,8 @@ const verifyLoginOtp = async (c) => {
     // PILLAR 2: Cross-Site Safe Cookie Attributes
     const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
     
-    // 🛡️ HONO COOKIE SYNTAX FIX: Use correct Hono cookie method
-    c.cookie('auth_token', token, {
+    // 🛡️ HONO COOKIE SYNTAX FIX: Use imported setCookie function
+    setCookie(c, 'auth_token', token, {
       httpOnly: true,
       secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
       sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
