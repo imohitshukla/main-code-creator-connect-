@@ -1,10 +1,22 @@
 import jwt from 'jsonwebtoken';
 
 const cookieAuthMiddleware = async (c, next) => {
-  const token = c.getCookie('auth_token');
+  const cookieHeader = c.req.header('Cookie');
+  if (!cookieHeader) {
+    return c.json({ error: 'Unauthorized - No cookie found' }, 401);
+  }
+
+  // Parse cookies from header
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [name, value] = cookie.trim().split('=');
+    acc[name] = value;
+    return acc;
+  }, {});
+
+  const token = cookies.auth_token;
   
   if (!token) {
-    return c.json({ error: 'Unauthorized - No token found' }, 401);
+    return c.json({ error: 'Unauthorized - No auth token found' }, 401);
   }
 
   try {
