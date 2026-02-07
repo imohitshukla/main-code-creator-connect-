@@ -4,10 +4,29 @@ import { client } from '../config/database.js';
 export const createBrandProfile = async (c) => {
   try {
     const userId = c.get('userId');
+    
+    // 🛡️ Layer 1: Defensive extraction with defaults
     const brandData = await c.req.json();
+    const {
+      company_name,
+      industry_vertical,
+      website_url,
+      linkedin_page,
+      company_size,
+      hq_location,
+      gst_tax_id,
+      typical_budget_range,
+      looking_for = [], // 🚨 DEFAULT: Never undefined
+      description
+    } = brandData;
 
     console.log('🔍 DEBUG: Creating brand profile for user:', userId);
     console.log('🔍 DEBUG: Brand data received:', brandData);
+
+    // 🛡️ Layer 2: Validate arrays are actually arrays
+    const safeLookingFor = Array.isArray(looking_for) ? looking_for : [];
+    
+    console.log('🔍 DEBUG: Safe looking_for array:', safeLookingFor);
 
     // Validate required fields
     const requiredFields = ['company_name', 'industry_vertical', 'website_url', 'company_size', 'hq_location', 'typical_budget_range'];
@@ -34,7 +53,7 @@ export const createBrandProfile = async (c) => {
 
     console.log('🔍 DEBUG: Inserting brand profile...');
     
-    // Insert brand profile
+    // Insert brand profile with safe arrays
     const result = await client.query(`
       INSERT INTO brand_profiles (
         user_id, company_name, industry_vertical, website_url, linkedin_page,
@@ -45,16 +64,16 @@ export const createBrandProfile = async (c) => {
       ) RETURNING id
     `, [
       userId,
-      brandData.company_name,
-      brandData.industry_vertical,
-      brandData.website_url,
-      brandData.linkedin_page || null,
-      brandData.company_size,
-      brandData.hq_location,
-      brandData.gst_tax_id || null,
-      brandData.typical_budget_range,
-      JSON.stringify(brandData.looking_for || []),
-      brandData.description || null
+      company_name,
+      industry_vertical,
+      website_url,
+      linkedin_page || null,
+      company_size,
+      hq_location,
+      gst_tax_id || null,
+      typical_budget_range,
+      JSON.stringify(safeLookingFor), // 🛡️ Use safe array
+      description || null
     ]);
 
     console.log('✅ Brand profile created successfully with ID:', result.rows[0].id);

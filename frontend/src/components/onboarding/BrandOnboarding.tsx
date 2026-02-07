@@ -64,7 +64,14 @@ const BrandOnboarding = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('🔍 DEBUG: Form data being submitted:', formData);
+    // 🛡️ Layer 3: Frontend safety check right before sending
+    const payload = {
+      ...formData,
+      looking_for: Array.isArray(formData.looking_for) ? formData.looking_for : [] // Never send undefined
+    };
+
+    console.log('🔍 DEBUG: Original form data:', formData);
+    console.log('🔍 DEBUG: Safe payload being submitted:', payload);
 
     try {
       const response = await fetch(`${getApiUrl()}/api/brands/profile`, {
@@ -73,7 +80,7 @@ const BrandOnboarding = () => {
           'Content-Type': 'application/json'
         },
         credentials: 'include',  // 🚨 MANDATORY: Send auth cookie
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       console.log('🔍 DEBUG: Response status:', response.status);
