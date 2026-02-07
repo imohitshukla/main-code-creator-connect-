@@ -92,6 +92,39 @@ const BrandOnboarding = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // 🛡️ COMPREHENSIVE DEBUGGING: Track every step
+    console.log('🔍 DEBUG: === BRAND PROFILE SUBMISSION START ===');
+    console.log('🔍 DEBUG: Current form state:', formData);
+    console.log('🔍 DEBUG: Form field validation:');
+    console.log('  - company_name:', formData.company_name, 'Length:', formData.company_name.length);
+    console.log('  - industry_vertical:', formData.industry_vertical, 'Valid:', industryOptions.includes(formData.industry_vertical));
+    console.log('  - website_url:', formData.website_url, 'Length:', formData.website_url.length);
+    console.log('  - company_size:', formData.company_size, 'Valid:', companySizeOptions.includes(formData.company_size));
+    console.log('  - hq_location:', formData.hq_location, 'Length:', formData.hq_location.length);
+    console.log('  - typical_budget_range:', formData.typical_budget_range, 'Valid:', budgetRangeOptions.includes(formData.typical_budget_range));
+    console.log('  - looking_for:', formData.looking_for, 'Type:', typeof formData.looking_for, 'Is Array:', Array.isArray(formData.looking_for));
+    console.log('  - description:', formData.description, 'Length:', formData.description?.length || 0);
+
+    // 🛡️ VALIDATION: Check all required fields before sending
+    const validationErrors = [];
+    if (!formData.company_name?.trim()) validationErrors.push('company_name is required');
+    if (!formData.industry_vertical?.trim()) validationErrors.push('industry_vertical is required');
+    if (!formData.website_url?.trim()) validationErrors.push('website_url is required');
+    if (!formData.company_size?.trim()) validationErrors.push('company_size is required');
+    if (!formData.hq_location?.trim()) validationErrors.push('hq_location is required');
+    if (!formData.typical_budget_range?.trim()) validationErrors.push('typical_budget_range is required');
+    
+    if (validationErrors.length > 0) {
+      console.error('❌ VALIDATION ERRORS:', validationErrors);
+      toast({
+        title: 'Validation Error',
+        description: `Please fill in all required fields: ${validationErrors.join(', ')}`,
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      return;
+    }
+
     // 🛡️ Layer 3: Frontend safety check right before sending
     const payload = {
       ...formData,
@@ -100,6 +133,7 @@ const BrandOnboarding = () => {
 
     console.log('🔍 DEBUG: Original form data:', formData);
     console.log('🔍 DEBUG: Safe payload being submitted:', payload);
+    console.log('🔍 DEBUG: API URL:', `${getApiUrl()}/api/brands/profile`);
 
     try {
       const response = await fetch(`${getApiUrl()}/api/brands/profile`, {
@@ -113,6 +147,7 @@ const BrandOnboarding = () => {
 
       console.log('🔍 DEBUG: Response status:', response.status);
       console.log('🔍 DEBUG: Response headers:', response.headers);
+      console.log('🔍 DEBUG: Response ok:', response.ok);
 
       if (response.ok) {
         const result = await response.json();
@@ -124,10 +159,17 @@ const BrandOnboarding = () => {
       } else {
         const errorData = await response.json();
         console.log('❌ DEBUG: Error response:', errorData);
+        console.log('❌ DEBUG: Error status:', response.status);
+        console.log('❌ DEBUG: Error details:', {
+          error: errorData.error,
+          details: errorData.details,
+          missing: errorData.missing
+        });
         throw new Error(errorData.error || errorData.details || 'Failed to create profile');
       }
     } catch (error) {
       console.error('❌ Brand onboarding error:', error);
+      console.error('❌ Error stack:', error.stack);
       toast({
         title: 'Error',
         description: error.message || 'Failed to create your brand profile. Please try again.',
@@ -135,6 +177,7 @@ const BrandOnboarding = () => {
       });
     } finally {
       setIsLoading(false);
+      console.log('🔍 DEBUG: === BRAND PROFILE SUBMISSION END ===');
     }
   };
 

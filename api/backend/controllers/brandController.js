@@ -3,10 +3,20 @@ import { client } from '../config/database.js';
 // Create brand profile
 export const createBrandProfile = async (c) => {
   try {
+    console.log('🔍 DEBUG: === BRAND PROFILE CREATION START ===');
+    
     const userId = c.get('userId');
+    console.log('🔍 DEBUG: User ID from middleware:', userId);
+    
+    if (!userId) {
+      console.error('❌ CRITICAL: No user ID found in middleware');
+      return c.json({ error: 'User not authenticated' }, 401);
+    }
     
     // 🛡️ Layer 1: Defensive extraction with defaults
     const brandData = await c.req.json();
+    console.log('🔍 DEBUG: Raw request body:', brandData);
+    
     const {
       company_name,
       industry_vertical,
@@ -20,8 +30,16 @@ export const createBrandProfile = async (c) => {
       description
     } = brandData;
 
-    console.log('🔍 DEBUG: Creating brand profile for user:', userId);
-    console.log('🔍 DEBUG: Brand data received:', brandData);
+    console.log('🔍 DEBUG: Extracted fields:');
+    console.log('  - company_name:', company_name, 'Type:', typeof company_name);
+    console.log('  - industry_vertical:', industry_vertical, 'Type:', typeof industry_vertical);
+    console.log('  - website_url:', website_url, 'Type:', typeof website_url);
+    console.log('  - company_size:', company_size, 'Type:', typeof company_size);
+    console.log('  - hq_location:', hq_location, 'Type:', typeof hq_location);
+    console.log('  - gst_tax_id:', gst_tax_id, 'Type:', typeof gst_tax_id);
+    console.log('  - typical_budget_range:', typical_budget_range, 'Type:', typeof typical_budget_range);
+    console.log('  - looking_for:', looking_for, 'Type:', typeof looking_for);
+    console.log('  - description:', description, 'Type:', typeof description);
 
     // 🛡️ Layer 2: Bulletproof array validation
     let safeLookingFor = [];
@@ -29,26 +47,36 @@ export const createBrandProfile = async (c) => {
     if (Array.isArray(looking_for)) {
       // Filter out any non-string values
       safeLookingFor = looking_for.filter(item => typeof item === 'string' && item.trim() !== '');
+      console.log('🔍 DEBUG: Array processing - filtered from', looking_for.length, 'to', safeLookingFor.length);
     } else if (looking_for === null || looking_for === undefined) {
       safeLookingFor = [];
+      console.log('🔍 DEBUG: Array processing - null/undefined, using empty array');
     } else if (typeof looking_for === 'string') {
       // Handle case where it might be a JSON string
       try {
         const parsed = JSON.parse(looking_for);
         safeLookingFor = Array.isArray(parsed) ? parsed.filter(item => typeof item === 'string') : [];
+        console.log('🔍 DEBUG: Array processing - parsed JSON string to', safeLookingFor.length);
       } catch {
         safeLookingFor = [];
+        console.log('🔍 DEBUG: Array processing - JSON parse failed, using empty array');
       }
     } else {
       // Any other type, default to empty array
       safeLookingFor = [];
+      console.log('🔍 DEBUG: Array processing - invalid type', typeof looking_for, ', using empty array');
     }
     
-    console.log('🔍 DEBUG: Safe looking_for array:', safeLookingFor);
+    console.log('🔍 DEBUG: Final safe looking_for array:', safeLookingFor);
 
     // Validate required fields
     const requiredFields = ['company_name', 'industry_vertical', 'website_url', 'company_size', 'hq_location', 'typical_budget_range'];
     const missingFields = requiredFields.filter(field => !brandData[field]);
+    
+    console.log('🔍 DEBUG: Required fields validation:');
+    console.log('  - Required fields:', requiredFields);
+    console.log('  - Brand data fields:', Object.keys(brandData));
+    console.log('  - Missing fields:', missingFields);
     
     if (missingFields.length > 0) {
       console.log('❌ Missing required fields:', missingFields);
@@ -59,17 +87,20 @@ export const createBrandProfile = async (c) => {
     }
 
     // Check if brand profile already exists
+    console.log('🔍 DEBUG: Checking for existing brand profile...');
     const existingProfile = await client.query(
       'SELECT id FROM brand_profiles WHERE user_id = $1',
       [userId]
     );
+
+    console.log('🔍 DEBUG: Existing profile check:', existingProfile.rows.length, 'profiles found');
 
     if (existingProfile.rows.length > 0) {
       console.log('❌ Brand profile already exists for user:', userId);
       return c.json({ error: 'Brand profile already exists' }, 409);
     }
 
-    console.log('🔍 DEBUG: Inserting brand profile...');
+    console.log('🔍 DEBUG: All validations passed, inserting brand profile...');
     
     // Insert brand profile with bulletproof arrays
     const result = await client.query(`
@@ -95,6 +126,7 @@ export const createBrandProfile = async (c) => {
     ]);
 
     console.log('✅ Brand profile created successfully with ID:', result.rows[0].id);
+    console.log('🔍 DEBUG: === BRAND PROFILE CREATION SUCCESS ===');
 
     return c.json({
       success: true,
@@ -110,8 +142,10 @@ export const createBrandProfile = async (c) => {
       detail: error.detail,
       hint: error.hint,
       where: error.where,
-      position: error.position
+      position: error.position,
+      stack: error.stack
     });
+    console.log('🔍 DEBUG: === BRAND PROFILE CREATION FAILED ===');
     return c.json({ 
       error: 'Failed to create brand profile',
       details: error.message 
