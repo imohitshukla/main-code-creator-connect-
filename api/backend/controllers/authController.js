@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
 import { client } from '../config/database.js';
 import { sendEmail } from '../utils/emailService.js';
-import { setCookie } from 'hono/cookie'; // 🛡️ CRITICAL: Import Hono cookie helper
+import { setCookie, getCookie } from 'hono/cookie'; // 🛡️ CRITICAL: Import Hono cookie helpers
 
 // Initialize Twilio client conditionally
 let twilioClient;
@@ -221,7 +221,13 @@ const login = async (c) => {
     try {
       const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
       
-      // 🛡️ HONO COOKIE SYNTAX FIX: Use imported setCookie function
+      console.log('🍪 DEBUG: About to set cookie with options:');
+      console.log('  - token length:', token.length);
+      console.log('  - domain:', cookieDomain);
+      console.log('  - secure:', true);
+      console.log('  - sameSite:', 'None');
+      
+      // 🛡️ METHOD 1: Try Hono setCookie first
       setCookie(c, 'auth_token', token, {
         httpOnly: true,
         secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
@@ -234,10 +240,29 @@ const login = async (c) => {
         priority: 'high', // 🛡️ High priority for secure cookies
       });
 
-      console.log('🍪 DEBUG: Cookie set successfully in login for user:', user.id);
+      console.log('🍪 DEBUG: Hono setCookie completed for user:', user.id);
+      
+      // 🛡️ METHOD 2: Fallback - Set cookie manually via header
+      const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=${cookieDomain}; Path=/; Max-Age=${60 * 60 * 24 * 7}; Partitioned=false; Priority=high`;
+      c.header('Set-Cookie', cookieValue);
+      
+      console.log('🍪 DEBUG: Manual cookie header set as fallback');
+      console.log('🍪 DEBUG: Cookie header value:', cookieValue.substring(0, 100) + '...');
+      
     } catch (cookieError) {
       console.error('❌ Cookie setting error:', cookieError);
-      return c.json({ error: 'Failed to set authentication cookie' }, 500);
+      console.error('❌ Cookie error stack:', cookieError.stack);
+      
+      // 🛡️ EMERGENCY FALLBACK: Try manual header only
+      try {
+        const cookieDomain = '.creatorconnect.tech';
+        const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=${cookieDomain}; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+        c.header('Set-Cookie', cookieValue);
+        console.log('🍪 DEBUG: Emergency fallback cookie header set');
+      } catch (fallbackError) {
+        console.error('❌ Emergency fallback failed:', fallbackError);
+        return c.json({ error: 'Failed to set authentication cookie', details: cookieError.message }, 500);
+      }
     }
 
     // Filter user object to remove sensitive data like password
