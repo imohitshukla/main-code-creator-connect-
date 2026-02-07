@@ -26,10 +26,18 @@ const port = process.env.PORT || 10000;
 
 // PILLAR 1: Strict CORS with Credentials
 app.use('/*', cors({
-  origin: ['https://www.creatorconnect.tech', 'https://creatorconnect.tech', 'http://localhost:5173', 'http://localhost:3000'],
+  origin: [
+    'https://www.creatorconnect.tech', 
+    'https://creatorconnect.tech', 
+    'http://localhost:5173', 
+    'http://localhost:3000',
+    'http://localhost:4173', // Vite preview
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // Middleware

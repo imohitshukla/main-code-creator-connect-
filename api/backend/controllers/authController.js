@@ -236,11 +236,13 @@ const verifyLoginOtp = async (c) => {
     );
 
     // PILLAR 2: Cross-Site Safe Cookie Attributes
+    const cookieDomain = process.env.NODE_ENV === 'production' ? '.creatorconnect.tech' : undefined;
+    
     await c.cookie('auth_token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'Lax',                // ✅ Now you can use 'Lax' (More compatible than None)
-      domain: '.creatorconnect.tech', // ✅ The most important line. Covers api. and www.
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'None', // None for local testing
+      domain: cookieDomain,
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
