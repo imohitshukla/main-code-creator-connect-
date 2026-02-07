@@ -241,7 +241,7 @@ const verifyLoginOtp = async (c) => {
     await c.cookie('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only secure in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'None', // None for local testing
+      sameSite: 'Lax', // 🛡️ FIX: Use Lax for both production and local
       domain: cookieDomain,
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
