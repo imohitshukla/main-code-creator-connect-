@@ -148,50 +148,96 @@ const registerBrand = async (c) => {
 
 // Login - Send OTP
 const login = async (c) => {
-  const { email, password } = c.req.valid('json');
-
+  console.log('🔍 DEBUG: === LOGIN START ===');
+  
   try {
+    // 🛡️ PROFESSIONAL ERROR HANDLING: Validate request body
+    let requestBody;
+    try {
+      requestBody = await c.req.json();
+      console.log('🔍 DEBUG: Login request body:', requestBody);
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      return c.json({ error: 'Invalid JSON in request body' }, 400);
+    }
+
+    const { email, password } = requestBody;
+    
+    // 🛡️ PROFESSIONAL VALIDATION: Check required fields
+    if (!email || !password) {
+      console.error('❌ Missing required fields:', { email: !!email, password: !!password });
+      return c.json({ error: 'Email and password are required' }, 400);
+    }
+
+    console.log('🔍 DEBUG: Attempting login for email:', email);
+
     // Find user
     const userResult = await client.query(
       'SELECT users.id, users.email, users.password, users.role, users.phone_number, brand_profiles.company_name, creator_profiles.name FROM users LEFT JOIN brand_profiles ON users.id = brand_profiles.user_id LEFT JOIN creator_profiles ON users.id = creator_profiles.user_id WHERE users.email = $1',
       [email]
     );
 
+    console.log('🔍 DEBUG: User query result:', userResult.rows.length, 'users found');
+
     if (userResult.rows.length === 0) {
+      console.error('❌ User not found for email:', email);
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
     const user = userResult.rows[0];
+    console.log('🔍 DEBUG: User found:', { id: user.id, role: user.role, email: user.email });
 
     // Check password
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    let isValidPassword;
+    try {
+      isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('🔍 DEBUG: Password validation result:', isValidPassword);
+    } catch (bcryptError) {
+      console.error('❌ Bcrypt error:', bcryptError);
+      return c.json({ error: 'Authentication error' }, 500);
+    }
+    
     if (!isValidPassword) {
+      console.error('❌ Invalid password for user:', user.id);
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
     // 🛡️ PROFESSIONAL FIX: Set cookie directly in login for immediate authentication
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-    );
+    let token;
+    try {
+      token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+      );
+      console.log('🔍 DEBUG: JWT token generated successfully');
+    } catch (jwtError) {
+      console.error('❌ JWT generation error:', jwtError);
+      return c.json({ error: 'Token generation failed' }, 500);
+    }
 
     // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately
-    const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
-    
-    await c.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
-      sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
-      domain: cookieDomain, // 🛡️ CRITICAL: Share across subdomains
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
-      partitioned: false, // 🛡️ Don't partition cookies
-      priority: 'high', // 🛡️ High priority for secure cookies
-    });
+    try {
+      const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
+      
+      // 🛡️ HONO COOKIE SYNTAX FIX: Use correct Hono cookie method
+      c.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
+        sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
+        domain: cookieDomain, // 🛡️ CRITICAL: Share across subdomains
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
+        partitioned: false, // 🛡️ Don't partition cookies
+        priority: 'high', // 🛡️ High priority for secure cookies
+      });
 
-    console.log('🍪 DEBUG: Cookie set successfully in login for user:', user.id);
+      console.log('🍪 DEBUG: Cookie set successfully in login for user:', user.id);
+    } catch (cookieError) {
+      console.error('❌ Cookie setting error:', cookieError);
+      return c.json({ error: 'Failed to set authentication cookie' }, 500);
+    }
 
     // Filter user object to remove sensitive data like password
     const userResponse = {
@@ -203,6 +249,8 @@ const login = async (c) => {
       name: user.name // If creator
     };
 
+    console.log('✅ DEBUG: Login successful for user:', user.id);
+
     // 🛡️ PROFESSIONAL RESPONSE: Return success without OTP requirement
     return c.json({
       success: true,
@@ -211,7 +259,16 @@ const login = async (c) => {
     });
   } catch (error) {
     console.error('❌ Login error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code
+    });
+    return c.json({ 
+      error: 'Internal server error',
+      details: error.message 
+    }, 500);
   }
 };
 
@@ -257,7 +314,8 @@ const verifyLoginOtp = async (c) => {
     // PILLAR 2: Cross-Site Safe Cookie Attributes
     const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
     
-    await c.cookie('auth_token', token, {
+    // 🛡️ HONO COOKIE SYNTAX FIX: Use correct Hono cookie method
+    c.cookie('auth_token', token, {
       httpOnly: true,
       secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
       sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain

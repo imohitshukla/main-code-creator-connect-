@@ -14,8 +14,20 @@ export const createBrandProfile = async (c) => {
     }
     
     // 🛡️ Layer 1: Defensive extraction with defaults
-    const brandData = await c.req.json();
-    console.log('🔍 DEBUG: Raw request body:', brandData);
+    let brandData;
+    try {
+      brandData = await c.req.json();
+      console.log('🔍 DEBUG: Raw request body:', brandData);
+    } catch (parseError) {
+      console.error('❌ JSON parse error in brand profile:', parseError);
+      return c.json({ error: 'Invalid JSON in request body' }, 400);
+    }
+    
+    // 🛡️ PROFESSIONAL VALIDATION: Check if brandData is valid object
+    if (!brandData || typeof brandData !== 'object') {
+      console.error('❌ Invalid brand data object:', brandData);
+      return c.json({ error: 'Invalid request data' }, 400);
+    }
     
     const {
       company_name,
@@ -88,12 +100,17 @@ export const createBrandProfile = async (c) => {
 
     // Check if brand profile already exists
     console.log('🔍 DEBUG: Checking for existing brand profile...');
-    const existingProfile = await client.query(
-      'SELECT id FROM brand_profiles WHERE user_id = $1',
-      [userId]
-    );
-
-    console.log('🔍 DEBUG: Existing profile check:', existingProfile.rows.length, 'profiles found');
+    let existingProfile;
+    try {
+      existingProfile = await client.query(
+        'SELECT id FROM brand_profiles WHERE user_id = $1',
+        [userId]
+      );
+      console.log('🔍 DEBUG: Existing profile check:', existingProfile.rows.length, 'profiles found');
+    } catch (dbError) {
+      console.error('❌ Database error checking existing profile:', dbError);
+      return c.json({ error: 'Database error during profile check' }, 500);
+    }
 
     if (existingProfile.rows.length > 0) {
       console.log('❌ Brand profile already exists for user:', userId);
@@ -103,27 +120,44 @@ export const createBrandProfile = async (c) => {
     console.log('🔍 DEBUG: All validations passed, inserting brand profile...');
     
     // Insert brand profile with bulletproof arrays
-    const result = await client.query(`
-      INSERT INTO brand_profiles (
-        user_id, company_name, industry_vertical, website_url, linkedin_page,
-        company_size, hq_location, gst_tax_id, typical_budget_range,
-        looking_for, description, created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
-      ) RETURNING id
-    `, [
-      userId,
-      company_name,
-      industry_vertical,
-      website_url,
-      linkedin_page || null,
-      company_size,
-      hq_location,
-      gst_tax_id || null,
-      typical_budget_range,
-      JSON.stringify(safeLookingFor), // 🛡️ Use bulletproof array
-      description || null
-    ]);
+    let result;
+    try {
+      result = await client.query(`
+        INSERT INTO brand_profiles (
+          user_id, company_name, industry_vertical, website_url, linkedin_page,
+          company_size, hq_location, gst_tax_id, typical_budget_range,
+          looking_for, description, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
+        ) RETURNING id
+      `, [
+        userId,
+        company_name,
+        industry_vertical,
+        website_url,
+        linkedin_page || null,
+        company_size,
+        hq_location,
+        gst_tax_id || null,
+        typical_budget_range,
+        JSON.stringify(safeLookingFor), // 🛡️ Use bulletproof array
+        description || null
+      ]);
+    } catch (insertError) {
+      console.error('❌ Database error inserting brand profile:', insertError);
+      console.error('❌ Insert error details:', {
+        message: insertError.message,
+        code: insertError.code,
+        detail: insertError.detail,
+        hint: insertError.hint,
+        where: insertError.where,
+        position: insertError.position
+      });
+      return c.json({ 
+        error: 'Failed to create brand profile',
+        details: insertError.message 
+      }, 500);
+    }
 
     console.log('✅ Brand profile created successfully with ID:', result.rows[0].id);
     console.log('🔍 DEBUG: === BRAND PROFILE CREATION SUCCESS ===');
