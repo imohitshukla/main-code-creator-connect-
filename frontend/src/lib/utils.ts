@@ -19,6 +19,6 @@ export const getApiUrl = () => {
     return 'http://localhost:10000';
   }
   
-  // Production fallback
-  return 'https://main-code-creator-connect-.onrender.com';
+  // Production fallback - Updated to custom domain
+  return 'https://api.creatorconnect.tech';
 };
