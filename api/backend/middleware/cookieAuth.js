@@ -2,7 +2,13 @@ import jwt from 'jsonwebtoken';
 
 const cookieAuthMiddleware = async (c, next) => {
   // Debug: Log all headers for troubleshooting
-  const allHeaders = Object.fromEntries(c.req.header());
+  const allHeaders = {
+    'cookie': c.req.header('Cookie'),
+    'content-type': c.req.header('Content-Type'),
+    'authorization': c.req.header('Authorization'),
+    'user-agent': c.req.header('User-Agent'),
+    'origin': c.req.header('Origin')
+  };
   console.log('🔍 DEBUG: Request headers:', allHeaders);
   
   const cookieHeader = c.req.header('Cookie');
