@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const cookieAuthMiddleware = async (c, next) => {
-  const token = c.req.cookie('auth_token');
+  const token = c.getCookie('auth_token');
   
   if (!token) {
     return c.json({ error: 'Unauthorized - No token found' }, 401);
