@@ -142,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch(`${getApiUrl()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // 🛡️ CRITICAL: Send cookies for cross-domain
         body: JSON.stringify({ email, password })
       });
 
@@ -189,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch(`${getApiUrl()}/api/auth/verify-login-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // 🛡️ CRITICAL: Send cookies for cross-domain
         body: JSON.stringify({ userId, otp })
       });
 

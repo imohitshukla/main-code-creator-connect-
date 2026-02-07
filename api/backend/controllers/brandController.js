@@ -23,8 +23,26 @@ export const createBrandProfile = async (c) => {
     console.log('🔍 DEBUG: Creating brand profile for user:', userId);
     console.log('🔍 DEBUG: Brand data received:', brandData);
 
-    // 🛡️ Layer 2: Validate arrays are actually arrays
-    const safeLookingFor = Array.isArray(looking_for) ? looking_for : [];
+    // 🛡️ Layer 2: Bulletproof array validation
+    let safeLookingFor = [];
+    
+    if (Array.isArray(looking_for)) {
+      // Filter out any non-string values
+      safeLookingFor = looking_for.filter(item => typeof item === 'string' && item.trim() !== '');
+    } else if (looking_for === null || looking_for === undefined) {
+      safeLookingFor = [];
+    } else if (typeof looking_for === 'string') {
+      // Handle case where it might be a JSON string
+      try {
+        const parsed = JSON.parse(looking_for);
+        safeLookingFor = Array.isArray(parsed) ? parsed.filter(item => typeof item === 'string') : [];
+      } catch {
+        safeLookingFor = [];
+      }
+    } else {
+      // Any other type, default to empty array
+      safeLookingFor = [];
+    }
     
     console.log('🔍 DEBUG: Safe looking_for array:', safeLookingFor);
 
@@ -53,7 +71,7 @@ export const createBrandProfile = async (c) => {
 
     console.log('🔍 DEBUG: Inserting brand profile...');
     
-    // Insert brand profile with safe arrays
+    // Insert brand profile with bulletproof arrays
     const result = await client.query(`
       INSERT INTO brand_profiles (
         user_id, company_name, industry_vertical, website_url, linkedin_page,
@@ -72,7 +90,7 @@ export const createBrandProfile = async (c) => {
       hq_location,
       gst_tax_id || null,
       typical_budget_range,
-      JSON.stringify(safeLookingFor), // 🛡️ Use safe array
+      JSON.stringify(safeLookingFor), // 🛡️ Use bulletproof array
       description || null
     ]);
 
