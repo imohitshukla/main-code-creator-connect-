@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
+import { cookieAuthMiddleware } from '../middleware/cookieAuth.js';
 import { 
   updateUserRole, 
   getCurrentUser 
@@ -7,8 +7,8 @@ import {
 
 const users = new Hono();
 
-// Apply auth middleware to all routes
-users.use('*', authMiddleware);
+// Apply cookie auth middleware to all routes
+users.use('*', cookieAuthMiddleware);
 
 // Update user role
 users.put('/role', updateUserRole);

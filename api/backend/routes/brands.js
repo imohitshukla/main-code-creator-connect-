@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
+import { cookieAuthMiddleware } from '../middleware/cookieAuth.js';
 import { 
   createBrandProfile, 
   getBrandProfile, 
@@ -8,8 +8,8 @@ import {
 
 const brands = new Hono();
 
-// Apply auth middleware to all routes
-brands.use('*', authMiddleware);
+// Apply cookie auth middleware to all routes
+brands.use('*', cookieAuthMiddleware);
 
 // Create brand profile
 brands.post('/profile', createBrandProfile);

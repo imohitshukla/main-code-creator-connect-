@@ -1,0 +1,22 @@
+import jwt from 'jsonwebtoken';
+
+const cookieAuthMiddleware = async (c, next) => {
+  const token = c.req.cookie('auth_token');
+  
+  if (!token) {
+    return c.json({ error: 'Unauthorized - No token found' }, 401);
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    c.set('userId', decoded.id);
+    c.set('userRole', decoded.role);
+    c.set('isAdmin', decoded.role === 'admin');
+    await next();
+  } catch (error) {
+    console.error('Cookie Auth Middleware Error:', error.message);
+    return c.json({ error: 'Invalid token' }, 401);
+  }
+};
+
+export { cookieAuthMiddleware };
