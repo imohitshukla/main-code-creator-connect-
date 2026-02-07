@@ -19,6 +19,7 @@ import contactRoutes from './backend/routes/contact.js';
 import dealRoutes from './backend/routes/deals.js';
 import dashboardRoutes from './backend/routes/dashboard.js';
 import userRoutes from './backend/routes/users.js';
+import brandRoutes from './backend/routes/brands.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
@@ -49,6 +50,7 @@ app.route('/api/contact', contactRoutes);
 app.route('/api/deals', dealRoutes);
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/users', userRoutes);
+app.route('/api/brands', brandRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {

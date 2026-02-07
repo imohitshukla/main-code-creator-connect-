@@ -65,7 +65,7 @@ const BrandOnboarding = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/creators/profile`, {
+      const response = await fetch(`${getApiUrl()}/api/brands/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -80,13 +80,14 @@ const BrandOnboarding = () => {
           description: 'Your business profile has been set up successfully!',
         });
       } else {
-        throw new Error('Failed to create profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create profile');
       }
     } catch (error) {
       console.error('Brand onboarding error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create your brand profile. Please try again.',
+        description: error.message || 'Failed to create your brand profile. Please try again.',
         variant: 'destructive'
       });
     } finally {
