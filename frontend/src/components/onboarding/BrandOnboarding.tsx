@@ -58,6 +58,34 @@ const BrandOnboarding = () => {
       ...prev,
       [field]: value
     }));
+    
+    // 🛡️ DEBUG: Log array changes
+    if (field === 'looking_for') {
+      console.log('🔍 DEBUG: looking_for updated to:', value);
+    }
+  };
+
+  // 🛡️ SPECIAL HANDLER for checkbox arrays
+  const handleCheckboxChange = (option: string, checked: boolean | string) => {
+    const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
+    
+    setFormData(prev => {
+      const currentLookingFor = Array.isArray(prev.looking_for) ? prev.looking_for : [];
+      let newLookingFor: string[];
+      
+      if (isChecked) {
+        newLookingFor = [...currentLookingFor, option];
+      } else {
+        newLookingFor = currentLookingFor.filter(item => item !== option);
+      }
+      
+      console.log('🔍 DEBUG: Checkbox change:', { option, checked, isChecked, newLookingFor });
+      
+      return {
+        ...prev,
+        looking_for: newLookingFor
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -272,13 +300,7 @@ const BrandOnboarding = () => {
                     <Checkbox
                       id={option}
                       checked={formData.looking_for.includes(option)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          handleChange('looking_for', [...formData.looking_for, option]);
-                        } else {
-                          handleChange('looking_for', formData.looking_for.filter(item => item !== option));
-                        }
-                      }}
+                      onCheckedChange={(checked) => handleCheckboxChange(option, checked)}
                     />
                     <Label htmlFor={option} className="text-sm font-normal">
                       {option}
