@@ -6,11 +6,15 @@ export const createBrandProfile = async (c) => {
     const userId = c.get('userId');
     const brandData = await c.req.json();
 
+    console.log('🔍 DEBUG: Creating brand profile for user:', userId);
+    console.log('🔍 DEBUG: Brand data received:', brandData);
+
     // Validate required fields
     const requiredFields = ['company_name', 'industry_vertical', 'website_url', 'company_size', 'hq_location', 'typical_budget_range'];
     const missingFields = requiredFields.filter(field => !brandData[field]);
     
     if (missingFields.length > 0) {
+      console.log('❌ Missing required fields:', missingFields);
       return c.json({ 
         error: 'Missing required fields', 
         missing: missingFields 
@@ -24,9 +28,12 @@ export const createBrandProfile = async (c) => {
     );
 
     if (existingProfile.rows.length > 0) {
+      console.log('❌ Brand profile already exists for user:', userId);
       return c.json({ error: 'Brand profile already exists' }, 409);
     }
 
+    console.log('🔍 DEBUG: Inserting brand profile...');
+    
     // Insert brand profile
     const result = await client.query(`
       INSERT INTO brand_profiles (
@@ -50,6 +57,8 @@ export const createBrandProfile = async (c) => {
       brandData.description || null
     ]);
 
+    console.log('✅ Brand profile created successfully with ID:', result.rows[0].id);
+
     return c.json({
       success: true,
       message: 'Brand profile created successfully',
@@ -57,9 +66,18 @@ export const createBrandProfile = async (c) => {
     });
 
   } catch (error) {
-    console.error('Create brand profile error:', error);
+    console.error('❌ Create brand profile error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      where: error.where,
+      position: error.position
+    });
     return c.json({ 
-      error: 'Failed to create brand profile' 
+      error: 'Failed to create brand profile',
+      details: error.message 
     }, 500);
   }
 };

@@ -64,6 +64,8 @@ const BrandOnboarding = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('🔍 DEBUG: Form data being submitted:', formData);
+
     try {
       const response = await fetch(`${getApiUrl()}/api/brands/profile`, {
         method: 'POST',
@@ -74,17 +76,23 @@ const BrandOnboarding = () => {
         body: JSON.stringify(formData)
       });
 
+      console.log('🔍 DEBUG: Response status:', response.status);
+      console.log('🔍 DEBUG: Response headers:', response.headers);
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ DEBUG: Success response:', result);
         toast({
           title: 'Brand Profile Created',
           description: 'Your business profile has been set up successfully!',
         });
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create profile');
+        console.log('❌ DEBUG: Error response:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to create profile');
       }
     } catch (error) {
-      console.error('Brand onboarding error:', error);
+      console.error('❌ Brand onboarding error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to create your brand profile. Please try again.',
