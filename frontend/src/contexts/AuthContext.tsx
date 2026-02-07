@@ -151,17 +151,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
-      if (data.requiresOtp) {
+      console.log('🍪 DEBUG: Login response:', data);
+      
+      // 🛡️ PROFESSIONAL FIX: Handle new login response format
+      if (data.success) {
+        // Cookie is set by backend, just set user state
+        setUser(data.user);
+        const hydratedProfile = hydrateProfile(data.user);
+        setProfile(hydratedProfile);
+        return { requiresOtp: false };
+      } else if (data.requiresOtp) {
+        // Legacy OTP flow (if needed)
         return {
           requiresOtp: true,
           userId: data.userId,
           message: data.message
         };
       } else {
+        // Legacy direct login (if needed)
         setSession(data.user, data.token);
         return { requiresOtp: false };
       }
     } catch (error) {
+      console.error('❌ Login error:', error);
       throw error;
     }
   };

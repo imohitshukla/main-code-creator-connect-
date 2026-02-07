@@ -169,12 +169,29 @@ const login = async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
-    // Generate JWT
+    // 🛡️ PROFESSIONAL FIX: Set cookie directly in login for immediate authentication
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
+
+    // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately
+    const cookieDomain = '.creatorconnect.tech'; // 🛡️ CRITICAL: Share across all subdomains
+    
+    await c.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: true, // 🛡️ CRITICAL: HTTPS required for cross-domain
+      sameSite: 'None', // 🛡️ CRITICAL: Required for cross-domain
+      domain: cookieDomain, // 🛡️ CRITICAL: Share across subdomains
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
+      partitioned: false, // 🛡️ Don't partition cookies
+      priority: 'high', // 🛡️ High priority for secure cookies
+    });
+
+    console.log('🍪 DEBUG: Cookie set successfully in login for user:', user.id);
 
     // Filter user object to remove sensitive data like password
     const userResponse = {
@@ -186,12 +203,14 @@ const login = async (c) => {
       name: user.name // If creator
     };
 
+    // 🛡️ PROFESSIONAL RESPONSE: Return success without OTP requirement
     return c.json({
-      token,
-      user: userResponse
+      success: true,
+      user: userResponse,
+      message: 'Login successful'
     });
   } catch (error) {
-    console.error(error);
+    console.error('❌ Login error:', error);
     return c.json({ error: 'Internal server error' }, 500);
   }
 };
