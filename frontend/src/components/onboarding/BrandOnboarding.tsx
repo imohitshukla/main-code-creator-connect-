@@ -243,7 +243,6 @@ const BrandOnboarding = () => {
                   ))}
                 </SelectContent>
               </Select>
-              </div>
               <p className="text-sm text-gray-500 mt-1">
                 This helps us show you affordable creators
               </p>
