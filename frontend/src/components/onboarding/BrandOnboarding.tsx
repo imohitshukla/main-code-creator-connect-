@@ -70,7 +70,7 @@ const BrandOnboarding = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
+        credentials: 'include',  // 🚨 MANDATORY: Send auth cookie
         body: JSON.stringify(formData)
       });
 
