@@ -131,6 +131,21 @@ const registerBrand = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
+    // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
+    console.log('🍪 DEBUG: Register Brand - Setting cookie with EXACT Subdomain Compatible Config...');
+    await setCookie(c, 'auth_token', token, {
+      httpOnly: true,
+      secure: true,      // ✅ REQUIRED: You are on HTTPS
+      sameSite: 'None',  // ✅ SAFEST BET: Works for everyone (Chrome, Safari, Incognito)
+      domain: '.creatorconnect.tech', // ✅ CRITICAL: The dot allows sharing between api. and www.
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    // 🛡️ FALLBACK: Manual header with EXACT same config
+    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    c.header('Set-Cookie', cookieValue);
+
     return c.json({
       token,
       user: { id: userId, email, role: 'brand', company_name }
@@ -150,7 +165,7 @@ const registerBrand = async (c) => {
 // Login - Send OTP
 const login = async (c) => {
   console.log('🔍 DEBUG: === LOGIN START ===');
-  
+
   try {
     // 🛡️ PROFESSIONAL ERROR HANDLING: Validate request body
     let requestBody;
@@ -163,7 +178,7 @@ const login = async (c) => {
     }
 
     const { email, password } = requestBody;
-    
+
     // 🛡️ PROFESSIONAL VALIDATION: Check required fields
     if (!email || !password) {
       console.error('❌ Missing required fields:', { email: !!email, password: !!password });
@@ -197,7 +212,7 @@ const login = async (c) => {
       console.error('❌ Bcrypt error:', bcryptError);
       return c.json({ error: 'Authentication error' }, 500);
     }
-    
+
     if (!isValidPassword) {
       console.error('❌ Invalid password for user:', user.id);
       return c.json({ error: 'Invalid credentials' }, 401);
@@ -221,7 +236,7 @@ const login = async (c) => {
     try {
       console.log('🍪 DEBUG: Setting cookie with EXACT Subdomain Compatible Config...');
       console.log('🍪 DEBUG: Token length:', token.length);
-      
+
       // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
       await setCookie(c, 'auth_token', token, {
         httpOnly: true,
@@ -233,18 +248,18 @@ const login = async (c) => {
       });
 
       console.log('🍪 DEBUG: EXACT CONFIG - Cookie set successfully for user:', user.id);
-      
+
       // 🛡️ FALLBACK: Manual header with EXACT same config
       const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
       c.header('Set-Cookie', cookieValue);
-      
+
       console.log('🍪 DEBUG: EXACT CONFIG - Manual fallback cookie set');
       console.log('🍪 DEBUG: Cookie header:', cookieValue.substring(0, 150) + '...');
-      
+
     } catch (cookieError) {
       console.error('❌ EXACT CONFIG - Cookie setting error:', cookieError);
       console.error('❌ Cookie error stack:', cookieError.stack);
-      
+
       // 🛡️ EMERGENCY FALLBACK: Try manual header only
       try {
         const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
@@ -282,9 +297,9 @@ const login = async (c) => {
       name: error.name,
       code: error.code
     });
-    return c.json({ 
+    return c.json({
       error: 'Internal server error',
-      details: error.message 
+      details: error.message
     }, 500);
   }
 };
@@ -331,7 +346,7 @@ const verifyLoginOtp = async (c) => {
     // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
     console.log('🍪 DEBUG: OTP - Setting cookie with EXACT Subdomain Compatible Config...');
     console.log('🍪 DEBUG: OTP - Token length:', token.length);
-    
+
     // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
     await setCookie(c, 'auth_token', token, {
       httpOnly: true,
@@ -341,11 +356,11 @@ const verifyLoginOtp = async (c) => {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
-    
+
     // 🛡️ FALLBACK: Manual header with EXACT same config
     const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
     c.header('Set-Cookie', cookieValue);
-    
+
     console.log('🍪 DEBUG: OTP - EXACT CONFIG - Cookie set with fallback for user:', user.id);
 
     return c.json({

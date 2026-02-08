@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
       console.log('🍪 DEBUG: Login response:', data);
-      
+
       // 🛡️ PROFESSIONAL FIX: Handle new login response format
       if (data.success) {
         // Cookie is set by backend, just set user state
@@ -183,6 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch(`${getApiUrl()}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // 🛡️ CRITICAL: Send cookies for cross-domain
         body: JSON.stringify({ email, password })
       });
 
