@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getCookie } from 'hono/cookie';
 
 const cookieAuthMiddleware = async (c, next) => {
   // Debug: Log all headers for troubleshooting
@@ -10,42 +11,33 @@ const cookieAuthMiddleware = async (c, next) => {
     'origin': c.req.header('Origin')
   };
   console.log('🔍 DEBUG: Request headers:', allHeaders);
-  
-  const cookieHeader = c.req.header('Cookie');
-  console.log('🔍 DEBUG: Cookie header:', cookieHeader);
-  
-  if (!cookieHeader) {
-    console.log('❌ No cookie header found');
-    return c.json({ error: 'Unauthorized - No cookie found' }, 401);
+
+  // 1. Try to get token from Cookie
+  let token = getCookie(c, 'auth_token');
+  console.log('🔍 DEBUG: Cookie auth_token:', token ? 'Found' : 'Not Found');
+
+  // 2. Fallback: Try Authorization header
+  if (!token) {
+    const authHeader = c.req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+      console.log('🔍 DEBUG: Found token in Authorization header');
+    }
   }
 
-  // Parse cookies from header
-  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-    const [name, value] = cookie.trim().split('=');
-    acc[name] = value;
-    return acc;
-  }, {});
-
-  console.log('🔍 DEBUG: Parsed cookies:', cookies);
-  const token = cookies.auth_token;
-  
   if (!token) {
-    console.log('❌ No auth_token cookie found');
+    console.log('❌ No auth token found in Cookie or Header');
     return c.json({ error: 'Unauthorized - No auth token found' }, 401);
   }
 
   try {
-    console.log('🔍 DEBUG: Verifying JWT token...');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('🔍 DEBUG: JWT decoded successfully:', { userId: decoded.id, role: decoded.role });
-    
     c.set('userId', decoded.id);
     c.set('userRole', decoded.role);
     c.set('isAdmin', decoded.role === 'admin');
     await next();
   } catch (error) {
     console.error('❌ Cookie Auth Middleware Error:', error.message);
-    console.log('🔍 DEBUG: Token that failed:', token.substring(0, 20) + '...');
     return c.json({ error: 'Invalid token' }, 401);
   }
 };

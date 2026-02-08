@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
+import brandRoutes from './routes/brands.js';
 import campaignRoutes from './routes/campaigns.js';
 import aiRoutes from './src/backend/routes/ai.js';
 import messageRoutes from './routes/messages.js';
@@ -45,6 +46,7 @@ app.use('/uploads/*', serveStatic({
 // Routes
 app.route('/api/auth', authRoutes);
 app.route('/api/creators', creatorRoutes);
+app.route('/api/brands', brandRoutes);
 app.route('/api/campaigns', campaignRoutes);
 app.route('/api/ai', aiRoutes);
 app.route('/api/messages', messageRoutes);
