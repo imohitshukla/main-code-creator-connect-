@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { Building2, Globe, Users, DollarSign, Target } from 'lucide-react';
 
 const BrandOnboarding = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form state
@@ -21,22 +23,22 @@ const BrandOnboarding = () => {
     industry_vertical: '',
     website_url: '',
     linkedin_page: '',
-    
+
     // Business Details
     company_size: '',
     hq_location: '',
     gst_tax_id: '',
-    
+
     // Campaign Preferences
     typical_budget_range: '',
     looking_for: [] as string[],
-    
+
     // Additional Info
     description: ''
   });
 
   const industryOptions = [
-    'E-commerce', 'SaaS', 'Fashion', 'D2C', 'Healthcare', 'EdTech', 
+    'E-commerce', 'SaaS', 'Fashion', 'D2C', 'Healthcare', 'EdTech',
     'Finance', 'Travel', 'Food & Beverage', 'Other'
   ];
 
@@ -49,7 +51,7 @@ const BrandOnboarding = () => {
   ];
 
   const lookingForOptions = [
-    'UGC', 'Instagram Reels', 'YouTube Integration', 'Affiliates', 
+    'UGC', 'Instagram Reels', 'YouTube Integration', 'Affiliates',
     'Blog Posts', 'TikTok Videos', 'Product Reviews'
   ];
 
@@ -58,7 +60,7 @@ const BrandOnboarding = () => {
       ...prev,
       [field]: value
     }));
-    
+
     // 🛡️ DEBUG: Log array changes
     if (field === 'looking_for') {
       console.log('🔍 DEBUG: looking_for updated to:', value);
@@ -68,19 +70,19 @@ const BrandOnboarding = () => {
   // 🛡️ SPECIAL HANDLER for checkbox arrays
   const handleCheckboxChange = (option: string, checked: boolean | string) => {
     const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
-    
+
     setFormData(prev => {
       const currentLookingFor = Array.isArray(prev.looking_for) ? prev.looking_for : [];
       let newLookingFor: string[];
-      
+
       if (isChecked) {
         newLookingFor = [...currentLookingFor, option];
       } else {
         newLookingFor = currentLookingFor.filter(item => item !== option);
       }
-      
+
       console.log('🔍 DEBUG: Checkbox change:', { option, checked, isChecked, newLookingFor });
-      
+
       return {
         ...prev,
         looking_for: newLookingFor
@@ -90,155 +92,27 @@ const BrandOnboarding = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // 🛡️ COMPREHENSIVE DEBUGGING: Track every step
-    console.log('🔍 DEBUG: === BRAND PROFILE SUBMISSION START ===');
-    
-    // 🍪 COOKIE DEBUGGING: Check cookies before request
-    console.log('🍪 DEBUG: Browser cookies:', document.cookie);
-    console.log('🍪 DEBUG: Cookie details:', {
-      'document.cookie': document.cookie,
-      'cookie length': document.cookie.length,
-      'cookie keys': document.cookie.split(';').map(c => c.split('=')[0].trim()),
-      'auth_token present': document.cookie.includes('auth_token')
-    });
-    
-    console.log('🔍 DEBUG: Current form state:', formData);
-    console.log('🔍 DEBUG: Form field validation:');
-    console.log('  - company_name:', formData.company_name, 'Length:', formData.company_name.length);
-    console.log('  - industry_vertical:', formData.industry_vertical, 'Valid:', industryOptions.includes(formData.industry_vertical));
-    console.log('  - website_url:', formData.website_url, 'Length:', formData.website_url.length);
-    console.log('  - company_size:', formData.company_size, 'Valid:', companySizeOptions.includes(formData.company_size));
-    console.log('  - hq_location:', formData.hq_location, 'Length:', formData.hq_location.length);
-    console.log('  - typical_budget_range:', formData.typical_budget_range, 'Valid:', budgetRangeOptions.includes(formData.typical_budget_range));
-    console.log('  - looking_for:', formData.looking_for, 'Type:', typeof formData.looking_for, 'Is Array:', Array.isArray(formData.looking_for));
-
-    const missingFields = [
-      !formData.company_name,
-      !industryOptions.includes(formData.industry_vertical),
-      !formData.website_url,
-      !companySizeOptions.includes(formData.company_size),
-      !formData.hq_location,
-      !budgetRangeOptions.includes(formData.typical_budget_range),
-      !Array.isArray(formData.looking_for) || formData.looking_for.length === 0
-    ].map((field, index) => {
-      if (field) {
-        switch (index) {
-          case 0:
-            return 'Company Name';
-          case 1:
-            return 'Industry/Vertical';
-          case 2:
-            return 'Website URL';
-          case 3:
-            return 'Company Size';
-          case 4:
-            return 'Location/HQ';
-          case 5:
-            return 'Typical Budget Range';
-          case 6:
-            return 'Looking For';
-          default:
-            return '';
-        }
-      }
-    }).filter(Boolean);
-
-    if (missingFields.length > 0) {
-      console.error('❌ Missing required fields:', missingFields);
-      toast({
-        title: 'Validation Error',
-        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
-        variant: 'destructive'
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    console.log('� DEBUG: All required fields present');
-    
-    const apiUrl = `${getApiUrl()}/api/brands/profile`;
-    console.log('🔍 DEBUG: Submitting to URL:', apiUrl);
-    console.log('🔍 DEBUG: Full API URL being called:', apiUrl);
-    
-    // 🛡️ SAFETY CHECK: Ensure looking_for is an array
-    const lookingForArray = Array.isArray(formData.looking_for) 
-      ? formData.looking_for 
-      : formData.looking_for 
-        ? String(formData.looking_for).split(',').map(item => item.trim()).filter(item => item)
-        : [];
-
-    const submissionData = {
-      ...formData,
-      looking_for: lookingForArray
-    };
-
-    console.log('🔍 DEBUG: Submission data:', submissionData);
-    console.log('🔍 DEBUG: Looking for array:', lookingForArray);
-
-    // 🍪 DEBUG: Check browser cookies before request
-    console.log('🍪 DEBUG: Browser cookies before request:', document.cookie);
-    
-    // 🛡️ SAFETY CHECK: Log all cookies available
-    if (document.cookie) {
-      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        if (name && value) acc[name.trim()] = value.trim();
-        return acc;
-      }, {} as Record<string, string>);
-      console.log('🍪 DEBUG: Parsed browser cookies:', cookies);
-      console.log('🍪 DEBUG: auth_token in cookies:', 'auth_token' in cookies);
-      if ('auth_token' in cookies) {
-        console.log('🍪 DEBUG: auth_token value:', cookies.auth_token.substring(0, 50) + '...');
-      }
-    } else {
-      console.log('🍪 DEBUG: No cookies found in browser');
-    }
 
     try {
-      const response = await fetch(apiUrl, {
+      // 🔍 The Fix is the 'credentials' line below
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/brands/profile`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          // 'Authorization': Bearer ${token} // ❌ DELETE THIS if you have it. We use cookies now.
         },
-        credentials: 'include',  // 🚨 MANDATORY: Send auth cookie
-        body: JSON.stringify(submissionData)
+        credentials: 'include', // 🚨 THIS IS MANDATORY. WITHOUT IT, NO COOKIE IS SENT.
+        body: JSON.stringify(formData),
       });
-
-      console.log('🔍 DEBUG: Response status:', response.status);
-      console.log('🔍 DEBUG: Response headers:', response.headers);
-      console.log('🔍 DEBUG: Response ok:', response.ok);
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('✅ DEBUG: Success response:', result);
-        toast({
-          title: 'Brand Profile Created',
-          description: 'Your business profile has been set up successfully!',
-        });
+        // Handle success
+        navigate('/dashboard');
       } else {
-        const errorData = await response.json();
-        console.log('❌ DEBUG: Error response:', errorData);
-        console.log('❌ DEBUG: Error status:', response.status);
-        console.log('❌ DEBUG: Error details:', {
-          error: errorData.error,
-          details: errorData.details,
-          missing: errorData.missing
-        });
-        throw new Error(errorData.error || errorData.details || 'Failed to create profile');
+        console.error("Server rejected request");
       }
     } catch (error) {
-      console.error('❌ Brand onboarding error:', error);
-      console.error('❌ Error stack:', error.stack);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create your brand profile. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-      console.log('🔍 DEBUG: === BRAND PROFILE SUBMISSION END ===');
+      console.error("Network error", error);
     }
   };
 
@@ -276,7 +150,7 @@ const BrandOnboarding = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="industry_vertical">Industry/Vertical *</Label>
                 <Select value={formData.industry_vertical} onValueChange={(value) => handleChange('industry_vertical', value)}>
@@ -304,7 +178,7 @@ const BrandOnboarding = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="linkedin_page">LinkedIn/Company Page</Label>
                 <Input
@@ -342,7 +216,7 @@ const BrandOnboarding = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="hq_location">Location/HQ *</Label>
                 <Input
@@ -440,8 +314,8 @@ const BrandOnboarding = () => {
 
         {/* Submit Button */}
         <div className="flex justify-center">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             size="lg"
             className="px-12 py-3 text-lg"
             disabled={isLoading}
