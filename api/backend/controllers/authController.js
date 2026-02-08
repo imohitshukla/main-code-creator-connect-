@@ -219,64 +219,37 @@ const login = async (c) => {
 
     // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately
     try {
-      // 🛡️ ENVIRONMENT-SPECIFIC COOKIE DOMAIN
-      let cookieDomain;
-      const isProduction = process.env.NODE_ENV === 'production';
-      const isLocal = process.env.NODE_ENV === 'development' || !isProduction;
+      console.log('🍪 DEBUG: Setting cookie with EXACT Subdomain Compatible Config...');
+      console.log('🍪 DEBUG: Token length:', token.length);
       
-      if (isProduction) {
-        cookieDomain = '.creatorconnect.tech'; // 🛡️ Production: Share across subdomains
-      } else {
-        cookieDomain = 'localhost'; // 🛡️ Local: Localhost development
-      }
-      
-      console.log('🍪 DEBUG: Environment:', process.env.NODE_ENV);
-      console.log('🍪 DEBUG: Cookie domain:', cookieDomain);
-      console.log('🍪 DEBUG: About to set cookie with options:');
-      console.log('  - token length:', token.length);
-      console.log('  - domain:', cookieDomain);
-      console.log('  - secure:', isProduction);
-      console.log('  - sameSite:', isProduction ? 'None' : 'Lax');
-      
-      // 🛡️ METHOD 1: Try Hono setCookie first
-      setCookie(c, 'auth_token', token, {
+      // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
+      await setCookie(c, 'auth_token', token, {
         httpOnly: true,
-        secure: isProduction, // 🛡️ Production: HTTPS required, Local: HTTP allowed
-        sameSite: isProduction ? 'None' : 'Lax', // 🛡️ Production: Cross-domain, Local: Same-site
-        domain: cookieDomain, // 🛡️ Environment-specific domain
+        secure: true,      // ✅ REQUIRED: You are on HTTPS
+        sameSite: 'None',  // ✅ SAFEST BET: Works for everyone (Chrome, Safari, Incognito)
+        domain: '.creatorconnect.tech', // ✅ CRITICAL: The dot allows sharing between api. and www.
         path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
-        partitioned: false, // 🛡️ Don't partition cookies
-        priority: 'high', // 🛡️ High priority for secure cookies
+        maxAge: 60 * 60 * 24 * 7,
       });
 
-      console.log('🍪 DEBUG: Hono setCookie completed for user:', user.id);
+      console.log('🍪 DEBUG: EXACT CONFIG - Cookie set successfully for user:', user.id);
       
-      // 🛡️ METHOD 2: Fallback - Set cookie manually via header
-      const secureFlag = isProduction ? '; Secure' : '';
-      const sameSiteFlag = isProduction ? '; SameSite=None' : '; SameSite=Lax';
-      const cookieValue = `auth_token=${token}; HttpOnly${secureFlag}${sameSiteFlag}; Domain=${cookieDomain}; Path=/; Max-Age=${60 * 60 * 24 * 7}; Partitioned=false; Priority=high`;
+      // 🛡️ FALLBACK: Manual header with EXACT same config
+      const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
       c.header('Set-Cookie', cookieValue);
       
-      console.log('🍪 DEBUG: Manual cookie header set as fallback');
-      console.log('🍪 DEBUG: Cookie header value:', cookieValue.substring(0, 100) + '...');
-      console.log('🍪 DEBUG: Full cookie value for debugging:', cookieValue);
+      console.log('🍪 DEBUG: EXACT CONFIG - Manual fallback cookie set');
+      console.log('🍪 DEBUG: Cookie header:', cookieValue.substring(0, 150) + '...');
       
     } catch (cookieError) {
-      console.error('❌ Cookie setting error:', cookieError);
+      console.error('❌ EXACT CONFIG - Cookie setting error:', cookieError);
       console.error('❌ Cookie error stack:', cookieError.stack);
       
       // 🛡️ EMERGENCY FALLBACK: Try manual header only
       try {
-        const isProduction = process.env.NODE_ENV === 'production';
-        const cookieDomain = isProduction ? '.creatorconnect.tech' : 'localhost';
-        const secureFlag = isProduction ? '; Secure' : '';
-        const sameSiteFlag = isProduction ? '; SameSite=None' : '; SameSite=Lax';
-        const cookieValue = `auth_token=${token}; HttpOnly${secureFlag}${sameSiteFlag}; Domain=${cookieDomain}; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+        const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
         c.header('Set-Cookie', cookieValue);
-        console.log('🍪 DEBUG: Emergency fallback cookie header set');
-        console.log('🍪 DEBUG: Emergency cookie value:', cookieValue);
+        console.log('🍪 DEBUG: EXACT CONFIG - Emergency fallback set');
       } catch (fallbackError) {
         console.error('❌ Emergency fallback failed:', fallbackError);
         return c.json({ error: 'Failed to set authentication cookie', details: cookieError.message }, 500);
@@ -355,40 +328,25 @@ const verifyLoginOtp = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // PILLAR 2: Cross-Site Safe Cookie Attributes
-    // 🛡️ ENVIRONMENT-SPECIFIC COOKIE DOMAIN
-    let cookieDomain;
-    const isProduction = process.env.NODE_ENV === 'production';
+    // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
+    console.log('🍪 DEBUG: OTP - Setting cookie with EXACT Subdomain Compatible Config...');
+    console.log('🍪 DEBUG: OTP - Token length:', token.length);
     
-    if (isProduction) {
-      cookieDomain = '.creatorconnect.tech'; // 🛡️ Production: Share across subdomains
-    } else {
-      cookieDomain = 'localhost'; // 🛡️ Local: Localhost development
-    }
-    
-    console.log('🍪 DEBUG: OTP - Environment:', process.env.NODE_ENV);
-    console.log('🍪 DEBUG: OTP - Cookie domain:', cookieDomain);
-    
-    // 🛡️ HONO COOKIE SYNTAX FIX: Use imported setCookie function
-    setCookie(c, 'auth_token', token, {
+    // 🛡️ EXACT SUBDOMAIN COMPATIBLE CONFIG
+    await setCookie(c, 'auth_token', token, {
       httpOnly: true,
-      secure: isProduction, // 🛡️ Production: HTTPS required, Local: HTTP allowed
-      sameSite: isProduction ? 'None' : 'Lax', // 🛡️ Production: Cross-domain, Local: Same-site
-      domain: cookieDomain, // 🛡️ Environment-specific domain
+      secure: true,      // ✅ REQUIRED: You are on HTTPS
+      sameSite: 'None',  // ✅ SAFEST BET: Works for everyone (Chrome, Safari, Incognito)
+      domain: '.creatorconnect.tech', // ✅ CRITICAL: The dot allows sharing between api. and www.
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      // 🛡️ ADDITIONAL: Explicit cookie attributes for cross-domain
-      partitioned: false, // 🛡️ Don't partition cookies
-      priority: 'high', // 🛡️ High priority for secure cookies
+      maxAge: 60 * 60 * 24 * 7,
     });
     
-    // 🛡️ FALLBACK: Set cookie manually via header
-    const secureFlag = isProduction ? '; Secure' : '';
-    const sameSiteFlag = isProduction ? '; SameSite=None' : '; SameSite=Lax';
-    const cookieValue = `auth_token=${token}; HttpOnly${secureFlag}${sameSiteFlag}; Domain=${cookieDomain}; Path=/; Max-Age=${60 * 60 * 24 * 7}; Partitioned=false; Priority=high`;
+    // 🛡️ FALLBACK: Manual header with EXACT same config
+    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
     c.header('Set-Cookie', cookieValue);
     
-    console.log('🍪 DEBUG: OTP - Cookie set with fallback for user:', user.id);
+    console.log('🍪 DEBUG: OTP - EXACT CONFIG - Cookie set with fallback for user:', user.id);
 
     return c.json({
       success: true,
