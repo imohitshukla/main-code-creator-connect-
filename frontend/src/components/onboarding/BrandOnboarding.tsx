@@ -113,52 +113,97 @@ const BrandOnboarding = () => {
     console.log('  - hq_location:', formData.hq_location, 'Length:', formData.hq_location.length);
     console.log('  - typical_budget_range:', formData.typical_budget_range, 'Valid:', budgetRangeOptions.includes(formData.typical_budget_range));
     console.log('  - looking_for:', formData.looking_for, 'Type:', typeof formData.looking_for, 'Is Array:', Array.isArray(formData.looking_for));
-    console.log('  - description:', formData.description, 'Length:', formData.description?.length || 0);
 
-    // 🛡️ VALIDATION: Check all required fields before sending
-    const validationErrors = [];
-    if (!formData.company_name?.trim()) validationErrors.push('company_name is required');
-    if (!formData.industry_vertical?.trim()) validationErrors.push('industry_vertical is required');
-    if (!formData.website_url?.trim()) validationErrors.push('website_url is required');
-    if (!formData.company_size?.trim()) validationErrors.push('company_size is required');
-    if (!formData.hq_location?.trim()) validationErrors.push('hq_location is required');
-    if (!formData.typical_budget_range?.trim()) validationErrors.push('typical_budget_range is required');
-    
-    if (validationErrors.length > 0) {
-      console.error('❌ VALIDATION ERRORS:', validationErrors);
+    const missingFields = [
+      !formData.company_name,
+      !industryOptions.includes(formData.industry_vertical),
+      !formData.website_url,
+      !companySizeOptions.includes(formData.company_size),
+      !formData.hq_location,
+      !budgetRangeOptions.includes(formData.typical_budget_range),
+      !Array.isArray(formData.looking_for) || formData.looking_for.length === 0
+    ].map((field, index) => {
+      if (field) {
+        switch (index) {
+          case 0:
+            return 'Company Name';
+          case 1:
+            return 'Industry/Vertical';
+          case 2:
+            return 'Website URL';
+          case 3:
+            return 'Company Size';
+          case 4:
+            return 'Location/HQ';
+          case 5:
+            return 'Typical Budget Range';
+          case 6:
+            return 'Looking For';
+          default:
+            return '';
+        }
+      }
+    }).filter(Boolean);
+
+    if (missingFields.length > 0) {
+      console.error('❌ Missing required fields:', missingFields);
       toast({
         title: 'Validation Error',
-        description: `Please fill in all required fields: ${validationErrors.join(', ')}`,
+        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
         variant: 'destructive'
       });
       setIsLoading(false);
       return;
     }
 
-    // 🛡️ Layer 3: Frontend safety check right before sending
-    const payload = {
+    console.log('� DEBUG: All required fields present');
+    
+    const apiUrl = `${getApiUrl()}/api/brands/profile`;
+    console.log('🔍 DEBUG: Submitting to URL:', apiUrl);
+    console.log('🔍 DEBUG: Full API URL being called:', apiUrl);
+    
+    // 🛡️ SAFETY CHECK: Ensure looking_for is an array
+    const lookingForArray = Array.isArray(formData.looking_for) 
+      ? formData.looking_for 
+      : formData.looking_for 
+        ? String(formData.looking_for).split(',').map(item => item.trim()).filter(item => item)
+        : [];
+
+    const submissionData = {
       ...formData,
-      looking_for: Array.isArray(formData.looking_for) ? formData.looking_for : [] // Never send undefined
+      looking_for: lookingForArray
     };
 
-    console.log('🔍 DEBUG: Original form data:', formData);
-    console.log('🔍 DEBUG: Safe payload being submitted:', payload);
-    console.log('🔍 DEBUG: API URL:', `${getApiUrl()}/api/brands/profile`);
+    console.log('🔍 DEBUG: Submission data:', submissionData);
+    console.log('🔍 DEBUG: Looking for array:', lookingForArray);
+
+    // 🍪 DEBUG: Check browser cookies before request
+    console.log('🍪 DEBUG: Browser cookies before request:', document.cookie);
+    
+    // 🛡️ SAFETY CHECK: Log all cookies available
+    if (document.cookie) {
+      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+        const [name, value] = cookie.trim().split('=');
+        if (name && value) acc[name.trim()] = value.trim();
+        return acc;
+      }, {} as Record<string, string>);
+      console.log('🍪 DEBUG: Parsed browser cookies:', cookies);
+      console.log('🍪 DEBUG: auth_token in cookies:', 'auth_token' in cookies);
+      if ('auth_token' in cookies) {
+        console.log('🍪 DEBUG: auth_token value:', cookies.auth_token.substring(0, 50) + '...');
+      }
+    } else {
+      console.log('🍪 DEBUG: No cookies found in browser');
+    }
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/brands/profile`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',  // 🚨 MANDATORY: Send auth cookie
-        body: JSON.stringify(payload)
-      });
-
-      // 🍪 COOKIE DEBUGGING: Check response headers
-      console.log('🍪 DEBUG: Response headers received:');
-      response.headers.forEach((value, key) => {
-        console.log(`  ${key}: ${value}`);
+        body: JSON.stringify(submissionData)
       });
 
       console.log('🔍 DEBUG: Response status:', response.status);
