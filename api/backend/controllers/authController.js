@@ -67,6 +67,26 @@ const registerCreator = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
+    // 🛡️ DYNAMIC COOKIE CONFIGURATION
+    const host = c.req.header('host') || '';
+    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true, // Always true for Render/Vercel
+      sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+      domain: isProduction ? '.creatorconnect.tech' : undefined
+    };
+
+    console.log('🍪 DEBUG: Register Creator - Setting cookie with Options:', cookieOptions);
+    await setCookie(c, 'auth_token', token, cookieOptions);
+
+    // 🛡️ FALLBACK: Manual header
+    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+    c.header('Set-Cookie', cookieValue);
+
     return c.json({
       token,
       user: { id: userId, email, role: 'creator', name }
@@ -132,7 +152,9 @@ const registerBrand = async (c) => {
     );
 
     // 🛡️ DYNAMIC COOKIE CONFIGURATION
-    const isProduction = process.env.NODE_ENV === 'production';
+    const host = c.req.header('host') || '';
+    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
+
     const cookieOptions = {
       httpOnly: true,
       secure: true, // Always true for Render/Vercel
@@ -146,8 +168,8 @@ const registerBrand = async (c) => {
     await setCookie(c, 'auth_token', token, cookieOptions);
 
     // 🛡️ FALLBACK: Manual header
-    // const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=${isProduction ? '.creatorconnect.tech' : ''}; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    // c.header('Set-Cookie', cookieValue);
+    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+    c.header('Set-Cookie', cookieValue);
 
     return c.json({
       token,
@@ -238,7 +260,9 @@ const login = async (c) => {
     // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately
     try {
       // 🛡️ DYNAMIC COOKIE CONFIGURATION
-      const isProduction = process.env.NODE_ENV === 'production';
+      const host = c.req.header('host') || '';
+      const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
+
       const cookieOptions = {
         httpOnly: true,
         secure: true, // Always true for Render/Vercel
@@ -254,8 +278,8 @@ const login = async (c) => {
       console.log('🍪 DEBUG: Login - Cookie set successfully for user:', user.id);
 
       // 🛡️ FALLBACK: Manual header
-      // const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=${isProduction ? '.creatorconnect.tech' : ''}; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-      // c.header('Set-Cookie', cookieValue);
+      const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+      c.header('Set-Cookie', cookieValue);
 
     } catch (cookieError) {
       console.error('❌ EXACT CONFIG - Cookie setting error:', cookieError);
@@ -345,7 +369,8 @@ const verifyLoginOtp = async (c) => {
     );
 
     // 🛡️ DYNAMIC COOKIE CONFIGURATION
-    const isProduction = process.env.NODE_ENV === 'production';
+    const host = c.req.header('host') || '';
+    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
     const cookieOptions = {
       httpOnly: true,
       secure: true, // Always true for Render/Vercel
@@ -359,8 +384,8 @@ const verifyLoginOtp = async (c) => {
     await setCookie(c, 'auth_token', token, cookieOptions);
 
     // 🛡️ FALLBACK: Manual header
-    // const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=${isProduction ? '.creatorconnect.tech' : ''}; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    // c.header('Set-Cookie', cookieValue);
+    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+    c.header('Set-Cookie', cookieValue);
 
     return c.json({
       success: true,
