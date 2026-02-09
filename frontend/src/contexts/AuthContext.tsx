@@ -55,6 +55,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // 🚨 CRITICAL: Start with loading true
 
   const getProfileStorageKey = (userId: number) => `cc_profile_${userId}`;
 
@@ -105,6 +106,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(profileData));
   };
 
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setProfile(null);
+        setIsLoading(false); // 🚨 CRITICAL: Stop loading when no token
+        return;
+      }
+
+      const response = await fetch(`${getApiUrl()}/api/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include' // 🚨 CRITICAL: Send cookies for cross-domain
+      });
+
+      if (!response.ok) {
+        throw new Error('Token validation failed');
+      }
+
+      const data = await response.json();
+      
+      if (data.user) {
+        console.log('🔍 DEBUG: checkAuth - User data from API:', data.user);
+        console.log('🔍 DEBUG: checkAuth - User role:', data.user.role);
+        setUser(data.user); // 🚨 CRITICAL: data.user MUST contain { role: 'brand' } or { role: 'creator' }
+        setProfile(hydrateProfile(data.user));
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error('🔍 DEBUG: checkAuth error:', error);
+      setUser(null);
+      setProfile(null);
+    } finally {
+      setIsLoading(false); // 🚨 CRITICAL: Only stop loading AFTER we know the user
+    }
+  };
+
   useEffect(() => {
     // Check for existing token and validate
     const token = localStorage.getItem('token');
@@ -127,6 +171,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // BUT specifically for the AVATAR issue, let's assume updateProfile worked.
       }
     }
+    
+    // 🚨 CRITICAL: Add checkAuth call to validate role from backend
+    checkAuth();
   }, []);
 
   const setSession = (userData: User, token: string) => {
@@ -295,6 +342,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     profile,
+    isLoading, // 🚨 CRITICAL: Export loading state
     login,
     signup,
     verifyOtp,
