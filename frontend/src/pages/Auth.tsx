@@ -14,7 +14,7 @@ import { getErrorMessage } from '@/utils/apiHelper';
 const Auth = () => {
   const { toast } = useToast();
   const { login, verifyOtp } = useAuth();
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState('creator-login'); // Default to creator login
   const [loginStep, setLoginStep] = useState<'credentials' | 'otp'>('credentials');
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -205,24 +205,37 @@ const Auth = () => {
           <CardContent>
             {loginStep === 'credentials' ? (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-8">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="creator" className="flex items-center gap-2">
+                <TabsList className="grid w-full grid-cols-4 mb-8">
+                  <TabsTrigger value="creator-login" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Creator
+                    Creator Login
                   </TabsTrigger>
-                  <TabsTrigger value="company" className="flex items-center gap-2">
+                  <TabsTrigger value="brand-login" className="flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
-                    Company
+                    Brand Login
+                  </TabsTrigger>
+                  <TabsTrigger value="creator-register" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Creator Register
+                  </TabsTrigger>
+                  <TabsTrigger value="brand-register" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Brand Register
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="login" className="space-y-6">
+                <TabsContent value="creator-login" className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Creator Login</h3>
+                    <p className="text-muted-foreground">
+                      Sign in to your creator account and manage your collaborations
+                    </p>
+                  </div>
                   <form onSubmit={handleLoginSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Email Address</Label>
+                      <Label htmlFor="creator-login-email">Email Address</Label>
                       <Input
-                        id="login-email"
+                        id="creator-login-email"
                         type="email"
                         placeholder="your.email@example.com"
                         value={loginForm.email}
@@ -231,9 +244,9 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
+                      <Label htmlFor="creator-login-password">Password</Label>
                       <Input
-                        id="login-password"
+                        id="creator-login-password"
                         type="password"
                         placeholder="Enter your password"
                         value={loginForm.password}
@@ -242,12 +255,48 @@ const Auth = () => {
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Logging in..." : "Login"}
+                      {isLoading ? "Logging in as Creator..." : "Login as Creator"}
                     </Button>
                   </form>
                 </TabsContent>
 
-                <TabsContent value="creator" className="space-y-6">
+                <TabsContent value="brand-login" className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Brand Login</h3>
+                    <p className="text-muted-foreground">
+                      Sign in to your brand account and manage campaigns
+                    </p>
+                  </div>
+                  <form onSubmit={handleLoginSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="brand-login-email">Business Email</Label>
+                      <Input
+                        id="brand-login-email"
+                        type="email"
+                        placeholder="business@company.com"
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="brand-login-password">Password</Label>
+                      <Input
+                        id="brand-login-password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Logging in as Brand..." : "Login as Brand"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="creator-register" className="space-y-6">
                   <div className="text-center mb-6">
                     <h3 className="text-xl font-semibold text-foreground mb-2">Creator Registration</h3>
                     <p className="text-muted-foreground">
@@ -311,9 +360,9 @@ const Auth = () => {
                   </form>
                 </TabsContent>
 
-                <TabsContent value="company" className="space-y-6">
+                <TabsContent value="brand-register" className="space-y-6">
                   <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Company Registration</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Brand Registration</h3>
                     <p className="text-muted-foreground">
                       Connect with talented creators for your marketing campaigns
                     </p>
@@ -370,7 +419,7 @@ const Auth = () => {
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Registering..." : "Register as Company"}
+                      {isLoading ? "Registering..." : "Register as Brand"}
                     </Button>
                   </form>
                 </TabsContent>
