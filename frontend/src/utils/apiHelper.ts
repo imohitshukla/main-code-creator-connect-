@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const getErrorMessage = (error: any): string => {
     if (error.response && error.response.data && error.response.data.message) {
         return error.response.data.message;
@@ -9,4 +11,32 @@ export const getErrorMessage = (error: any): string => {
         return error.message;
     }
     return "Something went wrong. Please try again.";
+};
+
+/**
+ * A wrapper around fetch that ensures credentials (cookies) are always sent.
+ * Use this for all API calls instead of raw fetch.
+ */
+export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+    const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+    };
+
+    const config: RequestInit = {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...options.headers,
+        },
+        credentials: 'include', // 🚨 CRITICAL: Always send cookies
+    };
+
+    const response = await fetch(url, config);
+
+    // Optional: Handle 401 globally here if needed
+    // if (response.status === 401) { ... }
+
+    return response;
 };
