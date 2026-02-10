@@ -67,23 +67,85 @@ const registerCreator = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ MANUAL COOKIE SETTING ONLY (Hono setCookie is failing)
+    // 🛡️ DEEP FIX: Advanced cookie setting with multiple approaches
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    console.log('🍪 DEBUG: Register Creator - Setting cookie for production:', isProduction, 'host:', host);
+    console.log('🍪 DEEP DEBUG: Cookie setting environment:', { 
+      host, 
+      isProduction, 
+      userAgent: c.req.header('user-agent'),
+      origin: c.req.header('origin'),
+      referer: c.req.header('referer')
+    });
 
-    // 🚨 MANUAL ONLY: Set multiple cookie headers to ensure at least one works
-    const cookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const cookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const cookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
+    // 🚨 APPROACH 1: Single Set-Cookie header (Hono compatible)
+    const primaryCookie = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}; Domain=.creatorconnect.tech`;
+    
+    // 🚨 APPROACH 2: Alternative domain variations
+    const altCookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const altCookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
+    const altCookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
 
-    // Set multiple cookie headers
-    c.header('Set-Cookie', cookie1);
-    c.header('Set-Cookie', cookie2);
-    c.header('Set-Cookie', cookie3);
+    // 🚨 APPROACH 3: Try Hono setCookie with different options
+    try {
+      console.log('🍪 DEEP DEBUG: Attempting Hono setCookie approach 1');
+      await setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+        domain: '.creatorconnect.tech'
+      });
+    } catch (e1) {
+      console.error('❌ Hono setCookie approach 1 failed:', e1.message);
+    }
 
-    console.log('🍪 DEBUG: Register Creator - Manual cookies set:', { cookie1, cookie2, cookie3 });
+    try {
+      console.log('🍪 DEEP DEBUG: Attempting Hono setCookie approach 2 (no domain)');
+      await setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7
+      });
+    } catch (e2) {
+      console.error('❌ Hono setCookie approach 2 failed:', e2.message);
+    }
+
+    // 🚨 APPROACH 4: Manual header setting with array (if supported)
+    try {
+      console.log('🍪 DEEP DEBUG: Setting manual cookie headers');
+      c.header('Set-Cookie', primaryCookie);
+      console.log('🍪 DEEP DEBUG: Primary cookie set:', primaryCookie);
+      
+      // Try setting multiple cookies (some servers support this)
+      c.res.headers.append('Set-Cookie', altCookie1);
+      c.res.headers.append('Set-Cookie', altCookie2);
+      c.res.headers.append('Set-Cookie', altCookie3);
+      
+      console.log('🍪 DEEP DEBUG: All cookie headers set:', {
+        primary: primaryCookie,
+        alt1: altCookie1,
+        alt2: altCookie2,
+        alt3: altCookie3
+      });
+    } catch (headerError) {
+      console.error('❌ Manual header setting failed:', headerError.message);
+    }
+
+    // 🚨 APPROACH 5: Return token in response body as ultimate fallback
+    console.log('🍪 DEEP DEBUG: All cookie attempts completed, returning token in response body');
+    
+    // Log final response headers for debugging
+    console.log('🍪 DEEP DEBUG: Final response headers:', {
+      'set-cookie': c.res.headers.get('set-cookie'),
+      'content-type': c.res.headers.get('content-type'),
+      'access-control-allow-credentials': c.res.headers.get('access-control-allow-credentials'),
+      'access-control-allow-origin': c.res.headers.get('access-control-allow-origin')
+    });
 
     return c.json({
       token,
@@ -176,23 +238,85 @@ const registerBrand = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ MANUAL COOKIE SETTING ONLY (Hono setCookie is failing)
+    // 🛡️ DEEP FIX: Advanced cookie setting with multiple approaches
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    console.log('🍪 DEBUG: Register Brand - Setting cookie for production:', isProduction, 'host:', host);
+    console.log('🍪 DEEP DEBUG: Brand cookie setting environment:', { 
+      host, 
+      isProduction, 
+      userAgent: c.req.header('user-agent'),
+      origin: c.req.header('origin'),
+      referer: c.req.header('referer')
+    });
 
-    // 🚨 MANUAL ONLY: Set multiple cookie headers to ensure at least one works
-    const cookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const cookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const cookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
+    // 🚨 APPROACH 1: Single Set-Cookie header (Hono compatible)
+    const primaryCookie = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}; Domain=.creatorconnect.tech`;
+    
+    // 🚨 APPROACH 2: Alternative domain variations
+    const altCookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const altCookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
+    const altCookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
 
-    // Set multiple cookie headers
-    c.header('Set-Cookie', cookie1);
-    c.header('Set-Cookie', cookie2);
-    c.header('Set-Cookie', cookie3);
+    // 🚨 APPROACH 3: Try Hono setCookie with different options
+    try {
+      console.log('🍪 DEEP DEBUG: Brand - Attempting Hono setCookie approach 1');
+      await setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+        domain: '.creatorconnect.tech'
+      });
+    } catch (e1) {
+      console.error('❌ Brand Hono setCookie approach 1 failed:', e1.message);
+    }
 
-    console.log('🍪 DEBUG: Register Brand - Manual cookies set:', { cookie1, cookie2, cookie3 });
+    try {
+      console.log('🍪 DEEP DEBUG: Brand - Attempting Hono setCookie approach 2 (no domain)');
+      await setCookie(c, 'auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7
+      });
+    } catch (e2) {
+      console.error('❌ Brand Hono setCookie approach 2 failed:', e2.message);
+    }
+
+    // 🚨 APPROACH 4: Manual header setting with array (if supported)
+    try {
+      console.log('🍪 DEEP DEBUG: Brand - Setting manual cookie headers');
+      c.header('Set-Cookie', primaryCookie);
+      console.log('🍪 DEEP DEBUG: Brand primary cookie set:', primaryCookie);
+      
+      // Try setting multiple cookies (some servers support this)
+      c.res.headers.append('Set-Cookie', altCookie1);
+      c.res.headers.append('Set-Cookie', altCookie2);
+      c.res.headers.append('Set-Cookie', altCookie3);
+      
+      console.log('🍪 DEEP DEBUG: Brand all cookie headers set:', {
+        primary: primaryCookie,
+        alt1: altCookie1,
+        alt2: altCookie2,
+        alt3: altCookie3
+      });
+    } catch (headerError) {
+      console.error('❌ Brand manual header setting failed:', headerError.message);
+    }
+
+    // 🚨 APPROACH 5: Return token in response body as ultimate fallback
+    console.log('🍪 DEEP DEBUG: Brand - All cookie attempts completed, returning token in response body');
+    
+    // Log final response headers for debugging
+    console.log('🍪 DEEP DEBUG: Brand final response headers:', {
+      'set-cookie': c.res.headers.get('set-cookie'),
+      'content-type': c.res.headers.get('content-type'),
+      'access-control-allow-credentials': c.res.headers.get('access-control-allow-credentials'),
+      'access-control-allow-origin': c.res.headers.get('access-control-allow-origin')
+    });
 
     return c.json({
       token,
