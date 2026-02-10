@@ -31,45 +31,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // THE PERSISTENCE CHECK (Runs on every Refresh)
   useEffect(() => {
-    const checkUserLoggedIn = async () => {
-      try {
-        // 1. 🔍 SEARCH FOR THE TOKEN (The most important step)
-        const token = localStorage.getItem('auth_token');
-        console.log("🔍 Auth Debug - Token in Storage:", token ? "YES (Found)" : "NO (Empty)");
+  const checkUserLoggedIn = async () => {
+    try {
+      // 1. 🔍 Try to find the backup key in LocalStorage
+      const backupToken = localStorage.getItem('auth_token');
 
-        // 2. 🛡️ ATTACH IT MANUALLY (Don't trust the browser)
-        const headers: any = { 'Content-Type': 'application/json' };
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`; // <--- CRITICAL LINE
-        }
-
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-          method: 'GET',
-          headers: headers,       // Send the header
-          credentials: 'include', // Try cookies too (backup)
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          // Only clear if we definitely failed
-          console.warn("Auth check failed with status:", res.status);
-          if (res.status === 401) {
-            // Optional: Only clear if you are sure it's invalid
-            // localStorage.removeItem('auth_token'); 
-            setUser(null);
-          }
-        }
-      } catch (error) {
-        console.error("Network error during auth check:", error);
-      } finally {
-        setIsLoading(false);
+      // 2. 🛡️ Attach it manually to the header
+      const headers: any = { 'Content-Type': 'application/json' };
+      if (backupToken) {
+        headers['Authorization'] = `Bearer ${backupToken}`;
       }
-    };
 
-    checkUserLoggedIn();
-  }, []);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include', // Still try cookies as well
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        // If server explicitly says "Unauth", clear the backup key
+        if (res.status === 401) {
+          localStorage.removeItem('auth_token');
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      console.error("Persistence check failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkUserLoggedIn();
+}, []);
 
   const login = (data: any) => {
     // If the backend sends { user: {...}, token: "..." }
