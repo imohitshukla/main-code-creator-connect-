@@ -60,7 +60,62 @@ const signupSchema = z.object({
 auth.post('/register/creator', zValidator('json', registerCreatorSchema), registerCreator);
 auth.post('/register/brand', zValidator('json', registerBrandSchema), registerBrand);
 auth.post('/signup', zValidator('json', signupSchema), signup);
-auth.post('/login', zValidator('json', loginSchema), login);
+auth.post('/login', zValidator('json', loginSchema), async (c) => {
+  const { email, password } = await c.req.json();
+
+  try {
+    const userResult = await client.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const user = userResult.rows[0];
+    const isValid = await import('bcryptjs').then(bcrypt => bcrypt.compare(password, user.password));
+
+    if (!isValid) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 🍪 TACTIC 1: Set the Cookie (Standard)
+    const { setCookie } = await import('hono/cookie');
+    setCookie(c, 'auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      domain: '.creatorconnect.tech',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    // 📦 TACTIC 2: Return Token in Body (For Redundancy)
+    return c.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        // ... add other necessary fields
+        token // <--- 🚨 SEND TOKEN TO FRONTEND HERE
+      }
+    });
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
@@ -81,15 +136,15 @@ auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassw
 // 🚨 CRITICAL: Add /me endpoint for session check
 auth.get('/me', cookieAuthMiddleware, async (c) => {
   // 1. Get's user from Context (set by your middleware)
-  const user = c.get('user'); 
-  
+  const user = c.get('user');
+
   if (!user) {
     return c.json({ authenticated: false }, 401);
   }
-  
+
   // 2. Return's user data
-  return c.json({ 
-    authenticated: true, 
+  return c.json({
+    authenticated: true,
     user: {
       id: user.id,
       email: user.email,
@@ -101,7 +156,7 @@ auth.get('/me', cookieAuthMiddleware, async (c) => {
       phone_number: user.phone_number,
       portfolio_link: user.portfolio_link
       // ... any other fields you need
-    } 
+    }
   });
 });
 
