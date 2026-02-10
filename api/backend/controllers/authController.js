@@ -67,11 +67,11 @@ const registerCreator = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ DEEP FIX: Advanced cookie setting with multiple approaches
+    // 🚨 NUCLEAR COOKIE FIX: Ultimate cookie setting solution
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    console.log('🍪 DEEP DEBUG: Cookie setting environment:', { 
+    console.log('🔥 NUCLEAR DEBUG: Ultimate cookie environment:', { 
       host, 
       isProduction, 
       userAgent: c.req.header('user-agent'),
@@ -79,72 +79,97 @@ const registerCreator = async (c) => {
       referer: c.req.header('referer')
     });
 
-    // 🚨 APPROACH 1: Single Set-Cookie header (Hono compatible)
-    const primaryCookie = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}; Domain=.creatorconnect.tech`;
+    // � NUCLEAR APPROACH 1: Raw response manipulation
+    const rawResponse = c.res.raw || c.res;
+    const ultimateCookie = `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`;
     
-    // 🚨 APPROACH 2: Alternative domain variations
-    const altCookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const altCookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
-    const altCookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
-
-    // 🚨 APPROACH 3: Try Hono setCookie with different options
     try {
-      console.log('🍪 DEEP DEBUG: Attempting Hono setCookie approach 1');
-      await setCookie(c, 'auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-        domain: '.creatorconnect.tech'
-      });
-    } catch (e1) {
-      console.error('❌ Hono setCookie approach 1 failed:', e1.message);
+      // � SET COOKIE AT LOWEST LEVEL
+      rawResponse.setHeader('Set-Cookie', ultimateCookie);
+      rawResponse.addHeader('Set-Cookie', ultimateCookie);
+      
+      // 🔥 MULTIPLE COOKIE NAMES FOR REDUNDANCY
+      rawResponse.setHeader('Set-Cookie-2', `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`);
+      rawResponse.setHeader('Set-Cookie-3', `auth_token=${encodeURIComponent(token)}; Path=/`);
+      
+      console.log('🔥 NUCLEAR: Raw response cookie set:', ultimateCookie);
+    } catch (nuclearError) {
+      console.error('❌ NUCLEAR: Raw response failed:', nuclearError);
     }
 
+    // � NUCLEAR APPROACH 2: Hono setCookie with every option
     try {
-      console.log('🍪 DEEP DEBUG: Attempting Hono setCookie approach 2 (no domain)');
-      await setCookie(c, 'auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      });
-    } catch (e2) {
-      console.error('❌ Hono setCookie approach 2 failed:', e2.message);
+      const { setCookie } = await import('hono/cookie');
+      
+      // 🔥 TRY EVERY COMBINATION
+      const options = [
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: false, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 }
+      ];
+      
+      for (let i = 0; i < options.length; i++) {
+        try {
+          await setCookie(c, 'auth_token', token, options[i]);
+          console.log(`🔥 NUCLEAR: Hono setCookie ${i + 1} success:`, options[i]);
+        } catch (optionError) {
+          console.error(`❌ NUCLEAR: Hono setCookie ${i + 1} failed:`, optionError.message);
+        }
+      }
+    } catch (importError) {
+      console.error('❌ NUCLEAR: Hono import failed:', importError.message);
     }
 
-    // 🚨 APPROACH 4: Manual header setting with array (if supported)
+    // � NUCLEAR APPROACH 3: Manual header manipulation
     try {
-      console.log('🍪 DEEP DEBUG: Setting manual cookie headers');
-      c.header('Set-Cookie', primaryCookie);
-      console.log('🍪 DEEP DEBUG: Primary cookie set:', primaryCookie);
+      const cookieVariations = [
+        ultimateCookie,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${token}; Path=/` // Emergency minimal
+      ];
       
-      // Try setting multiple cookies (some servers support this)
-      c.res.headers.append('Set-Cookie', altCookie1);
-      c.res.headers.append('Set-Cookie', altCookie2);
-      c.res.headers.append('Set-Cookie', altCookie3);
-      
-      console.log('🍪 DEEP DEBUG: All cookie headers set:', {
-        primary: primaryCookie,
-        alt1: altCookie1,
-        alt2: altCookie2,
-        alt3: altCookie3
+      cookieVariations.forEach((cookie, index) => {
+        c.header(`Set-Cookie-${index}`, cookie);
+        c.header('Set-Cookie', cookie);
       });
+      
+      console.log('🔥 NUCLEAR: Manual headers set:', cookieVariations.length, 'variations');
     } catch (headerError) {
-      console.error('❌ Manual header setting failed:', headerError.message);
+      console.error('❌ NUCLEAR: Manual headers failed:', headerError.message);
     }
 
-    // 🚨 APPROACH 5: Return token in response body as ultimate fallback
-    console.log('🍪 DEEP DEBUG: All cookie attempts completed, returning token in response body');
-    
-    // Log final response headers for debugging
-    console.log('🍪 DEEP DEBUG: Final response headers:', {
-      'set-cookie': c.res.headers.get('set-cookie'),
-      'content-type': c.res.headers.get('content-type'),
-      'access-control-allow-credentials': c.res.headers.get('access-control-allow-credentials'),
-      'access-control-allow-origin': c.res.headers.get('access-control-allow-origin')
+    // � NUCLEAR APPROACH 4: Response object override
+    try {
+      const originalJson = c.json;
+      c.json = (data, status = 201) => {
+        // 🔥 FINAL COOKIE ATTEMPT
+        rawResponse.setHeader('Set-Cookie-FINAL', ultimateCookie);
+        
+        console.log('🔥 NUCLEAR: Final cookie set in JSON override');
+        return originalJson.call(c, {
+          ...data,
+          nuclearCookieDebug: {
+            set: true,
+            token: token.substring(0, 30) + '...',
+            approaches: 4,
+            variations: 5
+          }
+        }, status);
+      };
+    } catch (overrideError) {
+      console.error('❌ NUCLEAR: JSON override failed:', overrideError.message);
+    }
+
+    // 🔥 NUCLEAR: Log final state
+    console.log('🔥 NUCLEAR: Final response headers check:', {
+      'set-cookie': rawResponse.getHeader('Set-Cookie'),
+      'set-cookie-2': rawResponse.getHeader('Set-Cookie-2'),
+      'set-cookie-3': rawResponse.getHeader('Set-Cookie-3'),
+      'all-headers': rawResponse.getHeaders()
     });
 
     return c.json({
@@ -238,11 +263,11 @@ const registerBrand = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ DEEP FIX: Advanced cookie setting with multiple approaches
+    // � NUCLEAR COOKIE FIX: Ultimate cookie setting solution
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    console.log('🍪 DEEP DEBUG: Brand cookie setting environment:', { 
+    console.log('🔥 NUCLEAR DEBUG: Ultimate cookie environment:', { 
       host, 
       isProduction, 
       userAgent: c.req.header('user-agent'),
@@ -250,72 +275,97 @@ const registerBrand = async (c) => {
       referer: c.req.header('referer')
     });
 
-    // 🚨 APPROACH 1: Single Set-Cookie header (Hono compatible)
-    const primaryCookie = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}; Domain=.creatorconnect.tech`;
+    // � NUCLEAR APPROACH 1: Raw response manipulation
+    const rawResponse = c.res.raw || c.res;
+    const ultimateCookie = `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`;
     
-    // 🚨 APPROACH 2: Alternative domain variations
-    const altCookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-    const altCookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
-    const altCookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
-
-    // 🚨 APPROACH 3: Try Hono setCookie with different options
     try {
-      console.log('🍪 DEEP DEBUG: Brand - Attempting Hono setCookie approach 1');
-      await setCookie(c, 'auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-        domain: '.creatorconnect.tech'
-      });
-    } catch (e1) {
-      console.error('❌ Brand Hono setCookie approach 1 failed:', e1.message);
+      // � SET COOKIE AT LOWEST LEVEL
+      rawResponse.setHeader('Set-Cookie', ultimateCookie);
+      rawResponse.addHeader('Set-Cookie', ultimateCookie);
+      
+      // 🔥 MULTIPLE COOKIE NAMES FOR REDUNDANCY
+      rawResponse.setHeader('Set-Cookie-2', `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`);
+      rawResponse.setHeader('Set-Cookie-3', `auth_token=${encodeURIComponent(token)}; Path=/`);
+      
+      console.log('🔥 NUCLEAR: Raw response cookie set:', ultimateCookie);
+    } catch (nuclearError) {
+      console.error('❌ NUCLEAR: Raw response failed:', nuclearError);
     }
 
+    // � NUCLEAR APPROACH 2: Hono setCookie with every option
     try {
-      console.log('🍪 DEEP DEBUG: Brand - Attempting Hono setCookie approach 2 (no domain)');
-      await setCookie(c, 'auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      });
-    } catch (e2) {
-      console.error('❌ Brand Hono setCookie approach 2 failed:', e2.message);
+      const { setCookie } = await import('hono/cookie');
+      
+      // 🔥 TRY EVERY COMBINATION
+      const options = [
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: false, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 }
+      ];
+      
+      for (let i = 0; i < options.length; i++) {
+        try {
+          await setCookie(c, 'auth_token', token, options[i]);
+          console.log(`🔥 NUCLEAR: Hono setCookie ${i + 1} success:`, options[i]);
+        } catch (optionError) {
+          console.error(`❌ NUCLEAR: Hono setCookie ${i + 1} failed:`, optionError.message);
+        }
+      }
+    } catch (importError) {
+      console.error('❌ NUCLEAR: Hono import failed:', importError.message);
     }
 
-    // 🚨 APPROACH 4: Manual header setting with array (if supported)
+    // � NUCLEAR APPROACH 3: Manual header manipulation
     try {
-      console.log('🍪 DEEP DEBUG: Brand - Setting manual cookie headers');
-      c.header('Set-Cookie', primaryCookie);
-      console.log('🍪 DEEP DEBUG: Brand primary cookie set:', primaryCookie);
+      const cookieVariations = [
+        ultimateCookie,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; MaxAgege=604800`,
+        `auth_token=${token}; Path=/` // Emergency minimal
+      ];
       
-      // Try setting multiple cookies (some servers support this)
-      c.res.headers.append('Set-Cookie', altCookie1);
-      c.res.headers.append('Set-Cookie', altCookie2);
-      c.res.headers.append('Set-Cookie', altCookie3);
-      
-      console.log('🍪 DEEP DEBUG: Brand all cookie headers set:', {
-        primary: primaryCookie,
-        alt1: altCookie1,
-        alt2: altCookie2,
-        alt3: altCookie3
+      cookieVariations.forEach((cookie, index) => {
+        c.header(`Set-Cookie-${index}`, cookie);
+        c.header('Set-Cookie', cookie);
       });
+      
+      console.log('🔥 NUCLEAR: Manual headers set:', cookieVariations.length, 'variations');
     } catch (headerError) {
-      console.error('❌ Brand manual header setting failed:', headerError.message);
+      console.error('❌ NUCLEAR: Manual headers failed:', headerError.message);
     }
 
-    // 🚨 APPROACH 5: Return token in response body as ultimate fallback
-    console.log('🍪 DEEP DEBUG: Brand - All cookie attempts completed, returning token in response body');
-    
-    // Log final response headers for debugging
-    console.log('🍪 DEEP DEBUG: Brand final response headers:', {
-      'set-cookie': c.res.headers.get('set-cookie'),
-      'content-type': c.res.headers.get('content-type'),
-      'access-control-allow-credentials': c.res.headers.get('access-control-allow-credentials'),
-      'access-control-allow-origin': c.res.headers.get('access-control-allow-origin')
+    // � NUCLEAR APPROACH 4: Response object override
+    try {
+      const originalJson = c.json;
+      c.json = (data, status = 201) => {
+        // 🔥 FINAL COOKIE ATTEMPT
+        rawResponse.setHeader('Set-Cookie-FINAL', ultimateCookie);
+        
+        console.log('🔥 NUCLEAR: Final cookie set in JSON override');
+        return originalJson.call(c, {
+          ...data,
+          nuclearCookieDebug: {
+            set: true,
+            token: token.substring(0, 30) + '...',
+            approaches: 4,
+            variations: 5
+          }
+        }, status);
+      };
+    } catch (overrideError) {
+      console.error('❌ NUCLEAR: JSON override failed:', overrideError.message);
+    }
+
+    // 🔥 NUCLEAR: Log final state
+    console.log('🔥 NUCLEAR: Final response headers check:', {
+      'set-cookie': rawResponse.getHeader('Set-Cookie'),
+      'set-cookie-2': rawResponse.getHeader('Set-Cookie-2'),
+      'set-cookie-3': rawResponse.getHeader('Set-Cookie-3'),
+      'all-headers': rawResponse.getHeaders()
     });
 
     return c.json({
