@@ -14,6 +14,7 @@ import {
 import { signup } from '../controllers/authController.js';
 import { client } from '../config/database.js';
 import jwt from 'jsonwebtoken';
+import { cookieAuthMiddleware } from '../middleware/cookieAuth.js';
 
 const auth = new Hono();
 
@@ -76,6 +77,33 @@ const resetPasswordSchema = z.object({
 
 auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), forgotPassword);
 auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassword);
+
+// 🚨 CRITICAL: Add /me endpoint for session check
+auth.get('/me', cookieAuthMiddleware, async (c) => {
+  // 1. Get's user from Context (set by your middleware)
+  const user = c.get('user'); 
+  
+  if (!user) {
+    return c.json({ authenticated: false }, 401);
+  }
+  
+  // 2. Return's user data
+  return c.json({ 
+    authenticated: true, 
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      username: user.username,
+      avatar: user.avatar,
+      company_name: user.company_name,
+      phone_number: user.phone_number,
+      portfolio_link: user.portfolio_link
+      // ... any other fields you need
+    } 
+  });
+});
 
 // Temporary route to bypass login for testing (only for dev)
 auth.post('/login-bypass', async (c) => {
