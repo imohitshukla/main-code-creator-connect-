@@ -14,7 +14,7 @@ import {
 import { signup } from '../controllers/authController.js';
 import { client } from '../config/database.js';
 import jwt from 'jsonwebtoken';
-import { cookieAuthMiddleware } from '../middleware/cookieAuth.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const auth = new Hono();
 
@@ -134,7 +134,7 @@ auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), forgotPa
 auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassword);
 
 // 🚨 CRITICAL: Add /me endpoint for session check
-auth.get('/me', cookieAuthMiddleware, async (c) => {
+auth.get('/me', authMiddleware, async (c) => {
   // 1. Get's user from Context (set by your middleware)
   const user = c.get('user');
 

@@ -13,23 +13,24 @@ const authMiddleware = async (c, next) => {
 
     if (cookieToken) {
       token = cookieToken;
-      // console.log('✅ Auth via Cookie');
+      console.log('🍪 AUTH: Token found in cookie');
     } else if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
-      // console.log('✅ Auth via Header');
+      console.log('🛡️ AUTH: Token found in header (fail-safe activated)');
     }
 
     if (!token) {
-      // console.log('❌ No Auth Token found in Cookie OR Header');
+      console.log('❌ Auth Failed: No token in Cookie OR Header');
       return c.json({ error: 'Unauthorized - No token provided' }, 401);
     }
 
-    // 🔓 Verify (Works for both vectors)
+    // 🔓 Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     c.set('userId', decoded.id);
     c.set('userRole', decoded.role);
     c.set('user', decoded); // Set full user object if needed, or at least consistent with expectation
     c.set('isAdmin', decoded.role === 'admin');
+    console.log('✅ AUTH: Token verified successfully for user:', decoded.id);
     await next();
 
   } catch (error) {
