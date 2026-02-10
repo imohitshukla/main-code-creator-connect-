@@ -257,12 +257,15 @@ const login = async (c) => {
       return c.json({ error: 'Token generation failed' }, 500);
     }
 
-    // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately
+    // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately with TRIPLE FALLBACK
     try {
       // 🛡️ DYNAMIC COOKIE CONFIGURATION
       const host = c.req.header('host') || '';
       const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
+      console.log('🍪 DEBUG: Login - Setting cookie for production:', isProduction, 'host:', host);
+
+      // 🚨 FALLBACK 1: Hono setCookie
       const cookieOptions = {
         httpOnly: true,
         secure: true, // Always true for Render/Vercel
@@ -272,27 +275,36 @@ const login = async (c) => {
         domain: isProduction ? '.creatorconnect.tech' : undefined
       };
 
-      console.log('🍪 DEBUG: Login - Setting cookie with Options:', cookieOptions);
+      console.log('🍪 DEBUG: Login - Attempting Hono setCookie with Options:', cookieOptions);
       await setCookie(c, 'auth_token', token, cookieOptions);
+      console.log('🍪 DEBUG: Login - Hono setCookie successful for user:', user.id);
 
-      console.log('🍪 DEBUG: Login - Cookie set successfully for user:', user.id);
+      // � FALLBACK 2: Manual header with exact domain
+      const cookieValue2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+      c.header('Set-Cookie', cookieValue2);
+      console.log('🍪 DEBUG: Login - Manual header set:', cookieValue2);
 
-      // 🛡️ FALLBACK: Manual header
-      const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
-      c.header('Set-Cookie', cookieValue);
+      // 🚨 FALLBACK 3: Emergency universal header
+      const cookieValue3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+      c.header('Set-Cookie', cookieValue3);
+      console.log('🍪 DEBUG: Login - Emergency universal header set');
 
     } catch (cookieError) {
-      console.error('❌ EXACT CONFIG - Cookie setting error:', cookieError);
+      console.error('❌ TRIPLE FALLBACK - All cookie methods failed:', cookieError);
       console.error('❌ Cookie error stack:', cookieError.stack);
 
-      // 🛡️ EMERGENCY FALLBACK: Try manual header only
+      // � EMERGENCY: Try at least one more time with basic settings
       try {
-        const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
-        c.header('Set-Cookie', cookieValue);
-        console.log('🍪 DEBUG: EXACT CONFIG - Emergency fallback set');
-      } catch (fallbackError) {
-        console.error('❌ Emergency fallback failed:', fallbackError);
-        return c.json({ error: 'Failed to set authentication cookie', details: cookieError.message }, 500);
+        const basicCookie = `auth_token=${token}; Path=/; HttpOnly`;
+        c.header('Set-Cookie', basicCookie);
+        console.log('🍪 DEBUG: Emergency basic cookie set');
+      } catch (finalError) {
+        console.error('❌ Emergency basic cookie failed:', finalError);
+        return c.json({ 
+          error: 'Failed to set authentication cookie', 
+          details: cookieError.message,
+          token: token // Return token as fallback for client-side storage
+        }, 500);
       }
     }
 
@@ -368,24 +380,55 @@ const verifyLoginOtp = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
+    // 🛡️ PROFESSIONAL COOKIE SETTING: Set cookie immediately with TRIPLE FALLBACK
     // 🛡️ DYNAMIC COOKIE CONFIGURATION
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true, // Always true for Render/Vercel
-      sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-      domain: isProduction ? '.creatorconnect.tech' : undefined
-    };
 
-    console.log('🍪 DEBUG: OTP - Setting cookie with Options:', cookieOptions);
-    await setCookie(c, 'auth_token', token, cookieOptions);
+    console.log('🍪 DEBUG: OTP - Setting cookie for production:', isProduction, 'host:', host);
 
-    // 🛡️ FALLBACK: Manual header
-    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
-    c.header('Set-Cookie', cookieValue);
+    try {
+      // 🚨 FALLBACK 1: Hono setCookie
+      const cookieOptions = {
+        httpOnly: true,
+        secure: true, // Always true for Render/Vercel
+        sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+        domain: isProduction ? '.creatorconnect.tech' : undefined
+      };
+
+      console.log('🍪 DEBUG: OTP - Attempting Hono setCookie with Options:', cookieOptions);
+      await setCookie(c, 'auth_token', token, cookieOptions);
+      console.log('🍪 DEBUG: OTP - Hono setCookie successful for user:', user.id);
+
+      // � FALLBACK 2: Manual header with exact domain
+      const cookieValue2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+      c.header('Set-Cookie', cookieValue2);
+      console.log('🍪 DEBUG: OTP - Manual header set:', cookieValue2);
+
+      // 🚨 FALLBACK 3: Emergency universal header
+      const cookieValue3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+      c.header('Set-Cookie', cookieValue3);
+      console.log('🍪 DEBUG: OTP - Emergency universal header set');
+
+    } catch (cookieError) {
+      console.error('❌ TRIPLE FALLBACK - All cookie methods failed:', cookieError);
+      
+      // 🚨 EMERGENCY: Try basic cookie
+      try {
+        const basicCookie = `auth_token=${token}; Path=/; HttpOnly`;
+        c.header('Set-Cookie', basicCookie);
+        console.log('🍪 DEBUG: Emergency basic cookie set');
+      } catch (finalError) {
+        console.error('❌ Emergency basic cookie failed:', finalError);
+        return c.json({ 
+          error: 'Failed to set authentication cookie', 
+          details: cookieError.message,
+          token: token // Return token as fallback
+        }, 500);
+      }
+    }
 
     return c.json({
       success: true,

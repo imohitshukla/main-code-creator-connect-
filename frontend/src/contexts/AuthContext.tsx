@@ -12,6 +12,7 @@ interface User {
   company_name?: string;
   phone_number?: string;
   portfolio_link?: string;
+  token?: string; // 🚨 CRITICAL: Add token field for fallback storage
 }
 
 interface AuthContextType {
@@ -45,8 +46,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔍 DEBUG: Session check - User restored:', data.user);
           setUser(data.user); // Restore's user session
         } else {
-          console.log('🔍 DEBUG: Session check - No valid session');
-          setUser(null); // Valid logout (cookie expired or missing)
+          console.log('🔍 DEBUG: Session check - No valid session, trying localStorage fallback');
+          
+          // 🚨 FALLBACK: Try localStorage token
+          const fallbackToken = localStorage.getItem('auth_token');
+          if (fallbackToken) {
+            console.log('🔍 DEBUG: Found fallback token in localStorage');
+            
+            // Try to validate token with a simple decode (not secure, just for UI)
+            try {
+              const tokenParts = fallbackToken.split('.');
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                console.log('🔍 DEBUG: Fallback token payload:', payload);
+                
+                // Set user from token payload (temporary until backend validates)
+                setUser({
+                  id: payload.id,
+                  email: payload.email,
+                  role: payload.role,
+                  token: fallbackToken
+                });
+                console.log('🔍 DEBUG: User restored from localStorage fallback');
+              }
+            } catch (tokenError) {
+              console.error('❌ Fallback token decode failed:', tokenError);
+              localStorage.removeItem('auth_token');
+              setUser(null);
+            }
+          } else {
+            console.log('🔍 DEBUG: No fallback token found');
+            setUser(null); // Valid logout (cookie expired or missing)
+          }
         }
       } catch (error) {
         console.error("Session check failed:", error);
@@ -59,14 +90,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkUserLoggedIn();
   }, []);
 
-  // 2. Manual Login Helper
+  // 2. Manual Login Helper with Cookie Fallback
   const login = (userData: User) => {
     console.log('🔍 DEBUG: Login - Setting user:', userData);
+    
+    // 🚨 CRITICAL: Store token in localStorage as fallback if cookies fail
+    if (userData.token) {
+      localStorage.setItem('auth_token', userData.token);
+      console.log('🔍 DEBUG: Login - Token stored in localStorage as fallback');
+    }
+    
     setUser(userData);
     setIsLoading(false);
   };
 
-  // 3. Manual Logout Helper
+  // 3. Manual Logout Helper with Cleanup
   const logout = async () => {
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, { 
@@ -74,7 +112,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credentials: 'include' 
       });
     } catch(e) { console.error(e); }
+    
+    // 🚨 CRITICAL: Clear all authentication data
     setUser(null);
+    localStorage.removeItem('auth_token'); // Clear fallback token
+    console.log('🔍 DEBUG: Logout - Cleared user and localStorage token');
     window.location.href = '/auth'; // Hard redirect to clear any stuck state
   };
 
