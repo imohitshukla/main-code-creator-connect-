@@ -34,10 +34,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkUserLoggedIn = async () => {
       try {
         // 🔍 RETRIEVE: Get backup token
-        const localToken = localStorage.getItem('auth_token');
-        
+        const token = localStorage.getItem('auth_token'); // 🟢 Read from memory
+        console.log("🔍 Checking Auth with Token:", token ? "YES" : "NO");
+
         // 🚨 CRITICAL DEBUG: Log token state
-        console.log('🔍 FRONTEND DEBUG: localStorage token:', localToken);
+        console.log('🔍 FRONTEND DEBUG: localStorage token:', token);
         console.log('🔍 FRONTEND DEBUG: localStorage contents:', JSON.stringify(localStorage));
         console.log('🔍 FRONTEND DEBUG: All cookies:', document.cookie);
 
@@ -47,14 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': localToken ? `Bearer ${localToken}` : ''
+            'Authorization': token ? `Bearer ${token}` : '' // 🟢 Manually attach
           },
           credentials: 'include', // <--- THIS PREVENTS THE LOGOUT ON REFRESH
         });
 
         // 🚨 CRITICAL DEBUG: Log request details
         console.log('🔍 FRONTEND DEBUG: Request headers:', {
-          'Authorization': localToken ? `Bearer ${localToken}` : 'NOT_SET',
+          'Authorization': token ? `Bearer ${token}` : 'NOT_SET',
           'credentials': 'include'
         });
         console.log('🔍 FRONTEND DEBUG: Response status:', res.status);
@@ -88,16 +89,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkUserLoggedIn();
   }, []);
 
-  const login = (userData: User) => {
-    // 💾 PERSISTENCE: Save to LocalStorage immediately
-    if (userData.token) {
-      localStorage.setItem('auth_token', userData.token);
-      console.log('🔍 LOGIN DEBUG: Token saved to localStorage:', userData.token.substring(0, 30) + '...');
-      console.log('🔍 LOGIN DEBUG: User data saved:', userData);
+  const login = (data: any) => {
+    console.log("LOGIN SUCCESS, DATA RECEIVED:", data);
+
+    // 🚨 CRITICAL: Manually save the token
+    if (data.user && data.user.token) {
+      console.log("💾 Saving token to LocalStorage:", data.user.token.substring(0, 10) + "...");
+      localStorage.setItem('auth_token', data.user.token);
+    } else if (data.token) {
+      // Handle case where token is at root level
+      console.log("� Saving root-level token to LocalStorage:", data.token.substring(0, 10) + "...");
+      localStorage.setItem('auth_token', data.token);
     } else {
-      console.log('❌ LOGIN DEBUG: No token found in user data:', userData);
+      console.error("❌ NO TOKEN FOUND IN LOGIN RESPONSE");
     }
-    setUser(userData);
+
+    setUser(data.user || data);
     setIsLoading(false);
   };
 
