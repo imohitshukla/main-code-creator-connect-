@@ -35,6 +35,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         // 🔍 RETRIEVE: Get backup token
         const localToken = localStorage.getItem('auth_token');
+        
+        // 🚨 CRITICAL DEBUG: Log token state
+        console.log('🔍 FRONTEND DEBUG: localStorage token:', localToken);
+        console.log('🔍 FRONTEND DEBUG: localStorage contents:', JSON.stringify(localStorage));
+        console.log('🔍 FRONTEND DEBUG: All cookies:', document.cookie);
 
         // 🚨 CRITICAL FIX: 'credentials: include' allows cookie to travel
         // 🛡️ ASSAULT VECTOR: Send Token in Header manually as fail-safe
@@ -47,20 +52,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           credentials: 'include', // <--- THIS PREVENTS THE LOGOUT ON REFRESH
         });
 
+        // 🚨 CRITICAL DEBUG: Log request details
+        console.log('🔍 FRONTEND DEBUG: Request headers:', {
+          'Authorization': localToken ? `Bearer ${localToken}` : 'NOT_SET',
+          'credentials': 'include'
+        });
+        console.log('🔍 FRONTEND DEBUG: Response status:', res.status);
+        console.log('🔍 FRONTEND DEBUG: Response headers:', {
+          'set-cookie': res.headers.get('set-cookie'),
+          'access-control-allow-credentials': res.headers.get('access-control-allow-credentials'),
+          'access-control-allow-origin': res.headers.get('access-control-allow-origin')
+        });
+
         if (res.ok) {
           const data = await res.json();
-          // console.log("Session Restored:", data.user);
+          console.log("✅ FRONTEND DEBUG: Session Restored:", data.user);
           setUser(data.user);
         } else {
           // Only clear if server explicitly rejects us (401)
           // If network error, we keep intent to try again later (though typically we just stop loading)
           if (res.status === 401) {
+            console.log('❌ FRONTEND DEBUG: 401 - Clearing localStorage and user');
             localStorage.removeItem('auth_token');
             setUser(null);
           }
         }
       } catch (error) {
-        console.error("Session check failed:", error);
+        console.error("❌ FRONTEND DEBUG: Session check failed:", error);
         // Don't auto-logout on network error, but stopped loading
       } finally {
         setIsLoading(false); // Stop loading regardless of success/fail
@@ -74,6 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 💾 PERSISTENCE: Save to LocalStorage immediately
     if (userData.token) {
       localStorage.setItem('auth_token', userData.token);
+      console.log('🔍 LOGIN DEBUG: Token saved to localStorage:', userData.token.substring(0, 30) + '...');
+      console.log('🔍 LOGIN DEBUG: User data saved:', userData);
+    } else {
+      console.log('❌ LOGIN DEBUG: No token found in user data:', userData);
     }
     setUser(userData);
     setIsLoading(false);
