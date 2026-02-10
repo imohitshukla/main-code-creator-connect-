@@ -1,45 +1,32 @@
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import BrandOnboarding from '@/components/onboarding/BrandOnboarding';
-import RoleSelection from '@/components/onboarding/RoleSelection';
+// import CreatorOnboarding from '@/components/onboarding/CreatorOnboarding'; // (Uncomment when you have it)
 
 const ProfileSetup = () => {
-  const { user, isLoading } = useAuth();
+  const { user, updateUserRole, isLoading } = useAuth();
 
-  // 🛑 STOP! Don't do anything until we know who the user is.
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
+  // ⚡️ AUTO-ASSIGN ROLE FROM MEMORY
+  useEffect(() => {
+    const intendedRole = localStorage.getItem('intended_role');
 
-  // 1. The Fork: If they have no role, show the selection screen.
-  if (!user?.role || user.role === 'PENDING') {
-    const handleRoleSelect = async (selectedRole: 'brand' | 'creator') => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.creatorconnect.tech'}/api/users/role`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json' 
-          },
-          credentials: 'include',
-          body: JSON.stringify({ role: selectedRole.toUpperCase() }),
-        });
+    // Only run if user is logged in BUT has no role yet
+    if (user && (!user.role || user.role === 'PENDING') && intendedRole) {
+      console.log("Applying saved role:", intendedRole);
+      updateUserRole(intendedRole as 'BRAND' | 'CREATOR')
+        .then(() => localStorage.removeItem('intended_role')); // Clear memory
+    }
+  }, [user]);
 
-        if (response.ok) {
-          window.location.reload(); // Reload to get updated user data
-        }
-      } catch (error) {
-        console.error('Failed to set role', error);
-      }
-    };
-    
-    return <RoleSelection onSelect={handleRoleSelect} />;
-  }
+  if (isLoading) return <div className="p-10 text-center">Loading Profile...</div>;
 
-  // 2. The Brand Path
-  if (user.role === 'BRAND') {
+  // 🚦 ROUTING
+  if (user?.role === 'BRAND') {
     return <BrandOnboarding />;
   }
 
-  // 3. The Creator Path (Default) - Show simple creator onboarding for now
+  // Default fallback (Creator form)
+  // return <CreatorOnboarding />; // usage when available
   return (
     <div className="min-h-screen bg-gradient-subtle pt-24 pb-16 px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -59,4 +46,3 @@ const ProfileSetup = () => {
 };
 
 export default ProfileSetup;
-

@@ -1,473 +1,64 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { Users, Building2, ArrowLeft } from 'lucide-react';
-import { getApiUrl } from '@/lib/utils';
-import { getErrorMessage } from '@/utils/apiHelper';
+import { Briefcase, Paintbrush, ArrowLeft, Loader2 } from 'lucide-react';
 
-const Auth = () => {
-  const { toast } = useToast();
-  const { login, verifyOtp } = useAuth();
-  const [activeTab, setActiveTab] = useState('creator-login'); // Default to creator login
-  const [loginStep, setLoginStep] = useState<'credentials' | 'otp'>('credentials');
-  const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: ''
-  });
-  const [otpForm, setOtpForm] = useState({
-    otp: '',
-    userId: null as number | null
-  });
-  const [creatorForm, setCreatorForm] = useState({
-    name: '',
-    followers: '',
-    contact: '',
-    email: '',
-    phone_number: ''
-  });
-
+export default function Auth() {
+  const [selectedRole, setSelectedRole] = useState<'BRAND' | 'CREATOR' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [companyForm, setCompanyForm] = useState({
-    companyName: '',
-    productType: '',
-    contact: '',
-    email: '',
-    phone_number: ''
-  });
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleLogin = () => {
     setIsLoading(true);
-    try {
-      const result = await login(loginForm.email, loginForm.password);
-      if (result.requiresOtp) {
-        setOtpForm({ ...otpForm, userId: result.userId! });
-        setLoginStep('otp');
-        toast({
-          title: "OTP Sent!",
-          description: result.message,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    // 🧠 MEMORY: Save their choice so we know who they are after the redirect
+    if (selectedRole) {
+      localStorage.setItem('intended_role', selectedRole);
     }
+    // Redirect to Backend Google Auth
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpForm.userId) return;
+  // 🎨 SCREEN 1: Role Selection
+  if (!selectedRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-4xl w-full text-center">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Welcome to Creator Connect</h1>
+          <p className="text-xl text-gray-600 mb-8">How do you want to use the platform?</p>
 
-    try {
-      await verifyOtp(otpForm.userId, otpForm.otp);
-      toast({
-        title: "Login Successful!",
-        description: "Welcome back!",
-      });
-      // Reset forms
-      setLoginForm({ email: '', password: '' });
-      setOtpForm({ otp: '', userId: null });
-      setLoginStep('credentials');
-    } catch (error) {
-      toast({
-        title: "OTP Verification Failed",
-        description: "Invalid OTP. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div onClick={() => setSelectedRole('BRAND')} className="bg-white p-8 rounded-xl shadow-md cursor-pointer hover:border-indigo-600 border-2 border-transparent transition-all">
+              <div className="h-14 w-14 bg-indigo-100 text-indigo-600 rounded-lg mx-auto flex items-center justify-center mb-4"><Briefcase size={32} /></div>
+              <h3 className="text-2xl font-bold">I'm a Brand</h3>
+              <p className="text-gray-500 mt-2">Hire creators & run campaigns.</p>
+            </div>
 
-  const handleBackToLogin = () => {
-    setLoginStep('credentials');
-    setOtpForm({ otp: '', userId: null });
-  };
-
-  const handleCreatorSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    console.log('Submitting creator registration:', {
-      name: creatorForm.name,
-      email: creatorForm.email,
-      phone_number: creatorForm.phone_number
-    });
-    try {
-      const response = await fetch(`${getApiUrl()}/api/auth/register/creator`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: creatorForm.name,
-          email: creatorForm.email,
-          password: creatorForm.followers, // Using followers as password for demo
-          portfolio_link: 'https://example.com',
-          phone_number: creatorForm.phone_number
-        })
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Creator Registration Successful!",
-          description: `Welcome ${creatorForm.name}! Your creator profile has been created.`,
-        });
-        // Reset form
-        setCreatorForm({ name: '', followers: '', contact: '', email: '', phone_number: '' });
-      } else {
-        throw new Error('Registration failed');
-      }
-    } catch (error) {
-      toast({
-        title: "Registration Failed",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCompanySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    console.log('Submitting company registration:', {
-      company_name: companyForm.companyName,
-      email: companyForm.email,
-      phone_number: companyForm.phone_number
-    });
-    try {
-      const response = await fetch(`${getApiUrl()}/api/auth/register/brand`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company_name: companyForm.companyName,
-          email: companyForm.email,
-          password: companyForm.productType, // Using productType as password for demo
-          website: 'https://example.com',
-          phone_number: companyForm.phone_number
-        })
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Company Registration Successful!",
-          description: `Welcome ${companyForm.companyName}! Your company profile has been created.`,
-        });
-        // Reset form
-        setCompanyForm({ companyName: '', productType: '', contact: '', email: '', phone_number: '' });
-      } else {
-        throw new Error('Registration failed');
-      }
-    } catch (error) {
-      toast({
-        title: "Registration Failed",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-2">
-            Join Creator Connect
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Connect, Collaborate, Create Amazing Content Together
-          </p>
+            <div onClick={() => setSelectedRole('CREATOR')} className="bg-white p-8 rounded-xl shadow-md cursor-pointer hover:border-green-500 border-2 border-transparent transition-all">
+              <div className="h-14 w-14 bg-green-100 text-green-600 rounded-lg mx-auto flex items-center justify-center mb-4"><Paintbrush size={32} /></div>
+              <h3 className="text-2xl font-bold">I'm a Creator</h3>
+              <p className="text-gray-500 mt-2">Find sponsorships & get paid.</p>
+            </div>
+          </div>
         </div>
-
-        <Card className="shadow-hover border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl">
-              {loginStep === 'otp' ? 'Verify Your Identity' : 'Welcome Back'}
-            </CardTitle>
-            <CardDescription>
-              {loginStep === 'otp'
-                ? 'Enter the 6-digit code sent to your email and phone'
-                : 'Sign in to your account or create a new one'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loginStep === 'credentials' ? (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-8">
-                  <TabsTrigger value="creator-login" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Creator Login
-                  </TabsTrigger>
-                  <TabsTrigger value="brand-login" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Brand Login
-                  </TabsTrigger>
-                  <TabsTrigger value="creator-register" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Creator Register
-                  </TabsTrigger>
-                  <TabsTrigger value="brand-register" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Brand Register
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="creator-login" className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Creator Login</h3>
-                    <p className="text-muted-foreground">
-                      Sign in to your creator account and manage your collaborations
-                    </p>
-                  </div>
-                  <form onSubmit={handleLoginSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-login-email">Email Address</Label>
-                      <Input
-                        id="creator-login-email"
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={loginForm.email}
-                        onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-login-password">Password</Label>
-                      <Input
-                        id="creator-login-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Logging in as Creator..." : "Login as Creator"}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="brand-login" className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Brand Login</h3>
-                    <p className="text-muted-foreground">
-                      Sign in to your brand account and manage campaigns
-                    </p>
-                  </div>
-                  <form onSubmit={handleLoginSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="brand-login-email">Business Email</Label>
-                      <Input
-                        id="brand-login-email"
-                        type="email"
-                        placeholder="business@company.com"
-                        value={loginForm.email}
-                        onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="brand-login-password">Password</Label>
-                      <Input
-                        id="brand-login-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Logging in as Brand..." : "Login as Brand"}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="creator-register" className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Creator Registration</h3>
-                    <p className="text-muted-foreground">
-                      Join our community of talented creators and showcase your work
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleCreatorSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="creator-name">Full Name</Label>
-                        <Input
-                          id="creator-name"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={creatorForm.name}
-                          onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="creator-followers">Number of Followers</Label>
-                        <Input
-                          id="creator-followers"
-                          type="number"
-                          placeholder="e.g., 10000"
-                          value={creatorForm.followers}
-                          onChange={(e) => setCreatorForm({ ...creatorForm, followers: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-email">Email Address</Label>
-                      <Input
-                        id="creator-email"
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={creatorForm.email}
-                        onChange={(e) => setCreatorForm({ ...creatorForm, email: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="creator-phone">Phone Number</Label>
-                      <Input
-                        id="creator-phone"
-                        type="tel"
-                        placeholder="+1234567890"
-                        value={creatorForm.phone_number}
-                        onChange={(e) => setCreatorForm({ ...creatorForm, phone_number: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Registering..." : "Register as Creator"}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="brand-register" className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Brand Registration</h3>
-                    <p className="text-muted-foreground">
-                      Connect with talented creators for your marketing campaigns
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleCompanySubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="company-name">Company Name</Label>
-                        <Input
-                          id="company-name"
-                          type="text"
-                          placeholder="Your company name"
-                          value={companyForm.companyName}
-                          onChange={(e) => setCompanyForm({ ...companyForm, companyName: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="product-type">Product Type</Label>
-                        <Input
-                          id="product-type"
-                          type="text"
-                          placeholder="e.g., Fashion, Tech, Food"
-                          value={companyForm.productType}
-                          onChange={(e) => setCompanyForm({ ...companyForm, productType: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="company-email">Business Email</Label>
-                      <Input
-                        id="company-email"
-                        type="email"
-                        placeholder="business@company.com"
-                        value={companyForm.email}
-                        onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="company-phone">Business Phone Number</Label>
-                      <Input
-                        id="company-phone"
-                        type="tel"
-                        placeholder="+1234567890"
-                        value={companyForm.phone_number}
-                        onChange={(e) => setCompanyForm({ ...companyForm, phone_number: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Registering..." : "Register as Brand"}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            ) : (
-              // OTP Verification Step
-              <div className="space-y-6">
-                <Button
-                  variant="ghost"
-                  onClick={handleBackToLogin}
-                  className="flex items-center gap-2 mb-4"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Login
-                </Button>
-
-                <form onSubmit={handleOtpSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="otp">Enter 6-digit OTP</Label>
-                    <div className="flex justify-center">
-                      <InputOTP
-                        maxLength={6}
-                        value={otpForm.otp}
-                        onChange={(value) => setOtpForm({ ...otpForm, otp: value })}
-                      >
-                        <InputOTPGroup>
-                          <InputOTPSlot index={0} />
-                          <InputOTPSlot index={1} />
-                          <InputOTPSlot index={2} />
-                          <InputOTPSlot index={3} />
-                          <InputOTPSlot index={4} />
-                          <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                      </InputOTP>
-                    </div>
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={otpForm.otp.length !== 6}>
-                    Verify OTP
-                  </Button>
-                </form>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
+    );
+  }
+
+  // 🎨 SCREEN 2: Login
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader>
+          <Button variant="ghost" onClick={() => setSelectedRole(null)} className="w-fit mb-2 text-gray-500"><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
+          <CardTitle className="text-2xl text-center">Login as {selectedRole === 'BRAND' ? 'Brand' : 'Creator'}</CardTitle>
+          <CardDescription className="text-center">Connect with Google to continue</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="w-full py-6 text-lg" onClick={handleGoogleLogin} disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "🔵"}
+            Continue with Google
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default Auth;
+}
