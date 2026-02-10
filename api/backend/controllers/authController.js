@@ -67,25 +67,23 @@ const registerCreator = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ DYNAMIC COOKIE CONFIGURATION
+    // 🛡️ MANUAL COOKIE SETTING ONLY (Hono setCookie is failing)
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true, // Always true for Render/Vercel
-      sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-      domain: isProduction ? '.creatorconnect.tech' : undefined
-    };
+    console.log('🍪 DEBUG: Register Creator - Setting cookie for production:', isProduction, 'host:', host);
 
-    console.log('🍪 DEBUG: Register Creator - Setting cookie with Options:', cookieOptions);
-    await setCookie(c, 'auth_token', token, cookieOptions);
+    // 🚨 MANUAL ONLY: Set multiple cookie headers to ensure at least one works
+    const cookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const cookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const cookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
 
-    // 🛡️ FALLBACK: Manual header
-    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
-    c.header('Set-Cookie', cookieValue);
+    // Set multiple cookie headers
+    c.header('Set-Cookie', cookie1);
+    c.header('Set-Cookie', cookie2);
+    c.header('Set-Cookie', cookie3);
+
+    console.log('🍪 DEBUG: Register Creator - Manual cookies set:', { cookie1, cookie2, cookie3 });
 
     return c.json({
       token,
@@ -105,7 +103,20 @@ const registerCreator = async (c) => {
 
 // Register Brand
 const registerBrand = async (c) => {
-  const { company_name, email, password, website, phone_number } = c.req.valid('json');
+  const { company_name, email, password, website, website_url, phone_number } = c.req.valid('json');
+  
+  // 🚨 DEBUG: Log all received fields
+  console.log('🔍 DEBUG: Brand registration received:', {
+    company_name: !!company_name,
+    email: !!email,
+    password: !!password,
+    website: !!website,
+    website_url: !!website_url,
+    phone_number: !!phone_number
+  });
+
+  // 🚨 CRITICAL: Handle both website and website_url fields
+  const finalWebsite = website || website_url;
 
   let db;
   try {
@@ -119,6 +130,20 @@ const registerBrand = async (c) => {
 
     if (userExists.rows.length > 0) {
       return c.json({ error: 'User already exists' }, 400);
+    }
+
+    // 🛡️ PROFESSIONAL VALIDATION: Check required fields
+    if (!company_name || !email || !password || !phone_number) {
+      console.error('❌ Missing required fields:', { 
+        company_name: !!company_name, 
+        email: !!email, 
+        password: !!password, 
+        phone_number: !!phone_number 
+      });
+      return c.json({ 
+        error: 'Missing required fields', 
+        details: 'company_name, email, password, and phone_number are required' 
+      }, 400);
     }
 
     // Hash password
@@ -139,7 +164,7 @@ const registerBrand = async (c) => {
     await db.query(
       `INSERT INTO brand_profiles (user_id, company_name, website)
        VALUES ($1, $2, $3)`,
-      [userId, company_name, website]
+      [userId, company_name, finalWebsite]
     );
 
     await db.query('COMMIT');
@@ -151,25 +176,23 @@ const registerBrand = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // 🛡️ DYNAMIC COOKIE CONFIGURATION
+    // 🛡️ MANUAL COOKIE SETTING ONLY (Hono setCookie is failing)
     const host = c.req.header('host') || '';
     const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true, // Always true for Render/Vercel
-      sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-      domain: isProduction ? '.creatorconnect.tech' : undefined
-    };
+    console.log('🍪 DEBUG: Register Brand - Setting cookie for production:', isProduction, 'host:', host);
 
-    console.log('🍪 DEBUG: Register Brand - Setting cookie with Options:', cookieOptions);
-    await setCookie(c, 'auth_token', token, cookieOptions);
+    // 🚨 MANUAL ONLY: Set multiple cookie headers to ensure at least one works
+    const cookie1 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const cookie2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+    const cookie3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Domain=creatorconnect.tech; Max-Age=${60 * 60 * 24 * 7}`;
 
-    // 🛡️ FALLBACK: Manual header
-    const cookieValue = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
-    c.header('Set-Cookie', cookieValue);
+    // Set multiple cookie headers
+    c.header('Set-Cookie', cookie1);
+    c.header('Set-Cookie', cookie2);
+    c.header('Set-Cookie', cookie3);
+
+    console.log('🍪 DEBUG: Register Brand - Manual cookies set:', { cookie1, cookie2, cookie3 });
 
     return c.json({
       token,
