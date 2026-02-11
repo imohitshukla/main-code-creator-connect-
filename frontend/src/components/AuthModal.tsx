@@ -63,10 +63,40 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
     setIsLoading(true);
 
     try {
-      // 🚨 CRITICAL: Call login with single data parameter
-      await login({ email: loginData.email, password: loginData.password });
+      // 🚨 CRITICAL: Make actual API call first
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: loginData.email, password: loginData.password }),
+      });
+
+      const data = await response.json();
       
-      // After login, check if user is logged in by checking AuthContext
+      console.log('🔍 AUTHMODAL DEBUG: API response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // 🚨 CRITICAL: Now call AuthContext login with API response
+      await login(data);
+      
+      toast({
+        title: 'Login successful',
+        description: 'Welcome back!',
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'Login failed',
+        description: 'Please check your credentials and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
       // If login was successful, the user state will be updated
       // If OTP is required, we need to handle that separately
       
