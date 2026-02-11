@@ -86,18 +86,17 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
       { expiresIn: '7d' }
     );
 
-    // 🍪 TACTIC 1: Set the Cookie (Standard)
-    const { setCookie } = await import('hono/cookie');
-    setCookie(c, 'auth_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      domain: '.creatorconnect.tech',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    // 🚀 NEW FIXED CODE (Copy this)
+const { setCookie } = await import('hono/cookie');
+await setCookie(c, 'auth_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+    domain: '.creatorconnect.tech', 
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+});
 
-    // 📦 TACTIC 2: Return Token in Body (For Redundancy)
     return c.json({
       success: true,
       message: 'Login successful',
@@ -106,11 +105,9 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
         email: user.email,
         role: user.role,
         name: user.name,
-        // ... add other necessary fields
-        token // <--- 🚨 SEND TOKEN TO FRONTEND HERE
+        token: token // <--- CRITICAL: WE SEND THE TOKEN HERE
       }
     });
-
   } catch (error) {
     console.error('Login Error:', error);
     return c.json({ error: 'Internal server error' }, 500);
