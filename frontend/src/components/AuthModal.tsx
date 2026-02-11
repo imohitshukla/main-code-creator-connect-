@@ -80,7 +80,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       }
 
       // 🚨 CRITICAL: Now call AuthContext login with API response
-      await login(data);
+      login(data);
       
       toast({
         title: 'Login successful',
