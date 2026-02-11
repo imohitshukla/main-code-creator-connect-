@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth, UserProfile } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import { cn } from "@/lib/utils";
 import Logo from '@/components/Logo';
@@ -31,9 +31,9 @@ const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('login');
   const location = useLocation();
-  const { user, profile, logout, isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
 
-  const profileInitial = (profile?.name || user?.email || 'C')
+  const profileInitial = (user?.email || 'C')
     .trim()
     .charAt(0)
     .toUpperCase();
@@ -177,14 +177,14 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            {isAuthenticated ? (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
                     <SmartAvatar
                       src={user?.avatar}
                       type={user?.role === 'brand' ? 'brand' : 'creator'}
-                      name={profile?.name || user?.email}
+                      name={user?.email}
                       email={user?.email}
                       className="h-full w-full"
                     />
@@ -258,7 +258,7 @@ const Navbar = () => {
               </div>
 
               <div className="pt-4 border-t">
-                {!isAuthenticated ? (
+                {!user ? (
                   <div className="grid gap-3">
                     <Button
                       variant="outline"

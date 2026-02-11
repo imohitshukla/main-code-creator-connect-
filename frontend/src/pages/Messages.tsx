@@ -21,7 +21,7 @@ interface Conversation {
 }
 
 const Messages: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,7 +40,7 @@ const Messages: React.FC = () => {
       const data = await response.json();
       return data.conversations;
     },
-    enabled: isAuthenticated,
+    enabled: !!user,
   });
 
   const fallbackConversations: Conversation[] = [
@@ -92,7 +92,7 @@ const Messages: React.FC = () => {
 
   const getConversationTitle = (conv: Conversation) => conv.brand_name || `Brand ${conv.other_participant}`;
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="pt-24 px-4">
         <div className="max-w-4xl mx-auto text-center space-y-4">

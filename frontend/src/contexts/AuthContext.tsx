@@ -5,7 +5,8 @@ interface User {
   email: string;
   role: 'BRAND' | 'CREATOR' | 'PENDING';
   name?: string;
-  token?: string; 
+  token?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
