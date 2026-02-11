@@ -92,7 +92,7 @@ const App = () => (
                 <Route path="/brand-dashboard" element={<Suspense fallback={<PageFallback />}><BrandDashboard /></Suspense>} />
                 <Route path="/profile-setup" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
                 {/* Aliases for user-friendly URLs */}
-                <Route path="/dashboard" element={<BrandDashboard />} />
+                <Route path="/dashboard" element={<Suspense fallback={<PageFallback />}><BrandDashboard /></Suspense>} />
                 <Route path="/profile" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
