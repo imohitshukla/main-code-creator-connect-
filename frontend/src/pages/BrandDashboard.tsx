@@ -3,9 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
 
 const BrandDashboard: React.FC = () => {
   const { user } = useAuth();
+  const pastCampaigns: any[] = []; // Mock data to prevent build error
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
@@ -25,7 +28,7 @@ const BrandDashboard: React.FC = () => {
               <div className="text-2xl font-bold">3</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Creators</CardTitle>
@@ -34,7 +37,7 @@ const BrandDashboard: React.FC = () => {
               <div className="text-2xl font-bold">12</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
@@ -43,7 +46,7 @@ const BrandDashboard: React.FC = () => {
               <div className="text-2xl font-bold">4.2%</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">ROI</CardTitle>
@@ -68,7 +71,7 @@ const BrandDashboard: React.FC = () => {
                 </div>
                 <Badge className="bg-green-500">Active</Badge>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h3 className="font-medium">Brand Awareness Campaign</h3>
@@ -76,7 +79,7 @@ const BrandDashboard: React.FC = () => {
                 </div>
                 <Badge className="bg-yellow-500">Pending</Badge>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h3 className="font-medium">Product Launch Campaign</h3>
@@ -85,25 +88,12 @@ const BrandDashboard: React.FC = () => {
                 <Badge className="bg-blue-500">Planning</Badge>
               </div>
             </div>
-            
+
             <Button className="w-full mt-4">View All Campaigns</Button>
           </CardContent>
         </Card>
       </div>
-                  <div className="flex items-center gap-2">
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={`/messages?campaign=${campaign.id}`}>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Messages
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Past Campaigns */}
       <Card>

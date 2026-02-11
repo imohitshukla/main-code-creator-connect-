@@ -31,6 +31,8 @@ const registerBrandSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   phone_number: z.string().min(10).max(15),
+  website: z.string().optional(),
+  website_url: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -60,59 +62,7 @@ const signupSchema = z.object({
 auth.post('/register/creator', zValidator('json', registerCreatorSchema), registerCreator);
 auth.post('/register/brand', zValidator('json', registerBrandSchema), registerBrand);
 auth.post('/signup', zValidator('json', signupSchema), signup);
-auth.post('/login', zValidator('json', loginSchema), async (c) => {
-  const { email, password } = await c.req.json();
-
-  try {
-    const userResult = await client.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (userResult.rows.length === 0) {
-      return c.json({ error: 'Invalid credentials' }, 401);
-    }
-
-    const user = userResult.rows[0];
-    const isValid = await import('bcryptjs').then(bcrypt => bcrypt.compare(password, user.password));
-
-    if (!isValid) {
-      return c.json({ error: 'Invalid credentials' }, 401);
-    }
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    // 🚀 NEW FIXED CODE (Copy this)
-const { setCookie } = await import('hono/cookie');
-await setCookie(c, 'auth_token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    domain: '.creatorconnect.tech', 
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-});
-
-    return c.json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        token: token // <--- CRITICAL: WE SEND THE TOKEN HERE
-      }
-    });
-  } catch (error) {
-    console.error('Login Error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
-  }
-});
+auth.post('/login', zValidator('json', loginSchema), login);
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);

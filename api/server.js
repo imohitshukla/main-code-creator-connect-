@@ -30,11 +30,11 @@ app.use('*', async (c, next) => {
   const start = Date.now();
   const url = c.req.url;
   const method = c.req.method;
-  
+
   console.log('🔍 DEBUG: === REQUEST START ===');
   console.log('🔍 DEBUG: Request URL:', url);
   console.log('🔍 DEBUG: Request method:', method);
-  
+
   // 🛡️ LOG ALL HEADERS FOR DEBUGGING
   const allHeaders = {
     'cookie': c.req.header('Cookie'),
@@ -55,15 +55,15 @@ app.use('*', async (c, next) => {
     'cache-control': c.req.header('Cache-Control'),
     'pragma': c.req.header('Pragma'),
   };
-  
+
   console.log('🔍 DEBUG: Request headers:', allHeaders);
-  
+
   // 🛡️ SPECIAL DEBUGGING FOR LOGIN REQUESTS
   if (url.includes('/api/auth/login')) {
     console.log('🔍 DEBUG: === LOGIN REQUEST DETECTED ===');
     console.log('🔍 DEBUG: This is a login request - will monitor cookie setting...');
   }
-  
+
   // 🛡️ SPECIAL DEBUGGING FOR BRAND PROFILE REQUESTS
   if (url.includes('/api/brands/profile')) {
     console.log('🔍 DEBUG: === BRAND PROFILE REQUEST DETECTED ===');
@@ -75,37 +75,39 @@ app.use('*', async (c, next) => {
       console.log('✅ Cookie header found in brand profile request');
     }
   }
-  
+
   await next();
-  
+
   const duration = Date.now() - start;
-  
+
   // 🛡️ LOG RESPONSE HEADERS FOR DEBUGGING
   const responseHeaders = {};
   for (const [key, value] of c.res.headers.entries()) {
     responseHeaders[key] = value;
   }
-  
+
   console.log('🔍 DEBUG: Response headers set:', {
     'set-cookie': responseHeaders['set-cookie'] || null,
     'access-control-allow-credentials': responseHeaders['access-control-allow-credentials'],
     'access-control-allow-origin': responseHeaders['access-control-allow-origin'],
   });
-  
+
   console.log(`🔍 DEBUG: === REQUEST END (${duration}ms) ===`);
 });
 
 // PILLAR 1: Strict CORS with Credentials
 app.use('/*', cors({
   origin: [
-    'https://www.creatorconnect.tech', 
-    'https://creatorconnect.tech', 
+    'https://www.creatorconnect.tech',
+    'https://creatorconnect.tech',
     'https://api.creatorconnect.tech', // 🛡️ Include API domain itself
-    'http://localhost:5173', 
+    'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:4173', // Vite preview
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080'
   ],
   credentials: true, // 🛡️ CRITICAL: Allow credentials for cross-domain
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -124,12 +126,12 @@ app.use('*', async (c, next) => {
         AND table_name = 'brand_profiles'
       );
     `);
-    
+
     const tableExists = tableCheck.rows[0].exists;
-    
+
     if (!tableExists) {
       console.log('🚨 brand_profiles table missing - creating...');
-      
+
       // Create table with all required columns
       await client.query(`
         CREATE TABLE brand_profiles (
@@ -159,15 +161,15 @@ app.use('*', async (c, next) => {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-      
+
       // Create indexes
       await client.query('CREATE INDEX IF NOT EXISTS idx_brand_profiles_user_id ON brand_profiles(user_id);');
       await client.query('CREATE INDEX IF NOT EXISTS idx_brand_profiles_industry ON brand_profiles(industry_vertical);');
       await client.query('CREATE INDEX IF NOT EXISTS idx_brand_profiles_budget ON brand_profiles(typical_budget_range);');
-      
+
       console.log('✅ brand_profiles table created successfully!');
     }
-    
+
     await next();
   } catch (error) {
     console.error('❌ Table setup error:', error);
