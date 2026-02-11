@@ -46,7 +46,7 @@ const Navbar = () => {
             {profileInitial}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold truncate">{profile?.name || user?.email}</p>
+            <p className="font-semibold truncate">{user?.name || user?.email}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
@@ -183,7 +183,7 @@ const Navbar = () => {
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
                     <SmartAvatar
                       src={user?.avatar}
-                      type={user?.role === 'brand' ? 'brand' : 'creator'}
+                      type={user?.role === 'BRAND' ? 'brand' : 'creator'}
                       name={user?.email}
                       email={user?.email}
                       className="h-full w-full"

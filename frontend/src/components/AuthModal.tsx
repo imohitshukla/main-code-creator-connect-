@@ -72,8 +72,11 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       });
 
       const data = await response.json();
-      
+
       console.log('🔍 AUTHMODAL DEBUG: API response:', data);
+      console.log('🔍 AUTHMODAL DEBUG: User entity:', data.user);
+      console.log('🔍 AUTHMODAL DEBUG: Token in response:', data.token);
+      console.log('🔍 AUTHMODAL DEBUG: Token in user entity:', data.user?.token);
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -81,7 +84,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
 
       // 🚨 CRITICAL: Now call AuthContext login with API response
       login(data);
-      
+
       toast({
         title: 'Login successful',
         description: 'Welcome back!',
@@ -97,24 +100,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       setIsLoading(false);
     }
   };
-      // If login was successful, the user state will be updated
-      // If OTP is required, we need to handle that separately
-      
-      toast({
-        title: 'Login successful',
-        description: 'Welcome back!',
-      });
-      onClose();
-    } catch (error) {
-      toast({
-        title: 'Login failed',
-        description: 'Please check your credentials and try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const handleOtpVerification = async (e: React.FormEvent) => {
     e.preventDefault();
