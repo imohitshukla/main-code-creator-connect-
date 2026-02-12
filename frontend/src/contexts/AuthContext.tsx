@@ -25,6 +25,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const restoreSession = async () => {
+      // 🛡️ STOP GAP: If user explicitly logged out, don't auto-restore even if cookie exists
+      if (localStorage.getItem('explicit_logout')) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const storedToken = localStorage.getItem('auth_token');
 
@@ -63,6 +69,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔍 LOGIN DEBUG: data.token:', data.token);
     console.log('🔍 LOGIN DEBUG: data.user?.token:', data.user?.token);
 
+    // 🛡️ CLEAR LOGOUT FLAG
+    localStorage.removeItem('explicit_logout');
+
     // 🚨 EMERGENCY: Force save token if found anywhere
     const tokenToSave = data.user?.token || data.token;
     if (tokenToSave) {
@@ -87,6 +96,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    // 🛡️ SET LOGOUT FLAG
+    localStorage.setItem('explicit_logout', 'true');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('intended_role'); // Clean up partial states
     setUser(null);
