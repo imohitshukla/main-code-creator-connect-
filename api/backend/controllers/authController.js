@@ -321,7 +321,7 @@ const login = async (c) => {
     const userResult = await client.query(
       `SELECT 
         u.id, u.email, u.password, u.role, u.phone_number,
-        bp.company_name, bp.website, bp.industry, bp.company_size, bp.gst_id, bp.location as brand_location,
+        bp.company_name, bp.website, bp.industry,
         cp.name, cp.niche, cp.instagram_link, cp.youtube_link, cp.portfolio_link, cp.follower_count, cp.bio, cp.budget_range, cp.audience_breakdown, cp.collaboration_goals, cp.engagement_rate
        FROM users u
        LEFT JOIN brand_profiles bp ON u.id = bp.user_id 
@@ -425,9 +425,6 @@ const login = async (c) => {
       company_name: user.company_name,
       website: user.website,
       industry: user.industry,
-      company_size: user.company_size,
-      gst_id: user.gst_id,
-      location: user.brand_location,
       // Creator fields
       name: user.name,
       niche: user.niche,
