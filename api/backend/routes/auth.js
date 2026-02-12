@@ -23,17 +23,17 @@ const registerCreatorSchema = z.object({
   name: z.string().min(2).max(255),
   email: z.string().email(),
   password: z.string().min(6),
-  portfolio_link: z.string().url().optional(),
-  phone_number: z.string().min(10).max(15),
+  portfolio_link: z.string().url().optional().or(z.literal('')),
+  phone_number: z.string().min(10).max(15).optional().or(z.literal('')),
 });
 
 const registerBrandSchema = z.object({
   company_name: z.string().min(2).max(255),
   email: z.string().email(),
   password: z.string().min(6),
-  phone_number: z.string().min(10).max(15),
-  website: z.string().optional(),
-  website_url: z.string().optional(),
+  phone_number: z.string().min(10).max(15).optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal('')),
+  website_url: z.string().optional().or(z.literal('')),
 });
 
 const loginSchema = z.object({

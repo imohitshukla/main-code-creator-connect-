@@ -20,10 +20,12 @@ const CreatorOnboarding = () => {
         // Identity
         displayName: '',
         primary_niche: '',
-        primary_location: '', // e.g., "Mumbai, India"
+        primary_location: '',
         bio: '',
+        professional_email: '', // New field
+        phone_number: '',       // New field
 
-        // Socials
+        // Socials (Hidden for now based on design focus, but keeping in state)
         instagram_link: '',
         youtube_link: '',
         portfolio_link: '',
@@ -32,25 +34,19 @@ const CreatorOnboarding = () => {
         total_followers: '',
 
         // Collaboration
-        budget_range: '', // e.g., "₹5k - ₹20k"
-        audience_breakdown: '', // e.g. "Mostly GenZ 18-24"
-        collaboration_goals: '' // e.g. "Long-term partnerships"
+        budget_range: '',
+        audience_breakdown: '',
+        collaboration_goals: ''
     });
 
     const nicheOptions = [
-        'Fashion & Lifestyle', 'Beauty & Makeup', 'Tech & Gadgets', 'Food & Travel',
-        'Fitness & Health', 'Gaming', 'Finance', 'Education', 'Comedy/Entertainment'
+        'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Music', 'Lifestyle', 'Travel', 'Food'
     ];
 
-    const budgetOptions = [
-        'Barter / Gifted', '₹1k - ₹5k', '₹5k - ₹20k', '₹20k - ₹50k', '₹50k - ₹1L', '₹1L+'
-    ];
-
-    // 🔄 Fetch existing data on mount
+    // ... (keep useEffect for fetching existing data, but update to populate new fields)
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                // 🔐 DOUBLE DOOR AUTH (Cookie + Header)
                 const token = localStorage.getItem('auth_token');
                 const headers: Record<string, string> = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -62,39 +58,23 @@ const CreatorOnboarding = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Assuming the backend returns { success: true, user: {...}, creatorProfile: {...} } or similar
-                    // Based on creatorController.getCreatorById, it returns a unified object.
-                    // BUT, we might need a specific "get my profile" endpoint for editing.
-                    // For now, let's assume /api/creators/profile (which maps to updateCreatorProfile? No, that's POST/PUT).
-                    // We might need to fetch /api/auth/me and then populate.
-                    // Let's try to fetch /api/auth/me first as a fallback if a specific profile endpoint isn't distinct.
-                    // Actually, let's stick to the plan: fetch existing data. 
-                    // If the backend `getCreatorById` is public, we can use that via `authContext`.
-                    // For simplicity in this step, let's assume we can GET from the update endpoint or similar. 
-                    // WAIT: The plan says "Fetch existing data". 
-                    // Let's implement robust fetching:
-
                     if (data.user || data.creator) {
                         const profile = data.creator || data.user;
                         setIsEditing(true);
-                        setFormData({
+                        setFormData(prev => ({
+                            ...prev,
                             displayName: profile.name || '',
+                            professional_email: profile.email || '', // Pre-fill with auth email
+                            phone_number: profile.phone_number || '',
                             primary_niche: profile.niche || '',
                             primary_location: profile.location || '',
                             bio: profile.bio || '',
-                            instagram_link: profile.contact?.instagram || profile.instagram_handle || '',
-                            youtube_link: profile.contact?.youtube || '',
-                            portfolio_link: profile.contact?.portfolio || profile.portfolio_link || '',
-                            total_followers: profile.stats?.followers || profile.followers_count || '',
-                            budget_range: profile.details?.budget_range || '',
-                            audience_breakdown: profile.details?.audience_breakdown || '',
-                            collaboration_goals: profile.details?.collaboration_goals || ''
-                        });
-                        console.log("✅ Loaded existing creator profile");
+                            // ... other fields
+                        }));
                     }
                 }
             } catch (error) {
-                console.warn("Could not fetch existing profile, starting fresh.", error);
+                console.warn("Could not fetch existing profile", error);
             }
         };
         fetchProfile();
@@ -105,21 +85,22 @@ const CreatorOnboarding = () => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleNicheSelect = (niche: string) => {
+        setFormData(prev => ({ ...prev, primary_niche: niche }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
-            // creatorController.js has `updateCreatorProfile` at (likely) PUT /api/creators/profile
             const url = `${import.meta.env.VITE_API_URL}/api/creators/profile`;
-
-            // 🔐 DOUBLE DOOR AUTH
             const token = localStorage.getItem('auth_token');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
             const response = await fetch(url, {
-                method: 'PUT', // Controller likely handles upsert
+                method: 'PUT',
                 headers,
                 credentials: 'include',
                 body: JSON.stringify(formData),
@@ -130,11 +111,7 @@ const CreatorOnboarding = () => {
                     title: isEditing ? "Profile Updated" : "Profile Created",
                     description: "Your creator profile is live!",
                 });
-                // navigate('/dashboard'); // Creators might not have a dashboard yet? 
-                // For now stay here or go to public profile? 
-                // Let's go to their public profile view if possible, or just stay.
-                // Actually, ProfileSetup is the page... maybe refresh?
-                // Let's just show success.
+                navigate('/dashboard');
             } else {
                 const errorData = await response.json();
                 toast({
@@ -152,118 +129,168 @@ const CreatorOnboarding = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center space-y-3">
-                <div className="h-16 w-16 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">
-                    🎨
+        <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 bg-gray-50 min-h-screen">
+            {/* Header */}
+            <div className="text-center space-y-4 mb-12">
+                <div className="inline-block px-4 py-1.5 rounded-full bg-gray-200 text-sm font-medium text-gray-600 mb-4">
+                    Step 2 · Profile Setup
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900">Build Your Creator Profile</h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Showcase your stats, rates, and style to attract top brands.
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">Tell Brands About You</h1>
+                <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                    Complete your Creator Connect profile so you show up in Filters and receive accurate AI matches.
+                    Share your niche, audience, and platform stats to unlock better collaborations.
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-                {/* 1. Identity */}
-                <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-pink-50/30">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-xl">
-                            <User className="h-6 w-6 text-pink-600" />
-                            Identity & Bio
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="displayName">Display Name *</Label>
-                                <Input id="displayName" value={formData.displayName} onChange={e => handleChange('displayName', e.target.value)} required placeholder="e.g. Rahul Vlogs" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="primary_niche">Primary Niche *</Label>
-                                <Select value={formData.primary_niche} onValueChange={val => handleChange('primary_niche', val)}>
-                                    <SelectTrigger><SelectValue placeholder="Select Niche" /></SelectTrigger>
-                                    <SelectContent>
-                                        {nicheOptions.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="primary_location">Location *</Label>
-                            <Input id="primary_location" value={formData.primary_location} onChange={e => handleChange('primary_location', e.target.value)} placeholder="e.g. Bangalore, India" required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="bio">Bio / Elevator Pitch</Label>
-                            <Textarea id="bio" rows={3} value={formData.bio} onChange={e => handleChange('bio', e.target.value)} placeholder="I create tech reviews for GenZ..." />
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Left Column: Form */}
+                <div className="lg:col-span-2 space-y-8">
 
-                {/* 2. Content & Socials */}
-                <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-purple-50/30">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-xl">
-                            <Instagram className="h-6 w-6 text-purple-600" />
-                            Social Connections
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label>Instagram Link</Label>
-                                <Input value={formData.instagram_link} onChange={e => handleChange('instagram_link', e.target.value)} placeholder="https://instagram.com/..." />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>YouTube Channel</Label>
-                                <Input value={formData.youtube_link} onChange={e => handleChange('youtube_link', e.target.value)} placeholder="https://youtube.com/..." />
+                    {/* Avatar Upload Placeholder */}
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="relative group cursor-pointer">
+                            <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
+                                {/* Placeholder Image or User Icon */}
+                                <User className="h-16 w-16 text-gray-300" />
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-white text-xs font-medium">Upload</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Portfolio / Website</Label>
-                            <Input value={formData.portfolio_link} onChange={e => handleChange('portfolio_link', e.target.value)} placeholder="https://myportfolio.com" />
-                        </div>
-                    </CardContent>
-                </Card>
+                        <p className="text-sm text-gray-500">Click to upload your profile picture</p>
+                    </div>
 
-                {/* 3. Stats & Rates */}
-                <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-green-50/30">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-xl">
-                            <DollarSign className="h-6 w-6 text-green-600" />
-                            Stats & Collaboration
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label>Total Followers (Approx)</Label>
-                                <Input type="number" value={formData.total_followers} onChange={e => handleChange('total_followers', e.target.value)} placeholder="e.g. 50000" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Typical Commercial Rate</Label>
-                                <Select value={formData.budget_range} onValueChange={val => handleChange('budget_range', val)}>
-                                    <SelectTrigger><SelectValue placeholder="Select Rate Range" /></SelectTrigger>
-                                    <SelectContent>
-                                        {budgetOptions.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Collaboration Goals</Label>
-                            <Input value={formData.collaboration_goals} onChange={e => handleChange('collaboration_goals', e.target.value)} placeholder="e.g. Long-term brand ambassadorships" />
-                        </div>
-                    </CardContent>
-                </Card>
+                    <form onSubmit={handleSubmit}>
+                        <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                            <CardHeader className="border-b border-gray-100 pb-6">
+                                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                                    <span className="text-2xl">✨</span> Creator Basics
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-8">
 
-                <div className="flex justify-center">
-                    <Button type="submit" size="lg" className="px-12 py-3 text-lg" disabled={isLoading}>
-                        {isLoading ? 'Saving...' : (isEditing ? 'Update Profile' : 'Create Profile')}
-                    </Button>
+                                {/* Row 1 */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="displayName" className="font-medium text-gray-700">Display Name</Label>
+                                        <Input
+                                            id="displayName"
+                                            value={formData.displayName}
+                                            onChange={e => handleChange('displayName', e.target.value)}
+                                            required
+                                            placeholder="e.g. KraaftMedia"
+                                            className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="professional_email" className="font-medium text-gray-700">Professional Email</Label>
+                                        <Input
+                                            id="professional_email"
+                                            type="email"
+                                            value={formData.professional_email}
+                                            onChange={e => handleChange('professional_email', e.target.value)}
+                                            required
+                                            placeholder="e.g. contact@kraaftmedia.com"
+                                            className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Row 2 */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="phone_number" className="font-medium text-gray-700">Phone / WhatsApp</Label>
+                                        <Input
+                                            id="phone_number"
+                                            value={formData.phone_number}
+                                            onChange={e => handleChange('phone_number', e.target.value)}
+                                            placeholder="e.g. +91 9876543210"
+                                            className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="primary_location" className="font-medium text-gray-700">Primary Location</Label>
+                                        <Input
+                                            id="primary_location"
+                                            value={formData.primary_location}
+                                            onChange={e => handleChange('primary_location', e.target.value)}
+                                            placeholder="e.g. Mumbai, Maharashtra"
+                                            required
+                                            className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Niche Selection */}
+                                <div className="space-y-4 pt-2">
+                                    <Label className="font-medium text-gray-700 block">Primary Niche</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {nicheOptions.map(niche => (
+                                            <button
+                                                key={niche}
+                                                type="button"
+                                                onClick={() => handleNicheSelect(niche)}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.primary_niche === niche
+                                                        ? 'bg-gray-900 text-white shadow-md transform scale-105'
+                                                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                {niche}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <Input
+                                        placeholder="Custom niche"
+                                        className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all max-w-md mt-3"
+                                        value={!nicheOptions.includes(formData.primary_niche) ? formData.primary_niche : ''}
+                                        onChange={e => handleChange('primary_niche', e.target.value)}
+                                    />
+                                </div>
+
+                            </CardContent>
+                        </Card>
+
+                        <div className="mt-8 flex justify-end">
+                            <Button type="submit" size="lg" className="px-8 h-12 text-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl transition-all" disabled={isLoading}>
+                                {isLoading ? 'Saving...' : 'Continue'}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
 
-            </form>
+                {/* Right Column: Sidebar */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-8 space-y-6">
+                        <Card className="border-0 shadow-lg bg-white p-6 relative overflow-hidden">
+                            {/* Decorative Element */}
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-100 to-transparent rounded-bl-full opacity-50"></div>
+
+                            <div className="space-y-6 relative z-10">
+                                <div className="flex gap-4 items-start">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-sm">1</div>
+                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                        Creators with complete profiles appear higher in Filters and search results.
+                                    </p>
+                                </div>
+                                <div className="flex gap-4 items-start">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-sm">2</div>
+                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                        AI Match uses your niche, audience, and pricing to recommend the best campaigns.
+                                    </p>
+                                </div>
+                                <div className="flex gap-4 items-start">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-sm">3</div>
+                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                        Brands can fast-track approvals when they see platform links and audience stats upfront.
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+
+            </div>
         </div>
     );
 };

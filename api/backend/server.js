@@ -67,6 +67,8 @@ app.get('/api/health', (c) => {
   return c.json({ status: 'OK', message: 'CreatorConnect API is running', version: 'NUCLEAR_CORS_FIX_V1' });
 });
 
+app.get('/api/brands-debug', (c) => c.text('Brands Debug OK'));
+
 // 404 handler
 app.notFound((c) => {
   return c.json({ error: 'Endpoint not found' }, 404);

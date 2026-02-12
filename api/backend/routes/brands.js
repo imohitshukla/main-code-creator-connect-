@@ -1,23 +1,13 @@
+
 import { Hono } from 'hono';
-import { cookieAuthMiddleware } from '../middleware/cookieAuth.js';
-import { 
-  createBrandProfile, 
-  getBrandProfile, 
-  updateBrandProfile 
-} from '../controllers/brandController.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { createBrandProfile, getBrandProfile, updateBrandProfile } from '../controllers/brandController.js';
 
 const brands = new Hono();
 
-// Apply cookie auth middleware to all routes
-brands.use('*', cookieAuthMiddleware);
-
-// Create brand profile
-brands.post('/profile', createBrandProfile);
-
-// Get brand profile
-brands.get('/profile', getBrandProfile);
-
-// Update brand profile
-brands.put('/profile', updateBrandProfile);
+// 🔒 Protected Routes (User must be logged in)
+brands.post('/profile', authMiddleware, createBrandProfile);
+brands.get('/profile', authMiddleware, getBrandProfile);
+brands.put('/profile', authMiddleware, updateBrandProfile);
 
 export default brands;

@@ -1,22 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Briefcase, Paintbrush, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AuthModal from '@/components/AuthModal';
+import { useAuth } from '@/contexts/AuthContext'; // Import Auth Context
+import { useNavigate } from 'react-router-dom'; // Import Router
 
 export default function Auth() {
+  const { user } = useAuth(); // Get user state
+  const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<'BRAND' | 'CREATOR'>('BRAND');
   const [loadingRole, setLoadingRole] = useState<'BRAND' | 'CREATOR' | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'signup'>('signup');
+
+  // 🛡️ RE-DIRECT IF ALREADY LOGGED IN
+  useEffect(() => {
+    if (user) {
+      if (!user.role || user.role === 'PENDING') {
+        navigate('/select-role');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, navigate]);
+
 
   const handleRoleSelect = (role: 'BRAND' | 'CREATOR') => {
     if (loadingRole) return; // Prevent double clicks
 
     setLoadingRole(role);
+    setSelectedRole(role); // 🧠 Keep track of what they picked
 
     // 🧠 MEMORY: Save their choice so we know who they are after the redirect
     localStorage.setItem('intended_role', role);
 
-    // Simulate a brief delay for UX (so they see the spinner), then redirect
+    // Simulate a brief delay for UX (so they see the spinner), then open modal
     setTimeout(() => {
-      window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
-    }, 800);
+      setAuthView('signup'); // Default to signup when picking a role
+      setIsAuthModalOpen(true);
+      setLoadingRole(null); // Reset loading state
+    }, 600);
   };
 
   return (
@@ -72,8 +95,21 @@ export default function Auth() {
         </div>
 
         <p className="mt-12 text-sm text-gray-400">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          Already have an account?{' '}
+          <button
+            onClick={() => { setAuthView('login'); setIsAuthModalOpen(true); }}
+            className="text-indigo-600 font-semibold hover:underline"
+          >
+            Log in here
+          </button>
         </p>
+
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          defaultMode={authView}
+          defaultRole={selectedRole === 'BRAND' ? 'brand' : 'creator'}
+        />
       </div>
     </div>
   );

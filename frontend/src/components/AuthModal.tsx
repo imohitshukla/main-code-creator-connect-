@@ -15,11 +15,12 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultMode?: 'signup' | 'login';
+  defaultRole?: 'brand' | 'creator';
 }
 
-const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) => {
+const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'brand' }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'forgot-password'>(defaultMode);
-  const [userRole, setUserRole] = useState<'brand' | 'creator'>('brand');
+  const [userRole, setUserRole] = useState<'brand' | 'creator'>(defaultRole);
 
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({
@@ -48,6 +49,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
   useEffect(() => {
     if (isOpen) {
       setActiveTab(defaultMode === 'signup' ? 'signup' : 'login'); // Default validation
+      setUserRole(defaultRole); // 🔄 Sync role from props
       setOtpData(null);
       setOtp('');
       // Reset forgot password state
@@ -56,7 +58,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       setNewPassword('');
       setIsResetStep(false);
     }
-  }, [isOpen, defaultMode]);
+  }, [isOpen, defaultMode, defaultRole]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +220,12 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
   const handleSignup = async (e: React.FormEvent) => { // Removed separate function for brevity in prompt context
     e.preventDefault();
 
+    console.log('🔍 DEBUG: Signup password check:', {
+      p1: signupData.password,
+      p2: signupData.confirmPassword,
+      match: signupData.password === signupData.confirmPassword
+    });
+
     if (signupData.password !== signupData.confirmPassword) {
       toast({
         title: 'Passwords do not match',
@@ -257,14 +265,14 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
           company_name: signupData.company_name,
           email: signupData.email,
           password: signupData.password,
-          website: signupData.website || '',
-          phone_number: signupData.phone_number || ''
+          website: signupData.website || undefined,
+          phone_number: signupData.phone_number || undefined
         }
         : {
           name: signupData.name,
           email: signupData.email,
           password: signupData.password,
-          phone_number: signupData.phone_number || ''
+          phone_number: signupData.phone_number || undefined
         };
 
       const response = await fetch(endpoint, {
@@ -275,11 +283,14 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.log('❌ Signup Response Error Text:', errorText);
+
         let errorMessage = 'Signup failed';
 
         try {
           const errorData = JSON.parse(errorText);
-          errorMessage = errorData.details || errorData.error || errorMessage;
+          // zValidator often returns error in .error or .target
+          errorMessage = errorData.details || errorData.error || JSON.stringify(errorData) || errorMessage;
         } catch (e) {
           // Fallback to raw text or status if JSON parse fails
           errorMessage = errorText || response.statusText || errorMessage;
@@ -288,29 +299,21 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
       }
 
       const data = await response.json();
-      // Directly check requiresOtp for consistency? 
-      // The signup controller returns { token, user }. It doesn't use OTP flow usually.
-      // But if it did... let's assume it logs in directly.
-      // Need a way to set session. The original code used `setSession` but it wasn't imported or defined in scope in correct file view?
-      // Ah, `useAuth` returns `login`, `verifyOtp`. It doesn't seem to expose `setSession`.
-      // Wait, line 168 in original file: `setSession(data.user, data.token);`.
-      // BUT `setSession` is NOT defined in lines 1-13.
-      // Ah, I missed where `setSession` came from. It's likely a typo in my read or it's implicitly there. 
-      // ACTUALLY, checking previous `view_file` (Step 394): `const { login, verifyOtp } = useAuth();`. `setSession` is NOT defined.
-      // This means the previous code might have been broken or `useAuth` provides it.
-      // I will remove `setSession` call and rely on `login` logic if needed, or assume the user logs in manually.
-      // Wait, `signup` usually auto-logs-in.
-      // I will just Toast and Close. The user can log in.
-      // Or I can add `login` call.
+
+      // ✅ AUTO-LOGIN
+      console.log('✅ Signup successful, auto-logging in...', data);
+      login(data);
 
       toast({
         title: 'Signup successful',
-        description: `Welcome! Please log in.`,
+        description: `Welcome! Setting up your workspace...`,
       });
-      setActiveTab('login');
-      // onClose(); // Let them log in?
+
+      onClose();
+      navigate('/dashboard');
 
     } catch (error: any) {
+      console.error('❌ Signup error:', error);
       toast({
         title: 'Signup failed',
         description: error.message || 'Please try again.',
@@ -442,7 +445,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                       type="email"
                       placeholder="Enter your email"
                       value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                       required
                     />
                   </div>
@@ -453,7 +456,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                       type="password"
                       placeholder="Enter your password"
                       value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                       required
                     />
                     <div className="flex justify-end">
@@ -517,7 +520,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                         type="text"
                         placeholder="Enter your company name"
                         value={signupData.company_name}
-                        onChange={(e) => setSignupData({ ...signupData, company_name: e.target.value })}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, company_name: e.target.value }))}
                         required
                       />
                     </div>
@@ -528,7 +531,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                         type="url"
                         placeholder="https://yourcompany.com"
                         value={signupData.website}
-                        onChange={(e) => setSignupData({ ...signupData, website: e.target.value })}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, website: e.target.value }))}
                       />
                     </div>
                   </>
@@ -541,7 +544,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                         type="text"
                         placeholder="Enter your full name"
                         value={signupData.name}
-                        onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, name: e.target.value }))}
                         required
                       />
                     </div>
@@ -556,7 +559,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                     type="tel"
                     placeholder="+1234567890"
                     value={signupData.phone_number}
-                    onChange={(e) => setSignupData({ ...signupData, phone_number: e.target.value })}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, phone_number: e.target.value }))}
                   />
                 </div>
 
@@ -567,7 +570,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                     type="email"
                     placeholder="Enter your email"
                     value={signupData.email}
-                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
                     required
                   />
                 </div>
@@ -578,7 +581,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                     type="password"
                     placeholder="Enter your password (min. 6 characters)"
                     value={signupData.password}
-                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
                     required
                     minLength={6}
                   />
@@ -590,7 +593,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) =
                     type="password"
                     placeholder="Confirm your password"
                     value={signupData.confirmPassword}
-                    onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                    onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     required
                   />
                 </div>

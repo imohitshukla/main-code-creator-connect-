@@ -25,6 +25,8 @@ const Campaign = lazy(() => import("./pages/Campaign"));
 const Messages = lazy(() => import("./pages/Messages"));
 const EducationHub = lazy(() => import("./pages/EducationHub"));
 const BrandDashboard = lazy(() => import("./pages/BrandDashboard"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const RoleSelection = lazy(() => import("./pages/RoleSelection")); // 🆕 Post-Login Role Selection
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,11 +90,13 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
 
               <Route element={<ProtectedRoute />}>
+                <Route path="/select-role" element={<Suspense fallback={<PageFallback />}><RoleSelection /></Suspense>} />
+
                 <Route path="/messages" element={<Suspense fallback={<PageFallback />}><Messages /></Suspense>} />
                 <Route path="/brand-dashboard" element={<Suspense fallback={<PageFallback />}><BrandDashboard /></Suspense>} />
                 <Route path="/profile-setup" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
                 {/* Aliases for user-friendly URLs */}
-                <Route path="/dashboard" element={<Suspense fallback={<PageFallback />}><BrandDashboard /></Suspense>} />
+                <Route path="/dashboard" element={<Suspense fallback={<PageFallback />}><Dashboard /></Suspense>} />
                 <Route path="/profile" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

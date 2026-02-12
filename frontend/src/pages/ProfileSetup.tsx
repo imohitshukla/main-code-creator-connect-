@@ -21,11 +21,19 @@ const ProfileSetup = () => {
   if (isLoading) return <div className="p-10 text-center">Loading Profile...</div>;
 
   // 🚦 ROUTING
-  if (user?.role === 'BRAND') {
+
+
+  if (user?.role?.toUpperCase() === 'BRAND') {
+
     return <BrandOnboarding />;
   }
 
-  // Creator form
+
+
+  // Fallback: If role is CREATOR (or undefined), show the Creator Form
+  // return <CreatorOnboarding />; 
+
+  // (Temporary: Keep your old Creator Form code here if you haven't extracted it yet)
   return <CreatorOnboarding />;
 };
 

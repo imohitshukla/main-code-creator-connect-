@@ -14,6 +14,7 @@ import paymentsRoutes from '../../routes/payments.js';
 import adminRoutes from '../../routes/admin.js';
 import contactRoutes from '../../routes/contact.js';
 import dealRoutes from '../../routes/deals.js';
+import brandRoutes from '../../routes/brands.js';
 
 const app = new Hono();
 
@@ -49,6 +50,7 @@ app.route('/api/payments', paymentsRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
 app.route('/api/deals', dealRoutes);
+app.route('/api/brands', brandRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {
