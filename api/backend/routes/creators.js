@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth.js';
-import { getCreators, getCreatorById, getCreatorByUsername, getCreatorByIdentifier, updateCreatorProfile, verifyCreator, getVerifiedCreators, sendProposal } from '../controllers/creatorController.js';
+import { getCreators, getCreatorById, getCreatorByUsername, getCreatorByIdentifier, updateCreatorProfile, verifyCreator, getVerifiedCreators, sendProposal, getCreatorProfile } from '../controllers/creatorController.js';
 
 const router = new Hono();
 
@@ -11,13 +11,19 @@ router.get('/verified', getVerifiedCreators);
 router.get('/id/:id', getCreatorById);
 router.get('/username/:username', getCreatorByUsername);
 
+// Protected routes (Move profile specific GET here because it needs auth)
+router.use('/profile', authMiddleware); // Ensure profile routes are protected
+router.get('/profile', getCreatorProfile);
+router.put('/profile', updateCreatorProfile);
+
+// Public routes continues...
 // NOTE: order matters. Static routes must be registered before param routes.
 // Single identifier route avoids collisions between "/:username" and "/:id".
 router.get('/:identifier', getCreatorByIdentifier);
 
-// Protected routes
+// Other protected routes
 router.use('*', authMiddleware);
-router.put('/profile', updateCreatorProfile);
+router.put('/:id/verify', verifyCreator);
 router.put('/:id/verify', verifyCreator);
 router.post('/proposals', sendProposal);
 

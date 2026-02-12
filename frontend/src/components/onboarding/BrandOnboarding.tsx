@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,16 +55,52 @@ const BrandOnboarding = () => {
     'Blog Posts', 'TikTok Videos', 'Product Reviews'
   ];
 
+  // ⚡️ State for edit mode
+  const [isEditing, setIsEditing] = useState(false);
+
+  // 🔄 Fetch existing data on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/brands/profile`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.profile) {
+            setIsEditing(true);
+            setFormData({
+              company_name: data.profile.company_name || '',
+              industry_vertical: data.profile.industry_vertical || '',
+              website_url: data.profile.website_url || '',
+              linkedin_page: data.profile.linkedin_page || '',
+              company_size: data.profile.company_size || '',
+              hq_location: data.profile.hq_location || '',
+              gst_tax_id: data.profile.gst_tax_id || '',
+              typical_budget_range: data.profile.typical_budget_range || '',
+              looking_for: data.profile.looking_for || [],
+              description: data.profile.description || ''
+            });
+            console.log("✅ Loaded existing brand profile");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   const handleChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-
-    // 🛡️ DEBUG: Log array changes
-    if (field === 'looking_for') {
-      console.log('🔍 DEBUG: looking_for updated to:', value);
-    }
   };
 
   // 🛡️ SPECIAL HANDLER for checkbox arrays
@@ -81,8 +117,6 @@ const BrandOnboarding = () => {
         newLookingFor = currentLookingFor.filter(item => item !== option);
       }
 
-      console.log('🔍 DEBUG: Checkbox change:', { option, checked, isChecked, newLookingFor });
-
       return {
         ...prev,
         looking_for: newLookingFor
@@ -92,27 +126,45 @@ const BrandOnboarding = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      // 🔍 The Fix is the 'credentials' line below
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/brands/profile`, {
-        method: 'POST',
+      const method = isEditing ? 'PUT' : 'POST';
+      const url = `${import.meta.env.VITE_API_URL}/api/brands/profile`;
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': Bearer ${token} // ❌ DELETE THIS if you have it. We use cookies now.
         },
-        credentials: 'include', // 🚨 THIS IS MANDATORY. WITHOUT IT, NO COOKIE IS SENT.
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        // Handle success
-        navigate('/dashboard');
+        toast({
+          title: isEditing ? "Profile Updated" : "Profile Created",
+          description: isEditing ? "Your brand profile has been updated successfully." : "Welcome to Creator Connect!",
+        });
+        if (!isEditing) navigate('/dashboard');
       } else {
-        console.error("Server rejected request");
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Something went wrong",
+          variant: "destructive"
+        });
+        console.error("Server rejected request:", errorData);
       }
     } catch (error) {
       console.error("Network error", error);
+      toast({
+        title: "Network Error",
+        description: "Please check your connection.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -320,7 +372,7 @@ const BrandOnboarding = () => {
             className="px-12 py-3 text-lg"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Profile...' : 'Complete Brand Profile'}
+            {isLoading ? 'Saving...' : (isEditing ? 'Update Profile' : 'Complete Brand Profile')}
           </Button>
         </div>
       </form>
