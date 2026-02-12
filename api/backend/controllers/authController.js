@@ -794,24 +794,42 @@ const resetPassword = async (c) => {
 // Logout - Clear Cookies
 const logout = async (c) => {
   try {
-    // 🛡️ NUCLEAR COOKIE CLEARING
-    const host = c.req.header('host') || '';
-    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
+    const { setCookie, deleteCookie } = await import('hono/cookie');
 
-    // 1. Hono deleteCookie helper
+    // 🛡️ NUCLEAR COOKIE CLEARING STRATEGY
+    // We must try to expire the cookie on EVERY possible domain/path combination
+    // because we don't know exactly which one the browser is honoring.
+
+    const cookieName = 'auth_token';
+
+    const variations = [
+      // 1. Production Domain (Exact)
+      { path: '/', secure: true, sameSite: 'None', domain: '.creatorconnect.tech' },
+      // 2. Production Domain (Lax)
+      { path: '/', secure: true, sameSite: 'Lax', domain: '.creatorconnect.tech' },
+      // 3. No Domain (Host only - for localhost or direct domain)
+      { path: '/', secure: true, sameSite: 'None' },
+      // 4. No Domain + Lax (Common default)
+      { path: '/', secure: true, sameSite: 'Lax' },
+      // 5. Insecure (Just in case)
+      { path: '/', secure: false, sameSite: 'Lax' }
+    ];
+
+    console.log('🚪 Logout initiated. Attempting to clear cookies...');
+
+    for (const options of variations) {
+      try {
+        // Setting maxAge: 0 is the most reliable way to delete
+        await setCookie(c, cookieName, '', { ...options, maxAge: 0, expires: new Date(0) });
+      } catch (e) {
+        console.error('Logout cookie clear failed for option:', options, e);
+      }
+    }
+
+    // Explicit Delete Helper (Just to be sure)
     try {
-      const { deleteCookie } = await import('hono/cookie');
-      deleteCookie(c, 'auth_token', {
-        path: '/',
-        secure: true,
-        sameSite: 'None',
-        domain: isProduction ? '.creatorconnect.tech' : undefined
-      });
-    } catch (e) { console.error('Hono delete failed', e); }
-
-    // 2. Manual Header Nuke
-    const clearCookieValue = `auth_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
-    c.header('Set-Cookie', clearCookieValue);
+      deleteCookie(c, cookieName);
+    } catch (e) { }
 
     return c.json({ message: 'Logged out successfully' });
   } catch (error) {
