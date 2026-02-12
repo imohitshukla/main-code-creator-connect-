@@ -317,9 +317,16 @@ const login = async (c) => {
 
     console.log('🔍 DEBUG: Attempting login for email:', email);
 
-    // Find user
+    // Find user with FULL PROFILE DATA
     const userResult = await client.query(
-      'SELECT users.id, users.email, users.password, users.role, users.phone_number, brand_profiles.company_name, creator_profiles.name FROM users LEFT JOIN brand_profiles ON users.id = brand_profiles.user_id LEFT JOIN creator_profiles ON users.id = creator_profiles.user_id WHERE users.email = $1',
+      `SELECT 
+        u.id, u.email, u.password, u.role, u.phone_number,
+        bp.company_name, bp.website, bp.industry, bp.company_size, bp.gst_id, bp.location as brand_location,
+        cp.name, cp.niche, cp.instagram_link, cp.youtube_link, cp.portfolio_link, cp.follower_count, cp.bio, cp.budget_range, cp.audience_breakdown, cp.collaboration_goals, cp.engagement_rate
+       FROM users u
+       LEFT JOIN brand_profiles bp ON u.id = bp.user_id 
+       LEFT JOIN creator_profiles cp ON u.id = cp.user_id 
+       WHERE u.email = $1`,
       [email]
     );
 
@@ -414,8 +421,21 @@ const login = async (c) => {
       email: user.email,
       role: user.role,
       phone_number: user.phone_number,
-      company_name: user.company_name, // If brand
-      name: user.name // If creator
+      // Brand fields
+      company_name: user.company_name,
+      website: user.website,
+      industry: user.industry,
+      company_size: user.company_size,
+      gst_id: user.gst_id,
+      location: user.brand_location,
+      // Creator fields
+      name: user.name,
+      niche: user.niche,
+      instagram_link: user.instagram_link,
+      youtube_link: user.youtube_link,
+      portfolio_link: user.portfolio_link,
+      follower_count: user.follower_count,
+      bio: user.bio
     };
 
     console.log('✅ DEBUG: Login successful for user:', user.id);

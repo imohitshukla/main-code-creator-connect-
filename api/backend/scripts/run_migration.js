@@ -1,38 +1,35 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { client } from '../config/database.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 async function runMigration() {
+  console.log('🚀 Starting Crash-Proof Migration...');
+
   try {
-    console.log('🚀 Running brand_profiles migration...');
-    
-    // Read the SQL migration file
-    const migrationPath = path.join(process.cwd(), 'backend/scripts/migration_create_brand_profiles.sql');
-    const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-    
-    // Execute the migration
-    await client.query(migrationSQL);
-    
-    console.log('✅ Brand profiles table created successfully!');
-    
-    // Verify the table was created
-    const result = await client.query(`
-      SELECT column_name, data_type, is_nullable 
-      FROM information_schema.columns 
-      WHERE table_name = 'brand_profiles' 
-      ORDER BY ordinal_position
-    `);
-    
-    console.log('\n📋 Brand profiles table structure:');
-    console.table(result.rows);
-    
+    const migrationPath = path.join(__dirname, '../migrations/001_crash_proof_profiles.sql');
+    const sql = fs.readFileSync(migrationPath, 'utf8');
+
+    console.log('📖 Reading migration file:', migrationPath);
+
+    // Connect to DB
+    await client.connect();
+    console.log('🔌 Connected to database.');
+
+    // Run SQL
+    await client.query(sql);
+    console.log('✅ Migration executed successfully!');
+
   } catch (error) {
     console.error('❌ Migration failed:', error);
-    throw error;
   } finally {
+    // Close connection
     await client.end();
+    console.log('👋 Connection closed.');
   }
 }
 
-// Run the migration
-runMigration().catch(console.error);
+runMigration();
