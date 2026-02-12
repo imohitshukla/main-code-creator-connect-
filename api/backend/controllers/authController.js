@@ -791,6 +791,35 @@ const resetPassword = async (c) => {
   }
 };
 
+// Logout - Clear Cookies
+const logout = async (c) => {
+  try {
+    // 🛡️ NUCLEAR COOKIE CLEARING
+    const host = c.req.header('host') || '';
+    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
+
+    // 1. Hono deleteCookie helper
+    try {
+      const { deleteCookie } = await import('hono/cookie');
+      deleteCookie(c, 'auth_token', {
+        path: '/',
+        secure: true,
+        sameSite: 'None',
+        domain: isProduction ? '.creatorconnect.tech' : undefined
+      });
+    } catch (e) { console.error('Hono delete failed', e); }
+
+    // 2. Manual Header Nuke
+    const clearCookieValue = `auth_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+    c.header('Set-Cookie', clearCookieValue);
+
+    return c.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    return c.json({ error: 'Logout failed' }, 500);
+  }
+};
+
 export {
   registerCreator,
   registerBrand,
@@ -800,7 +829,8 @@ export {
   sendOtp,
   verifyOtp,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  logout
 };
 
 
