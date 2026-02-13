@@ -1,25 +1,27 @@
 import { client } from './config/database.js';
 
-async function inspectConstraints() {
+async function inspectUsers() {
     try {
         const res = await client.query(`
-      SELECT conname, contype, pg_get_constraintdef(oid)
-      FROM pg_constraint
-      WHERE conrelid = 'brand_profiles'::regclass;
+      SELECT column_name, data_type, udt_name
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'role';
     `);
 
-        console.log('Constraints on brand_profiles:');
-        if (res.rows.length === 0) {
-            console.log('No constraints found.');
+        console.log('Role column in users:', res.rows[0]);
+
+        if (res.rows[0].udt_name === 'user_role') {
+            const enumRes = await client.query(`
+            SELECT unnest(enum_range(NULL::user_role)) as value
+        `);
+            console.log('Enum user_role values:', enumRes.rows.map(r => r.value));
         }
-        res.rows.forEach(row => {
-            console.log(`- ${row.conname} (${row.contype}): ${row.pg_get_constraintdef}`);
-        });
+
     } catch (err) {
-        console.error('Error inspecting constraints:', err);
+        console.error('Error inspecting users:', err);
     } finally {
         client.end();
     }
 }
 
-inspectConstraints();
+inspectUsers();

@@ -31,13 +31,13 @@ export const createBrandProfile = async (c) => {
     const result = await pool.query(query, values);
 
     // 3. Update the Role in Users table (Just to be safe)
-    await pool.query(`UPDATE users SET role = 'BRAND' WHERE id = $1`, [user.id]);
+    await pool.query(`UPDATE users SET role = 'brand' WHERE id = $1`, [user.id]);
 
     // 4. Return the Combined User Data
     // We send this back so the Frontend AuthContext updates immediately
     const updatedUser = {
       ...user,
-      role: 'BRAND',
+      role: 'brand',
       brand_details: result.rows[0]
     };
 
