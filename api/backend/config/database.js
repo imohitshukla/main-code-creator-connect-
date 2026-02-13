@@ -15,10 +15,10 @@ const poolConfig = process.env.DATABASE_URL
     connectionString: process.env.DATABASE_URL,
     ssl:
       isProduction || process.env.DATABASE_URL.includes('render.com') || process.env.DATABASE_URL.includes('neon.tech')
-        ? { 
-            rejectUnauthorized: false,
-            sslmode: 'require' // 🚨 FIX: Use explicit SSL mode to silence warnings
-          }
+        ? {
+          rejectUnauthorized: false,
+          sslmode: 'require' // 🚨 FIX: Use explicit SSL mode to silence warnings
+        }
         : false,
     connectionTimeoutMillis: 30000, // Increased to 30s for cold starts
     idleTimeoutMillis: 30000,
@@ -31,7 +31,7 @@ const poolConfig = process.env.DATABASE_URL
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-    ssl: isProduction || (process.env.DB_HOST && (process.env.DB_HOST.includes('render') || process.env.DB_HOST.includes('neon'))) ? { 
+    ssl: isProduction || (process.env.DB_HOST && (process.env.DB_HOST.includes('render') || process.env.DB_HOST.includes('neon'))) ? {
       rejectUnauthorized: false,
       sslmode: 'require' // 🚨 FIX: Use explicit SSL mode to silence warnings
     } : false,
@@ -60,4 +60,4 @@ client
     // Optional: process.exit(1) if DB is critical for startup
   });
 
-export { client };
+export { client, client as pool };
