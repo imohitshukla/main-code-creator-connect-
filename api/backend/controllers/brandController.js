@@ -49,7 +49,7 @@ export const createBrandProfile = async (c) => {
 
   } catch (error) {
     console.error('Error creating brand profile:', error);
-    return c.json({ error: 'Server error saving profile' }, 500);
+    return c.json({ error: 'Server error saving profile', details: error.message, stack: error.stack }, 500);
   }
 };
 
