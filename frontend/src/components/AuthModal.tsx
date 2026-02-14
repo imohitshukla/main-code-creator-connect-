@@ -553,13 +553,14 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone Number (Optional)</Label>
+                  <Label htmlFor="signup-phone">Phone Number *</Label>
                   <Input
                     id="signup-phone"
                     type="tel"
                     placeholder="+1234567890"
                     value={signupData.phone_number}
                     onChange={(e) => setSignupData(prev => ({ ...prev, phone_number: e.target.value }))}
+                    required
                   />
                 </div>
 
