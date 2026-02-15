@@ -39,4 +39,12 @@ const authMiddleware = async (c, next) => {
   }
 };
 
-export { authMiddleware };
+const requireRole = (role) => async (c, next) => {
+  const userRole = c.get('userRole');
+  if (userRole !== role) {
+    return c.json({ error: 'Forbidden - Insufficient permissions' }, 403);
+  }
+  await next();
+};
+
+export { authMiddleware, requireRole };

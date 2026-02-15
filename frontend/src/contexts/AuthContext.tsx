@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers['Authorization'] = `Bearer ${storedToken}`;
         }
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+        const res = await fetch('http://localhost:5000/api/auth/me', {
           method: 'GET',
           headers: headers,
           credentials: 'include',
@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('intended_role'); // Clean up partial states
     setUser(null);
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
+      await fetch('http://localhost:5000/api/auth/logout', {
         method: 'POST',
         credentials: 'include' // 🛡️ CRITICAL: Allow verifying/modifying cookies
       });

@@ -1,188 +1,130 @@
-import { client } from '../config/database.js';
+import { pool } from '../config/database.js';
 
-export const getCampaigns = async (c) => {
-  try {
-    const campaigns = await client.query(`
-      SELECT c.id, c.title, c.description, c.budget_range, c.niche, c.status, c.created_at,
-             c.brand_id, bp.company_name as brand_name, bp.user_id as brand_user_id
-      FROM campaigns c
-      JOIN brand_profiles bp ON c.brand_id = bp.id
-      ORDER BY c.created_at DESC
-    `);
-    return c.json({ campaigns: campaigns.rows });
-  } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to fetch campaigns' }, 500);
-  }
-};
-
+// Create a new campaign
 export const createCampaign = async (c) => {
   try {
-    const userId = c.get('userId');
-    const { title, description, budget_range, niche, is_urgent, is_featured } = await c.req.json();
+    const user = c.get('user');
+    const {
+      title,
+      product_type,
+      budget_range,
+      description,
+      requirements,
+      is_urgent = false,
+      is_featured = false
+    } = await c.req.json();
 
-    // Get brand_id from brand_profiles
-    const brandProfile = await client.query(
-      'SELECT id FROM brand_profiles WHERE user_id = $1',
-      [userId]
-    );
-
-    if (brandProfile.rows.length === 0) {
-      return c.json({ error: 'Brand profile not found. Please complete your profile first.' }, 400);
+    // 1. Validate Input
+    if (!title || !product_type) {
+      return c.json({ error: 'Title and Product Type are required' }, 400);
     }
 
-    const brandId = brandProfile.rows[0].id;
+    // 2. Get Brand ID from Brand Profile
+    // We need to link the campaign to the BRAND PROFILE, not just the user.
+    const brandRes = await pool.query('SELECT id FROM brand_profiles WHERE user_id = $1', [user.id]);
 
-    const result = await client.query(`
-      INSERT INTO campaigns (brand_id, title, description, budget_range, niche)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, title, description, budget_range, niche, status, created_at
-    `, [brandId, title, description, budget_range, niche]);
+    if (brandRes.rows.length === 0) {
+      return c.json({ error: 'Brand profile not found. Please complete onboarding.' }, 404);
+    }
+    const brandId = brandRes.rows[0].id;
 
-    return c.json({ campaign: result.rows[0] });
-  } catch (error) {
-    console.error("Create Campaign Error:", error);
+    // 3. Insert Campaign
+    const query = `
+      INSERT INTO campaigns (brand_id, title, product_type, budget_range, description, requirements, is_urgent, is_featured, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE')
+      RETURNING *;
+    `;
+    const values = [brandId, title, product_type, budget_range, description, requirements, is_urgent, is_featured];
+    const result = await pool.query(query, values);
+
     return c.json({
-      error: 'Failed to create campaign',
-      details: error.message,
-      stack: error.stack
-    }, 500);
+      success: true,
+      campaign: result.rows[0]
+    }, 201);
+
+  } catch (error) {
+    console.error('Error creating campaign:', error);
+    return c.json({ error: 'Server error creating campaign' }, 500);
   }
 };
 
-export const applyToCampaign = async (c) => {
+// Get all campaigns for the logged-in brand
+export const getBrandCampaigns = async (c) => {
   try {
-    const campaignId = c.req.param('id');
-    const userId = c.get('userId');
-    const userRole = c.get('userRole');
-    const { proposal_text } = await c.req.json();
+    const user = c.get('user');
 
-    if (userRole !== 'creator') {
-      return c.json({ error: 'Only creators can apply to campaigns' }, 403);
+    // 1. Get Brand ID
+    const brandRes = await pool.query('SELECT id FROM brand_profiles WHERE user_id = $1', [user.id]);
+    if (brandRes.rows.length === 0) {
+      return c.json({ campaigns: [] }); // No profile = no campaigns
     }
+    const brandId = brandRes.rows[0].id;
 
-    // Get creator_id from creator_profiles
-    const creatorProfile = await client.query(
-      'SELECT id, name FROM creator_profiles WHERE user_id = $1',
-      [userId]
-    );
+    // 2. Fetch Campaigns
+    const query = `
+      SELECT * FROM campaigns 
+      WHERE brand_id = $1 
+      ORDER BY created_at DESC;
+    `;
+    const result = await pool.query(query, [brandId]);
 
-    if (creatorProfile.rows.length === 0) {
-      return c.json({ error: 'Creator profile not found. Please complete your profile first.' }, 400);
-    }
+    return c.json({ campaigns: result.rows });
 
-    const creatorId = creatorProfile.rows[0].id;
-    const creatorName = creatorProfile.rows[0].name;
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    return c.json({ error: 'Server error fetching campaigns' }, 500);
+  }
+};
 
-    // Check if already applied
-    const existingProposal = await client.query(
-      'SELECT id FROM proposals WHERE campaign_id = $1 AND creator_id = $2',
-      [campaignId, creatorId]
-    );
-
-    if (existingProposal.rows.length > 0) {
-      return c.json({ error: 'You have already applied to this campaign' }, 400);
-    }
-
-    const result = await client.query(`
-      INSERT INTO proposals (campaign_id, creator_id, proposal_text)
-      VALUES ($1, $2, $3)
-      RETURNING id, proposal_text, status, created_at
-    `, [campaignId, creatorId, proposal_text]);
-
-    // Get brand owner's user_id for notification
-    const campaign = await client.query(`
-      SELECT bp.user_id 
+// Get ALL active campaigns (Marketplace)
+export const getAllCampaigns = async (c) => {
+  try {
+    // 1. Fetch Active Campaigns
+    // Join with brand_profiles to get company name if needed
+    const query = `
+      SELECT c.*, bp.company_name as brand_name, c.brand_id as brand_profile_id, bp.user_id as brand_user_id
       FROM campaigns c
       JOIN brand_profiles bp ON c.brand_id = bp.id
-      WHERE c.id = $1
-    `, [campaignId]);
+      WHERE c.status = 'ACTIVE'
+      ORDER BY c.is_featured DESC, c.created_at DESC;
+    `;
+    const result = await pool.query(query);
 
-    if (campaign.rows.length > 0) {
-      const brandUserId = campaign.rows[0].user_id;
-      // Create notification for brand
-      await client.query(`
-        INSERT INTO notifications (user_id, type, message, related_id)
-        VALUES ($1, 'application', $2, $3)
-      `, [brandUserId, `New application from ${creatorName}`, campaignId]);
-    }
+    return c.json({ campaigns: result.rows });
 
-    return c.json({ proposal: result.rows[0] });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to apply to campaign' }, 500);
+    console.error('Error fetching all campaigns:', error);
+    return c.json({ error: 'Server error fetching all campaigns' }, 500);
   }
 };
 
-export const getCampaignDashboard = async (c) => {
+// Delete a campaign
+export const deleteCampaign = async (c) => {
   try {
-    const userId = c.get('userId');
-    const userRole = c.get('userRole');
-
-    if (userRole === 'brand') {
-      // Brand dashboard: campaigns, proposals, analytics
-      const campaigns = await client.query(`
-        SELECT c.id, c.title, c.status, COUNT(p.id) as proposal_count,
-               AVG(a.engagement_rate) as avg_engagement, AVG(a.roi) as avg_roi
-        FROM campaigns c
-        LEFT JOIN proposals p ON c.id = p.campaign_id
-        LEFT JOIN analytics a ON c.id = a.campaign_id
-        WHERE c.brand_id = (SELECT id FROM brand_profiles WHERE user_id = $1)
-        GROUP BY c.id, c.title, c.status
-      `, [userId]);
-
-      return c.json({ dashboard: campaigns.rows });
-    } else if (userRole === 'creator') {
-      // Creator dashboard: applied campaigns, analytics
-      const applications = await client.query(`
-        SELECT c.id, c.title, p.status as proposal_status, a.engagement_rate, a.roi
-        FROM campaigns c
-        JOIN proposals p ON c.id = p.campaign_id
-        LEFT JOIN analytics a ON c.id = a.campaign_id AND p.creator_id = a.creator_id
-        WHERE p.creator_id = (SELECT id FROM creator_profiles WHERE user_id = $1)
-      `, [userId]);
-
-      return c.json({ dashboard: applications.rows });
-    }
-
-    return c.json({ error: 'Invalid role' }, 403);
-  } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to fetch dashboard' }, 500);
-  }
-};
-
-export const updateCampaignProgress = async (c) => {
-  try {
+    const user = c.get('user');
     const campaignId = c.req.param('id');
-    const userId = c.get('userId');
-    const { status, kpis } = await c.req.json();
 
-    // Verify ownership
-    const campaign = await client.query(`
-      SELECT brand_id FROM campaigns WHERE id = $1
-    `, [campaignId]);
+    // 1. Verify Ownership
+    // Ensure the campaign belongs to a brand profile owned by this user
+    const checkQuery = `
+      SELECT c.id 
+      FROM campaigns c
+      JOIN brand_profiles bp ON c.brand_id = bp.id
+      WHERE c.id = $1 AND bp.user_id = $2
+    `;
+    const checkRes = await pool.query(checkQuery, [campaignId, user.id]);
 
-    if (campaign.rows[0].brand_id !== (await client.query(`SELECT id FROM brand_profiles WHERE user_id = $1`, [userId])).rows[0].id) {
-      return c.json({ error: 'Unauthorized' }, 403);
+    if (checkRes.rows.length === 0) {
+      return c.json({ error: 'Campaign not found or unauthorized' }, 404);
     }
 
-    await client.query(`
-      UPDATE campaigns SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
-    `, [status, campaignId]);
+    // 2. Delete
+    await pool.query('DELETE FROM campaigns WHERE id = $1', [campaignId]);
 
-    // Update analytics if KPIs provided
-    if (kpis) {
-      await client.query(`
-        INSERT INTO analytics (campaign_id, metrics, updated_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP)
-        ON CONFLICT (campaign_id) DO UPDATE SET metrics = EXCLUDED.metrics, updated_at = CURRENT_TIMESTAMP
-      `, [campaignId, JSON.stringify(kpis)]);
-    }
+    return c.json({ success: true, message: 'Campaign deleted' });
 
-    return c.json({ message: 'Campaign updated successfully' });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to update campaign' }, 500);
+    console.error('Error deleting campaign:', error);
+    return c.json({ error: 'Server error deleting campaign' }, 500);
   }
 };

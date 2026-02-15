@@ -3,8 +3,9 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import authRoutes from '../../routes/auth.js';
+import userRoutes from '../../routes/users.js';
 import creatorRoutes from '../../routes/creators.js';
-import campaignRoutes from '../../routes/campaigns.js';
+import campaignRoutes from '../../routes/campaignRoutes.js';
 import aiRoutes from './routes/ai.js';
 import messageRoutes from '../../routes/messages.js';
 import mediaKitRoutes from '../../routes/mediakits.js';
@@ -39,6 +40,7 @@ app.use('*', logger());
 
 // Routes
 app.route('/api/auth', authRoutes);
+app.route('/api/users', userRoutes);
 app.route('/api/creators', creatorRoutes);
 app.route('/api/campaigns', campaignRoutes);
 app.route('/api/ai', aiRoutes);

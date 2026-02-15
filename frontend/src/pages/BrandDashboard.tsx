@@ -1,141 +1,123 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react';
+import ActiveCampaignsTable from '../components/dashboard/ActiveCampaignsTable';
+import CreateCampaignModal from '../components/dashboard/CreateCampaignModal';
 
 const BrandDashboard: React.FC = () => {
   const { user } = useAuth();
-  const pastCampaigns: any[] = []; // Mock data to prevent build error
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    activeCount: 0,
+    totalApplicants: 0,
+    totalSpent: 0
+  });
+
+  const fetchCampaigns = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('http://localhost:5000/api/campaigns/my-campaigns', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.campaigns) {
+        setCampaigns(data.campaigns);
+        // Calculate simple metrics
+        const active = data.campaigns.filter((c: any) => c.status === 'ACTIVE').length;
+        setMetrics(prev => ({ ...prev, activeCount: active }));
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this campaign?')) return;
+    try {
+      const token = localStorage.getItem('auth_token');
+      await fetch(`http://localhost:5000/api/campaigns/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      fetchCampaigns(); // Refresh
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Brand Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back, {user?.name || user?.email}!</p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Brand Dashboard</h1>
+            <p className="text-gray-600 mt-2">Welcome back, {user?.name || user?.email}!</p>
+          </div>
+          <CreateCampaignModal onCampaignCreated={fetchCampaigns} />
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{metrics.activeCount}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Creators</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Applicants</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{metrics.totalApplicants}</div>
+              <p className="text-xs text-muted-foreground mt-1 text-gray-400">
+                (Coming in Phase 2)
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.2%</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">ROI</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">186%</div>
+              <div className="text-2xl font-bold">${metrics.totalSpent}</div>
+              <p className="text-xs text-muted-foreground mt-1 text-gray-400">
+                (Coming in Phase 4)
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Campaigns */}
-        <Card>
+        {/* Active Campaigns Table */}
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Recent Campaigns</CardTitle>
+            <CardTitle>Your Campaigns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">Summer Collection Launch</h3>
-                  <p className="text-sm text-gray-600">5 creators engaged</p>
-                </div>
-                <Badge className="bg-green-500">Active</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">Brand Awareness Campaign</h3>
-                  <p className="text-sm text-gray-600">8 creators engaged</p>
-                </div>
-                <Badge className="bg-yellow-500">Pending</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">Product Launch Campaign</h3>
-                  <p className="text-sm text-gray-600">3 creators engaged</p>
-                </div>
-                <Badge className="bg-blue-500">Planning</Badge>
-              </div>
-            </div>
-
-            <Button className="w-full mt-4">View All Campaigns</Button>
+            <ActiveCampaignsTable
+              campaigns={campaigns}
+              isLoading={isLoading}
+              onDelete={handleDelete}
+            />
           </CardContent>
         </Card>
       </div>
-
-
-      {/* Past Campaigns */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Past Campaigns</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {pastCampaigns.length === 0 ? (
-              <p className="text-muted-foreground">No past campaigns</p>
-            ) : (
-              pastCampaigns.map((campaign) => (
-                <div key={campaign.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{campaign.title}</h3>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Creator:</span>
-                        <span className="text-sm font-medium">{campaign.creator_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Performance:</span>
-                        <span className="text-sm">Views: {campaign.views?.toLocaleString()}</span>
-                        <span className="text-sm">CTR: {campaign.ctr?.toFixed(2)}%</span>
-                        <span className="text-sm">ROI: ${campaign.roi?.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={`/messages?campaign=${campaign.id}`}>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Messages
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

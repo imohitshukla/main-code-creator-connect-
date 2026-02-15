@@ -5,7 +5,7 @@ import { logger } from 'hono/logger';
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
 import brandRoutes from './routes/brands.js';
-import campaignRoutes from './routes/campaigns.js';
+import campaignRoutes from './routes/campaignRoutes.js';
 import aiRoutes from './src/backend/routes/ai.js';
 import messageRoutes from './routes/messages.js';
 import mediaKitRoutes from './routes/mediakits.js';
@@ -23,7 +23,7 @@ const app = new Hono();
 // --- 🚀 UNIVERSAL CORS FIX ---
 // This allows the frontend to connect from ANY verified domain (Vercel, Custom Domain, etc.)
 app.use('*', cors({
-  origin: true, // Dynamic allow: automatically reflects the requesting origin
+  origin: (origin) => origin || '*',
   credentials: true, // Essential for cookies/sessions
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

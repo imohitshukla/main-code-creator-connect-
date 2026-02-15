@@ -22,6 +22,7 @@ const CampaignPage = () => {
   const [formData, setFormData] = useState({
     companyName: '',
     title: '',
+    product_type: 'UGC',
     description: '',
     budget: '',
     requirements: '',
@@ -124,9 +125,10 @@ const CampaignPage = () => {
         },
         body: JSON.stringify({
           title: formData.title,
+          product_type: formData.product_type,
           description: formData.description,
           budget_range: formData.budget, // Send as string/varchar
-          niche: formData.requirements,
+          requirements: formData.requirements,
           is_urgent: formData.isUrgent,
           is_featured: formData.isFeatured
         })
@@ -141,6 +143,7 @@ const CampaignPage = () => {
         setFormData({
           companyName: '',
           title: '',
+          product_type: 'UGC',
           description: '',
           budget: '',
           requirements: '',
@@ -385,6 +388,25 @@ const CampaignPage = () => {
                     required
                     className="bg-background border-border focus:border-primary"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="product_type" className="text-sm font-medium">
+                    Campaign Type *
+                  </Label>
+                  <select
+                    id="product_type"
+                    name="product_type"
+                    value={formData.product_type}
+                    onChange={(e) => setFormData({ ...formData, product_type: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="UGC">UGC</option>
+                    <option value="Reels">Reels</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
