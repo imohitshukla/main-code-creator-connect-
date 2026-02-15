@@ -92,6 +92,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
         description: 'Welcome back!',
       });
       onClose();
+      navigate('/dashboard'); // 🔄 FORCE REDIRECT TO DASHBOARD
     } catch (error) {
       toast({
         title: 'Login failed',

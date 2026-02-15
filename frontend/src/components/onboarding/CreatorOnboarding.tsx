@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ const CreatorOnboarding = () => {
         primary_niche: '',
         primary_location: '',
         bio: '',
+        avatar: '', // New field for profile picture
         professional_email: '', // New field
         phone_number: '',       // New field
 
@@ -38,6 +39,9 @@ const CreatorOnboarding = () => {
         audience_breakdown: '',
         collaboration_goals: ''
     });
+
+    // File input ref
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const nicheOptions = [
         'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Music', 'Lifestyle', 'Travel', 'Food'
@@ -69,6 +73,7 @@ const CreatorOnboarding = () => {
                             primary_niche: profile.niche || '',
                             primary_location: profile.location || '',
                             bio: profile.bio || '',
+                            avatar: profile.avatar || profile.image || '', // Populate avatar
                             // ... other fields
                         }));
                     }
@@ -87,6 +92,50 @@ const CreatorOnboarding = () => {
 
     const handleNicheSelect = (niche: string) => {
         setFormData(prev => ({ ...prev, primary_niche: niche }));
+    };
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show loading state or toast
+        const loadingToast = toast({
+            title: "Uploading...",
+            description: "Please wait while we upload your image.",
+        });
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const url = `${import.meta.env.VITE_API_URL || ''}/api/upload/image`;
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFormData(prev => ({ ...prev, avatar: data.url }));
+                toast({
+                    title: "Success",
+                    description: "Profile picture uploaded!",
+                });
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (error) {
+            console.error("Upload error", error);
+            toast({
+                title: "Error",
+                description: "Failed to upload image. Please try again.",
+                variant: "destructive"
+            });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -149,16 +198,30 @@ const CreatorOnboarding = () => {
 
                     {/* Avatar Upload Placeholder */}
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="relative group cursor-pointer">
-                            <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
-                                {/* Placeholder Image or User Icon */}
-                                <User className="h-16 w-16 text-gray-300" />
+                        <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                            <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center relative">
+                                {formData.avatar ? (
+                                    <img
+                                        src={formData.avatar.startsWith('/') ? `${import.meta.env.VITE_API_URL}${formData.avatar}` : formData.avatar}
+                                        alt="Profile"
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <User className="h-16 w-16 text-gray-300" />
+                                )}
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span className="text-white text-xs font-medium">Upload</span>
                                 </div>
                             </div>
                         </div>
                         <p className="text-sm text-gray-500">Click to upload your profile picture</p>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
                     </div>
 
                     <form onSubmit={handleSubmit}>
@@ -232,8 +295,8 @@ const CreatorOnboarding = () => {
                                                 type="button"
                                                 onClick={() => handleNicheSelect(niche)}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.primary_niche === niche
-                                                        ? 'bg-gray-900 text-white shadow-md transform scale-105'
-                                                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                                    ? 'bg-gray-900 text-white shadow-md transform scale-105'
+                                                    : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                                                     }`}
                                             >
                                                 {niche}

@@ -7,19 +7,19 @@ const { User, CreatorProfile, BrandProfile } = require('../models/index.cjs');
 export const getDashboard = async (c) => {
   try {
     const userId = c.get('userId');
-    
+
     // Get user role
     const userResult = await client.query(
       'SELECT role FROM users WHERE id = $1',
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       return c.json({ error: 'User not found' }, 404);
     }
-    
+
     const user = userResult.rows[0];
-    
+
     if (user.role === 'creator') {
       return await getCreatorDashboard(c, userId);
     } else if (user.role === 'brand') {
@@ -42,12 +42,12 @@ const getCreatorDashboard = async (c, userId) => {
         cp.*,
         u.name as user_name,
         u.email,
-        u.image as avatar
+        u.avatar as avatar
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.user_id = $1
     `, [userId]);
-    
+
     // Get creator's active deals
     const dealsResult = await client.query(`
       SELECT 
@@ -61,13 +61,13 @@ const getCreatorDashboard = async (c, userId) => {
       ORDER BY d.created_at DESC
       LIMIT 5
     `, [userId]);
-    
+
     // Get creator's recent messages
     const messagesResult = await client.query(`
       SELECT 
         m.*,
         u.name as sender_name,
-        u.image as sender_avatar
+        u.avatar as sender_avatar
       FROM messages m
       JOIN conversations conv ON m.conversation_id = conv.id
       JOIN users u ON m.sender_id = u.id
@@ -76,9 +76,9 @@ const getCreatorDashboard = async (c, userId) => {
       ORDER BY m.created_at DESC
       LIMIT 5
     `, [userId]);
-    
+
     const profile = profileResult.rows[0] || {};
-    
+
     return c.json({
       role: 'creator',
       profile: {
@@ -129,7 +129,7 @@ const getBrandDashboard = async (c, userId) => {
       JOIN users u ON bp.user_id = u.id
       WHERE bp.user_id = $1
     `, [userId]);
-    
+
     // Get brand's active campaigns
     const campaignsResult = await client.query(`
       SELECT 
@@ -142,22 +142,22 @@ const getBrandDashboard = async (c, userId) => {
       ORDER BY c.created_at DESC
       LIMIT 5
     `, [userId]);
-    
+
     // Get brand's recent deal activity
     const dealsResult = await client.query(`
       SELECT 
         d.*,
         u.name as creator_name,
-        u.image as creator_avatar
+        u.avatar as creator_avatar
       FROM deals d
       JOIN users u ON d.creator_id = u.id
       WHERE d.brand_id = $1
       ORDER BY d.created_at DESC
       LIMIT 5
     `, [userId]);
-    
+
     const profile = profileResult.rows[0] || {};
-    
+
     return c.json({
       role: 'brand',
       profile: {
@@ -200,18 +200,18 @@ const getBrandDashboard = async (c, userId) => {
 export const getOnboardingFlow = async (c) => {
   try {
     const userId = c.get('userId');
-    
+
     const userResult = await client.query(
       'SELECT role FROM users WHERE id = $1',
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       return c.json({ error: 'User not found' }, 404);
     }
-    
+
     const user = userResult.rows[0];
-    
+
     if (user.role === 'creator') {
       return c.json({
         role: 'creator',

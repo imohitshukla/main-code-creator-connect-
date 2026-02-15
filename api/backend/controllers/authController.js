@@ -320,7 +320,7 @@ const login = async (c) => {
     // Find user with FULL PROFILE DATA
     const userResult = await client.query(
       `SELECT 
-        u.id, u.email, u.password, u.role, u.phone_number,
+        u.id, u.email, u.password, u.role, u.phone_number, u.avatar,
         bp.company_name, bp.website, bp.industry,
         cp.name, cp.niche, cp.instagram_link, cp.youtube_link, cp.portfolio_link, cp.follower_count, cp.bio, cp.budget_range, cp.audience_breakdown, cp.collaboration_goals, cp.engagement_rate
        FROM users u
@@ -421,6 +421,7 @@ const login = async (c) => {
       email: user.email,
       role: user.role,
       phone_number: user.phone_number,
+      avatar: user.avatar,
       // Brand fields
       company_name: user.company_name,
       website: user.website,

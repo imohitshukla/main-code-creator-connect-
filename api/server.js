@@ -24,6 +24,8 @@ import brandRoutes from './backend/routes/brands.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
+// 🔄 SERVER RESTART TRIGGER: Added upload routes debugging
+console.log('🚀 Server starting... Upload routes registered at /api/upload');
 
 // 🛡️ PROFESSIONAL: Add comprehensive request logging for debugging
 app.use('*', async (c, next) => {
@@ -196,6 +198,14 @@ app.route('/api/deals', dealRoutes);
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/brands', brandRoutes);
+
+// File Uploads
+import uploadRoutes from './backend/routes/uploadRoutes.js';
+app.route('/api/upload', uploadRoutes);
+
+// Serve Static Files (Uploads)
+import { serveStatic } from '@hono/node-server/serve-static';
+app.use('/uploads/*', serveStatic({ root: './' }));
 
 // Health check endpoint
 app.get('/api/health', (c) => {

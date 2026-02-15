@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { getCookie } from 'hono/cookie';
+import { client } from '../config/database.js';
 
 const authMiddleware = async (c, next) => {
   try {
@@ -26,11 +27,25 @@ const authMiddleware = async (c, next) => {
 
     // 🔓 Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    c.set('userId', decoded.id);
-    c.set('userRole', decoded.role);
-    c.set('user', decoded); // Set full user object if needed, or at least consistent with expectation
-    c.set('isAdmin', decoded.role === 'admin');
-    console.log('✅ AUTH: Token verified successfully for user:', decoded.id);
+
+    // 🔍 FETCH FULL USER FROM DB (Crucial for avatar, updated roles, etc.)
+    const userResult = await client.query(
+      'SELECT id, email, role, name, username, avatar, company_name, phone_number, portfolio_link FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      console.log('❌ Auth Failed: User not found in DB');
+      return c.json({ error: 'Unauthorized - User not found' }, 401);
+    }
+
+    const user = userResult.rows[0];
+
+    c.set('userId', user.id);
+    c.set('userRole', user.role);
+    c.set('user', user); // Set full user object
+    c.set('isAdmin', user.role === 'admin');
+    console.log('✅ AUTH: Token verified for user:', user.email);
     await next();
 
   } catch (error) {
