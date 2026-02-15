@@ -8,7 +8,7 @@ import { client } from './backend/config/database.js';
 // Route Imports
 import authRoutes from './backend/routes/auth.js';
 import creatorRoutes from './backend/routes/creators.js';
-import campaignRoutes from './backend/routes/campaigns.js';
+import campaignRoutes from './backend/routes/campaignRoutes.js';
 import aiRoutes from './backend/routes/ai.js';
 import messageRoutes from './backend/routes/messages.js';
 import mediaKitRoutes from './backend/routes/mediakits.js';
