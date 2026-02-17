@@ -1,0 +1,11 @@
+{
+  "brand": {
+    "email": "brand_ui_1771349369086@test.com",
+    "password": "password123"
+  },
+  "creator": {
+    "email": "creator_ui_1771349369086@test.com",
+    "password": "password123"
+  },
+  "dealId": 8
+}

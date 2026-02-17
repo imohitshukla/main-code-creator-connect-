@@ -27,6 +27,8 @@ const EducationHub = lazy(() => import("./pages/EducationHub"));
 const BrandDashboard = lazy(() => import("./pages/BrandDashboard"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection")); // 🆕 Post-Login Role Selection
+const MyDeals = lazy(() => import("./pages/MyDeals"));
+const DealDetails = lazy(() => import("./pages/DealDetails"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,6 +100,10 @@ const App = () => (
                 {/* Aliases for user-friendly URLs */}
                 <Route path="/dashboard" element={<Suspense fallback={<PageFallback />}><Dashboard /></Suspense>} />
                 <Route path="/profile" element={<Suspense fallback={<PageFallback />}><ProfileSetup /></Suspense>} />
+
+                {/* Deal Tracker Routes */}
+                <Route path="/my-deals" element={<Suspense fallback={<PageFallback />}><MyDeals /></Suspense>} />
+                <Route path="/deals/:id" element={<Suspense fallback={<PageFallback />}><DealDetails /></Suspense>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

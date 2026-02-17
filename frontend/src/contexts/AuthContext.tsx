@@ -11,6 +11,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null; // 🆕 Expose token
   isLoading: boolean;
   login: (data: any) => void;
   logout: () => void;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('auth_token')); // 🆕 State for token
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const storedToken = localStorage.getItem('auth_token');
+        setToken(storedToken); // Sync state
 
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (storedToken) {
@@ -47,9 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (res.ok) {
           const data = await res.json();
+          // Normalize role to Uppercase
+          if (data.user && data.user.role) {
+            data.user.role = data.user.role.toUpperCase();
+          }
           setUser(data.user);
         } else {
-          if (res.status === 401) localStorage.removeItem('auth_token');
+          if (res.status === 401) {
+            localStorage.removeItem('auth_token');
+            setToken(null);
+          }
           setUser(null);
         }
       } catch (error) {
@@ -66,8 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (data: any) => {
     // CRITICAL DEBUGGING: Let's see what we're receiving
     console.log('🔍 LOGIN DEBUG: Login data received:', data);
-    console.log('🔍 LOGIN DEBUG: data.token:', data.token);
-    console.log('🔍 LOGIN DEBUG: data.user?.token:', data.user?.token);
 
     // 🛡️ CLEAR LOGOUT FLAG
     localStorage.removeItem('explicit_logout');
@@ -76,23 +84,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const tokenToSave = data.user?.token || data.token;
     if (tokenToSave) {
       localStorage.setItem('auth_token', tokenToSave);
+      setToken(tokenToSave); // Update state
       console.log('✅ LOGIN DEBUG: Token saved:', tokenToSave.substring(0, 20) + '...');
     } else {
       console.log('❌ LOGIN DEBUG: NO TOKEN FOUND IN LOGIN DATA!');
-      console.log('❌ LOGIN DEBUG: Full data object:', JSON.stringify(data, null, 2));
     }
 
-    // 🚨 EMERGENCY: Verify it was saved
-    const savedToken = localStorage.getItem('auth_token');
-    console.log('🔍 LOGIN DEBUG: Token verification - savedToken:', savedToken ? savedToken.substring(0, 20) + '...' : 'NULL');
-
     // 🚨 EMERGENCY: Force user state update
-    setUser(data.user || data);
+    const userObj = data.user || data;
+    // Normalize role
+    if (userObj && userObj.role) {
+      userObj.role = userObj.role.toUpperCase();
+    }
+    setUser(userObj);
     setIsLoading(false);
-
-    // 🚨 EMERGENCY: Immediate verification
-    console.log('🔍 LOGIN DEBUG: User state set to:', data.user || data);
-    console.log('🔍 LOGIN DEBUG: isLoading set to: false');
   };
 
   const logout = async () => {
@@ -101,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('auth_token');
     localStorage.removeItem('intended_role'); // Clean up partial states
     setUser(null);
+    setToken(null);
     try {
       await fetch('http://localhost:5000/api/auth/logout', {
         method: 'POST',
@@ -129,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUserRole }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUserRole }}>
       {children}
     </AuthContext.Provider>
   );

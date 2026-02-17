@@ -404,6 +404,7 @@ export const verifyCreator = async (c) => {
 };
 
 // 6. GET VERIFIED CREATORS (Preserved)
+// 6. SEND PROPOSAL & CREATE DEAL
 export const sendProposal = async (c) => {
   try {
     const { creatorId, brandName, budget, message } = await c.req.json();
@@ -423,7 +424,66 @@ export const sendProposal = async (c) => {
     const brandUser = await User.findByPk(userId);
     const brandNameFinal = brandName || brandUser?.name || 'A Brand';
 
-    // Generate proposal email HTML
+    // --- DEAL TRACKER INTEGRATION ---
+    // 1. Get Brand Profile ID
+    const brandProfileRes = await client.query('SELECT id FROM brand_profiles WHERE user_id = $1', [userId]);
+    let brandProfileId = brandProfileRes.rows[0]?.id;
+
+    // Auto-create brand profile if missing (resilience)
+    if (!brandProfileId) {
+      console.log('Creating temp brand profile for deal...');
+      const newBP = await client.query(`
+            INSERT INTO brand_profiles (user_id, company_name) VALUES ($1, $2) RETURNING id
+        `, [userId, brandNameFinal]);
+      brandProfileId = newBP.rows[0].id;
+    }
+
+    // 2. Get Creator Profile ID
+    const creatorProfileRes = await client.query('SELECT id FROM creator_profiles WHERE user_id = $1', [creatorId]);
+    let creatorProfileId = creatorProfileRes.rows[0]?.id;
+
+    // Auto-create creator profile if missing (resilience)
+    if (!creatorProfileId) {
+      console.log('Creating temp creator profile for deal...');
+      const newCP = await client.query(`
+            INSERT INTO creator_profiles (user_id, name) VALUES ($1, $2) RETURNING id
+         `, [creatorId, creator.name]);
+      creatorProfileId = newCP.rows[0].id;
+    }
+
+    // 3. Create Deal Record
+    // Parse budget string if possible, or store 0 if range
+    // For now, storing 0 or attempting to parse simple numbers.
+    // Ideally budget input should be structured.
+    let numericAmount = 0;
+    const amountMatch = budget ? budget.match(/(\d+)/) : null;
+    if (amountMatch) numericAmount = parseInt(amountMatch[0], 10);
+    // If range like 10k, multiply by 1000? Let's keep it simple for now. 
+    // The deal amount is DECIMAL. 
+    // Let's store 0 and put the range in metadata or deliverables for now, or just try to parse.
+
+    const newDeal = await client.query(`
+        INSERT INTO deals (brand_id, creator_id, status, amount, deliverables, current_stage_metadata)
+        VALUES ($1, $2, 'OFFER', $3, $4, $5)
+        RETURNING id
+    `, [
+      brandProfileId,
+      creatorProfileId,
+      0, // Placeholder amount, real negotiation happens in SIGNING
+      `Initial Proposal: ${message}`,
+      JSON.stringify({
+        proposed_budget: budget,
+        initial_message: message,
+        brand_name: brandNameFinal
+      })
+    ]);
+
+    const dealId = newDeal.rows[0].id;
+    console.log(`✅ Deal created: ID ${dealId}`);
+
+    // Generate proposal email HTML with Deal Link
+    const dealLink = `https://creatorconnect.tech/deals/${dealId}`;
+
     const proposalEmailHTML = `
       <!DOCTYPE html>
       <html>
@@ -459,8 +519,8 @@ export const sendProposal = async (c) => {
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-              <a href="https://creatorconnect.tech/inbox" class="button">
-                View Proposal in Creator Connect
+              <a href="${dealLink}" class="button">
+                View Deal & Respond
               </a>
             </div>
           </div>
@@ -483,14 +543,20 @@ export const sendProposal = async (c) => {
 
     if (!emailResult.success) {
       console.error('Failed to send proposal email:', emailResult.error);
-      return c.json({ error: 'Failed to send proposal email', details: emailResult.error }, 500);
+      // We still return success because Deal was created, but warn about email
+      return c.json({
+        success: true,
+        message: 'Deal created, but email notification failed.',
+        dealId
+      });
     }
 
     console.log(`Proposal sent from brand ${userId} to creator ${creatorId}`);
 
     return c.json({
       success: true,
-      message: 'Proposal sent successfully',
+      message: 'Proposal sent and Deal created successfully',
+      dealId,
       proposal: {
         creatorId,
         brandName: brandNameFinal,

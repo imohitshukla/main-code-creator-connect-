@@ -113,7 +113,7 @@ app.use('/*', cors({
   ],
   credentials: true, // 🛡️ CRITICAL: Allow credentials for cross-domain
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'], // 🛡️ Explicitly allow Cookie header
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie', 'Expires', 'Pragma', 'Cache-Control'], // 🛡️ Explicitly allow Cookie header
   exposedHeaders: ['Set-Cookie'], // 🛡️ Expose cookie headers to frontend
 }));
 
@@ -198,6 +198,8 @@ app.route('/api/deals', dealRoutes);
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/brands', brandRoutes);
+
+
 
 // File Uploads
 import uploadRoutes from './backend/routes/uploadRoutes.js';

@@ -30,7 +30,7 @@ const authMiddleware = async (c, next) => {
 
     // 🔍 FETCH FULL USER FROM DB (Crucial for avatar, updated roles, etc.)
     const userResult = await client.query(
-      'SELECT id, email, role, name, username, avatar, company_name, phone_number, portfolio_link FROM users WHERE id = $1',
+      'SELECT id, email, role, name FROM users WHERE id = $1',
       [decoded.id]
     );
 

@@ -1,25 +1,22 @@
 import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
-import { 
-  createDeal, 
-  updateDealStage, 
-  cancelDeal, 
-  getDeal, 
-  getUserDeals 
+import {
+  createDeal,
+  getDealById,
+  updateDealStatus,
+  terminateDeal,
+  getUserDeals
 } from '../controllers/dealController.js';
+import { authMiddleware } from '../middleware/auth.js';
 
-const router = new Hono();
+const deals = new Hono();
 
-// Public routes (if needed for deal discovery)
-// router.get('/', getUserDeals);
+// Protect all deal routes
+deals.use('*', authMiddleware);
 
-// Protected routes
-router.use('*', authMiddleware);
+deals.post('/', createDeal);
+deals.get('/my-deals', getUserDeals); // specific route before :id
+deals.get('/:id', getDealById);
+deals.patch('/:id/status', updateDealStatus);
+deals.post('/:id/terminate', terminateDeal);
 
-router.post('/', createDeal);
-router.get('/user', getUserDeals);
-router.get('/:id', getDeal);
-router.put('/:id/update-stage', updateDealStage);
-router.post('/:id/cancel', cancelDeal);
-
-export default router;
+export default deals;
