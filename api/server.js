@@ -118,7 +118,7 @@ app.use('/*', cors({
 }));
 
 // 🛡️ PRODUCTION SAFETY: Ensure brand_profiles table exists on startup
-app.use('*', async (c, next) => {
+const initializeDatabase = async () => {
   try {
     // Check if brand_profiles table exists
     const tableCheck = await client.query(`
@@ -170,14 +170,14 @@ app.use('*', async (c, next) => {
       await client.query('CREATE INDEX IF NOT EXISTS idx_brand_profiles_budget ON brand_profiles(typical_budget_range);');
 
       console.log('✅ brand_profiles table created successfully!');
+    } else {
+      console.log('✅ brand_profiles table already exists');
     }
-
-    await next();
   } catch (error) {
     console.error('❌ Table setup error:', error);
-    await next();
+    // We might want to exit here if this is critical, but for now we'll just log
   }
-});
+};
 
 // Middleware
 app.use('*', logger());
@@ -224,12 +224,15 @@ app.onError((err, c) => {
 });
 
 // Start Server
-serve({
-  fetch: app.fetch,
-  port: port,
-  hostname: '0.0.0.0'
-}, (info) => {
-  console.log(`Server is running on port ${info.port}`);
+// Start Server
+initializeDatabase().then(() => {
+  serve({
+    fetch: app.fetch,
+    port: port,
+    hostname: '0.0.0.0'
+  }, (info) => {
+    console.log(`Server is running on port ${info.port}`);
+  });
 });
 
 export { port };
