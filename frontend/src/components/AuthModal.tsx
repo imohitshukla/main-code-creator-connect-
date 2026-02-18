@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
+import { apiCall } from '@/utils/apiHelper';
 import { Building2, User } from 'lucide-react';
 
 interface AuthModalProps {
@@ -66,10 +67,10 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
 
     try {
       // 🚨 CRITICAL: Make actual API call first
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      // 🚨 CRITICAL: Make actual API call first
+      const response = await apiCall('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email: loginData.email, password: loginData.password }),
       });
 

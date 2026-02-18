@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiCall } from '../utils/apiHelper';
 
 interface User {
   id: number;
@@ -42,11 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers['Authorization'] = `Bearer ${storedToken}`;
         }
 
-        const res = await fetch('http://localhost:5000/api/auth/me', {
-          method: 'GET',
-          headers: headers,
-          credentials: 'include',
-        });
+        const res = await apiCall('/auth/me');
 
         if (res.ok) {
           const data = await res.json();
@@ -108,9 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setToken(null);
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include' // 🛡️ CRITICAL: Allow verifying/modifying cookies
+      await apiCall('/auth/logout', {
+        method: 'POST'
       });
     } catch (e) {
       console.error("Logout API call failed", e);

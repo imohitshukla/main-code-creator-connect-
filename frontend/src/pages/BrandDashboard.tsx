@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useAuth } from '../contexts/AuthContext';
 import ActiveCampaignsTable from '../components/dashboard/ActiveCampaignsTable';
 import CreateCampaignModal from '../components/dashboard/CreateCampaignModal';
+import { getApiUrl } from '@/lib/utils';
 
 const BrandDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ const BrandDashboard: React.FC = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:5000/api/campaigns/my-campaigns', {
+      const response = await fetch(`${getApiUrl()}/api/campaigns/my-campaigns`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +42,7 @@ const BrandDashboard: React.FC = () => {
     if (!confirm('Are you sure you want to delete this campaign?')) return;
     try {
       const token = localStorage.getItem('auth_token');
-      await fetch(`http://localhost:5000/api/campaigns/${id}`, {
+      await fetch(`${getApiUrl()}/api/campaigns/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

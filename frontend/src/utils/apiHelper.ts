@@ -1,4 +1,10 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const getBaseUrl = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (import.meta.env.MODE === 'production') return 'https://api.creatorconnect.tech';
+    return 'http://localhost:5000';
+};
+
+const API_URL = getBaseUrl();
 
 export const getErrorMessage = (error: any): string => {
     if (error.response && error.response.data && error.response.data.message) {

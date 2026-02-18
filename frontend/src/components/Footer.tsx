@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { getApiUrl } from '@/lib/utils';
 
 const Footer = () => {
     const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ const Footer = () => {
         if (!email) return;
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/newsletter/subscribe`, {
+            const response = await fetch(`${getApiUrl()}/api/newsletter/subscribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })

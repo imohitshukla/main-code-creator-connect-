@@ -20,6 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Plus } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils';
 
 interface CreateCampaignModalProps {
     onCampaignCreated: () => void;
@@ -42,7 +43,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({ onCampaignCre
 
         try {
             const token = localStorage.getItem('auth_token'); // Or use AuthContext
-            const response = await fetch('http://localhost:5000/api/campaigns', {
+            const response = await fetch(`${getApiUrl()}/api/campaigns`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
