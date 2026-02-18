@@ -60,6 +60,12 @@ const Navbar = () => {
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild className="cursor-pointer gap-2">
+        <Link to="/my-deals" className="flex items-center gap-2 w-full">
+          <Layers className="h-4 w-4" />
+          My Deals
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild className="cursor-pointer gap-2">
         <Link to="/profile" className="flex items-center gap-2 w-full">
           <Edit3 className="h-4 w-4" />
           Profile

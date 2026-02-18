@@ -9,14 +9,17 @@ import { Plus, Megaphone, Sparkles, TrendingUp, Zap, Star } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
 import SmartAvatar from '@/components/SmartAvatar';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiCall } from '@/utils/apiHelper';
 
 const CampaignPage = () => {
   const { toast } = useToast();
+  // ... rest of component
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const { user } = useAuth();
+  const currentUserId = user?.id;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -36,19 +39,6 @@ const CampaignPage = () => {
   const [aiPricing, setAiPricing] = useState<any>(null);
   const [isLoadingPricing, setIsLoadingPricing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchCampaigns();
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setCurrentUserId(payload.id);
-      } catch (e) {
-        console.error('Failed to decode token', e);
-      }
-    }
-  }, []);
 
   const fetchCampaigns = async () => {
     try {
@@ -170,8 +160,7 @@ const CampaignPage = () => {
   };
 
   const handleApply = async (campaign: Campaign) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!user) {
       toast({
         title: 'Authentication Required',
         description: 'Please log in to apply for campaigns.',

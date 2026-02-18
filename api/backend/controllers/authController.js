@@ -128,7 +128,7 @@ const registerCreator = async (c) => {
       user: { id: userId, email, role: 'creator', name }
     }, 201);
   } catch (error) {
-    await db.query('ROLLBACK');
+    if (db) await db.query('ROLLBACK');
     console.error("Signup Error:", error);
     return c.json({
       error: 'Signup failed',
@@ -217,20 +217,7 @@ const registerBrand = async (c) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // � NUCLEAR COOKIE FIX: Ultimate cookie setting solution
-    const host = c.req.header('host') || '';
-    const isProduction = process.env.NODE_ENV === 'production' || host.includes('creatorconnect.tech');
-
-    console.log('🔥 NUCLEAR DEBUG: Ultimate cookie environment:', {
-      host,
-      isProduction
-    });
-
-    // NUCLEAR APPROACH 1 & 2 MERGED/CLEANED
-    // NUCLEAR APPROACH 2: Hono setCookie with every option
-    const ultimateCookie = `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`;
-
-    // NUCLEAR APPROACH 2: Hono setCookie with every option
+    // Set cookie with Hono helper
     try {
       const { setCookie } = await import('hono/cookie');
 
@@ -245,33 +232,29 @@ const registerBrand = async (c) => {
       for (let i = 0; i < options.length; i++) {
         try {
           await setCookie(c, 'auth_token', token, options[i]);
-          console.log(`🔥 NUCLEAR: Hono setCookie ${i + 1} success:`, options[i]);
         } catch (optionError) {
-          console.error(`❌ NUCLEAR: Hono setCookie ${i + 1} failed:`, optionError.message);
+          // Continue to next option
         }
       }
     } catch (importError) {
-      console.error('❌ NUCLEAR: Hono import failed:', importError.message);
+      console.error('Cookie setting failed:', importError.message);
     }
 
-    // � NUCLEAR APPROACH 3: Manual header manipulation
+    // Manual header fallback
     try {
       const cookieVariations = [
-        ultimateCookie,
-        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
-        `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; MaxAgege=604800`,
-        `auth_token=${token}; Path=/` // Emergency minimal
+        `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${token}; Path=/`
       ];
 
       cookieVariations.forEach((cookie, index) => {
         c.header(`Set-Cookie-${index}`, cookie);
         c.header('Set-Cookie', cookie);
       });
-
-      console.log('🔥 NUCLEAR: Manual headers set:', cookieVariations.length, 'variations');
     } catch (headerError) {
-      console.error('❌ NUCLEAR: Manual headers failed:', headerError.message);
+      console.error('Manual header setting failed:', headerError.message);
     }
 
     // NUCLEAR APPROACH 4 REMOVED (Caused crash)
@@ -281,7 +264,7 @@ const registerBrand = async (c) => {
       user: { id: userId, email, role: 'brand', company_name }
     }, 201);
   } catch (error) {
-    await db.query('ROLLBACK');
+    if (db) await db.query('ROLLBACK');
     console.error("Signup Error:", error);
     return c.json({
       error: 'Signup failed',

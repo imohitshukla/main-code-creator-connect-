@@ -27,6 +27,8 @@ const app = new Hono();
 app.use('*', cors({
   origin: [
     "http://localhost:5173",                      // For local coding
+    "http://localhost:8080",                      // Vite default fallback
+    "http://localhost:3000",                      // React default
     "https://main-code-creator-connect.onrender.com", // Old Render URL (Safety)
     "https://www.creatorconnect.tech",            // 🟢 NEW: Your Website
     "https://creatorconnect.tech"                 // 🟢 NEW: Your Website (no www)
