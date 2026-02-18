@@ -23,7 +23,12 @@ const app = new Hono();
 // --- 🚀 UNIVERSAL CORS FIX ---
 // This allows the frontend to connect from ANY verified domain (Vercel, Custom Domain, etc.)
 app.use('*', cors({
-  origin: (origin) => origin || '*',
+  origin: [
+    "http://localhost:5173",                      // For local coding
+    "https://main-code-creator-connect.onrender.com", // Old Render URL (Safety)
+    "https://www.creatorconnect.tech",            // 🟢 NEW: Your Website
+    "https://creatorconnect.tech"                 // 🟢 NEW: Your Website (no www)
+  ],
   credentials: true, // Essential for cookies/sessions
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
