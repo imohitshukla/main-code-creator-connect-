@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
+import { apiCall } from '@/utils/apiHelper';
 import SmartAvatar from '@/components/SmartAvatar';
 
 type PublicCreator = {
@@ -112,7 +113,7 @@ export default function PublicProfile() {
 
   const hasLink = (url: string | undefined) =>
     !!url && url.trim() !== '' && url !== '#';
-    
+
   const instagramUrl = creator.social_links?.instagram;
   const youtubeUrl = creator.social_links?.youtube;
   const portfolioUrl = creator.portfolio_links?.portfolio;
@@ -122,36 +123,35 @@ export default function PublicProfile() {
   const handleSendProposal = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent page refresh
     console.log("🔴 BUTTON CLICKED - Handler Started"); // Step 1: Prove it clicks
-    
+
     // Log the data we are trying to send
     console.log("Payload:", { brandName, budget, message });
-    
-    if (!brandName || !message) { 
+
+    if (!brandName || !message) {
       alert("Please fill in all fields"); // Temporary fallback alert 
-      return; 
+      return;
     }
 
     try {
       console.log("🟡 Sending Request to API...");
-      
+
       // Ensure the endpoint matches your Hono Backend
-      const response = await fetch(`${getApiUrl()}/api/creators/proposals`, {
+      const response = await apiCall('/api/creators/proposals', {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
+        headers: {
+          "Content-Type": "application/json"
         },
-        credentials: "include", // Include auth cookies
-        body: JSON.stringify({ 
-          creatorId: creator?.id, 
-          brandName, 
-          budget, 
-          message 
+        body: JSON.stringify({
+          creatorId: creator?.id,
+          brandName,
+          budget,
+          message
         }),
       });
 
       const data = await response.json();
       console.log("🟢 API Response:", data);
-      
+
       if (response.ok) {
         alert("Proposal Sent Successfully!");
         setIsModalOpen(false); // Close modal on success

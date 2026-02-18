@@ -9,7 +9,7 @@ import { Plus, Megaphone, Sparkles, TrendingUp, Zap, Star } from 'lucide-react';
 import CampaignCard, { Campaign } from '@/components/CampaignCard';
 import SmartAvatar from '@/components/SmartAvatar';
 import { useToast } from '@/hooks/use-toast';
-import { getApiUrl } from '@/lib/utils';
+import { apiCall } from '@/utils/apiHelper';
 
 const CampaignPage = () => {
   const { toast } = useToast();
@@ -53,11 +53,8 @@ const CampaignPage = () => {
   const fetchCampaigns = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${getApiUrl()}/api/campaigns`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      // Use apiCall instead of fetch
+      const response = await apiCall('/api/campaigns');
 
       if (response.ok) {
         const data = await response.json();
@@ -117,11 +114,10 @@ const CampaignPage = () => {
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/campaigns`, {
+      const response = await apiCall('/api/campaigns', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           title: formData.title,
@@ -185,11 +181,10 @@ const CampaignPage = () => {
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/campaigns/${campaign.id}/apply`, {
+      const response = await apiCall(`/api/campaigns/${campaign.id}/apply`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           proposal_text: `I am interested in collaborating on "${campaign.title}". Please consider my application.`
@@ -228,11 +223,10 @@ const CampaignPage = () => {
 
   const handleCloseCampaign = async (campaign: Campaign) => {
     try {
-      const response = await fetch(`${getApiUrl()}/api/campaigns/${campaign.id}/progress`, {
+      const response = await apiCall(`/api/campaigns/${campaign.id}/progress`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           status: 'closed'
@@ -275,11 +269,10 @@ const CampaignPage = () => {
     setIsLoadingPricing(true);
 
     try {
-      const response = await fetch(`${getApiUrl()}/api/ai/pricing`, {
+      const response = await apiCall('/api/ai/pricing', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           creatorId: creator.id,
