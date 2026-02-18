@@ -68,7 +68,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
     try {
       // 🚨 CRITICAL: Make actual API call first
       // 🚨 CRITICAL: Make actual API call first
-      const response = await apiCall('/auth/login', {
+      const response = await apiCall('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginData.email, password: loginData.password }),

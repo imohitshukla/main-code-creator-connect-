@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers['Authorization'] = `Bearer ${storedToken}`;
         }
 
-        const res = await apiCall('/auth/me');
+        const res = await apiCall('/api/auth/me');
 
         if (res.ok) {
           const data = await res.json();
@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setToken(null);
     try {
-      await apiCall('/auth/logout', {
+      await apiCall('/api/auth/logout', {
         method: 'POST'
       });
     } catch (e) {
