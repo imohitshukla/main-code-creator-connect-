@@ -117,7 +117,7 @@ const getCreatorDashboard = async (c, userId) => {
 };
 
 // Brand Dashboard - "Tell Creators More About You"
-const getBrandDashboard = async (c, userId) => {
+export const getBrandDashboard = async (c, userId) => {
   try {
     // Get brand profile with business details
     const profileResult = await client.query(`
