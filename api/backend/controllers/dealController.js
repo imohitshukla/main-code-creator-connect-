@@ -1,4 +1,6 @@
 import { client } from '../config/database.js';
+import transporter from '../utils/sendEmail.js';
+import transporter from '../utils/sendEmail.js';
 
 // Create a new deal (Offer Pending)
 export const createDeal = async (c) => {
@@ -20,6 +22,45 @@ export const createDeal = async (c) => {
       VALUES ($1, $2, $3, $4, $5, $6, 'OFFER', '{}')
       RETURNING *
     `, [brand_id, creator_id, campaign_id || null, deliverables, amount, currency || 'INR']);
+
+    // 🚀 NOTIFICATION TRIGGER: Notify Creator
+    try {
+      // 1. In-App Notification
+      await client.query(`
+            INSERT INTO notifications (user_id, type, message, link)
+            VALUES (
+                (SELECT user_id FROM creator_profiles WHERE id = $1),
+                'NEW_PROPOSAL',
+                'You have a new offer for ' || $2 || ' ' || $3,
+                '/deals/' || $4
+            )
+        `, [creator_id, currency || 'INR', amount, newDeal.rows[0].id]);
+
+      // 2. Email Notification (Async - don't block response)
+      try {
+        const creatorEmailRes = await client.query('SELECT email FROM users WHERE id = (SELECT user_id FROM creator_profiles WHERE id = $1)', [creator_id]);
+        if (creatorEmailRes.rows.length > 0) {
+          const email = creatorEmailRes.rows[0].email;
+          await transporter.sendMail({
+            from: `"Creator Connect" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: `🚀 New Brand Deal: You have an offer for ${currency || 'INR'} ${amount}`,
+            html: `
+                    <h2>You have a new offer!</h2>
+                    <p>A brand wants to hire you for a campaign.</p>
+                    <p><strong>Amount:</strong> ${currency || 'INR'} ${amount}</p>
+                    <p><a href="${process.env.FRONTEND_URL || 'https://www.creatorconnect.tech'}/deals/${newDeal.rows[0].id}">Click here to Accept or Reject</a></p>
+                `
+          });
+        }
+      } catch (emailErr) {
+        console.error("Failed to send email notification:", emailErr);
+      }
+
+    } catch (notifyError) {
+      console.error("Failed to send notification:", notifyError);
+      // Don't fail the request, just log it.
+    }
 
     return c.json({ success: true, deal: newDeal.rows[0] }, 201);
   } catch (error) {

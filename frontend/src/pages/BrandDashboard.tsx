@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useAuth } from '../contexts/AuthContext';
 import ActiveCampaignsTable from '../components/dashboard/ActiveCampaignsTable';
 import CreateCampaignModal from '../components/dashboard/CreateCampaignModal';
-import { getApiUrl } from '@/lib/utils';
+import { apiCall } from '@/utils/apiHelper';
 
 const BrandDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -15,24 +15,23 @@ const BrandDashboard: React.FC = () => {
     totalSpent: 0
   });
 
-  const fetchCampaigns = async () => {
+  const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${getApiUrl()}/api/campaigns/my-campaigns`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await apiCall('/api/dashboard/brand');
+      if (response.ok) {
+        const data = await response.json();
+        setCampaigns(data.campaigns || []);
+        if (data.stats) {
+          setMetrics({
+            activeCount: data.stats.active_campaigns,
+            totalApplicants: data.stats.pending_applicants,
+            totalSpent: data.stats.total_spent
+          });
         }
-      });
-      const data = await response.json();
-      if (data.campaigns) {
-        setCampaigns(data.campaigns);
-        // Calculate simple metrics
-        const active = data.campaigns.filter((c: any) => c.status === 'ACTIVE').length;
-        setMetrics(prev => ({ ...prev, activeCount: active }));
       }
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -41,21 +40,15 @@ const BrandDashboard: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this campaign?')) return;
     try {
-      const token = localStorage.getItem('auth_token');
-      await fetch(`${getApiUrl()}/api/campaigns/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      fetchCampaigns(); // Refresh
+      await apiCall(`/api/campaigns/${id}`, { method: 'DELETE' });
+      fetchDashboardData(); // Refresh
     } catch (error) {
       console.error('Error deleting campaign:', error);
     }
   };
 
   useEffect(() => {
-    fetchCampaigns();
+    fetchDashboardData();
   }, []);
 
   return (
@@ -66,7 +59,7 @@ const BrandDashboard: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Brand Dashboard</h1>
             <p className="text-gray-600 mt-2">Welcome back, {user?.name || user?.email}!</p>
           </div>
-          <CreateCampaignModal onCampaignCreated={fetchCampaigns} />
+          <CreateCampaignModal onCampaignCreated={fetchDashboardData} />
         </div>
 
         {/* Quick Stats */}
@@ -87,7 +80,7 @@ const BrandDashboard: React.FC = () => {
             <CardContent>
               <div className="text-2xl font-bold">{metrics.totalApplicants}</div>
               <p className="text-xs text-muted-foreground mt-1 text-gray-400">
-                (Coming in Phase 2)
+                Across all campaigns
               </p>
             </CardContent>
           </Card>
@@ -99,7 +92,7 @@ const BrandDashboard: React.FC = () => {
             <CardContent>
               <div className="text-2xl font-bold">${metrics.totalSpent}</div>
               <p className="text-xs text-muted-foreground mt-1 text-gray-400">
-                (Coming in Phase 4)
+                Lifetime spend
               </p>
             </CardContent>
           </Card>

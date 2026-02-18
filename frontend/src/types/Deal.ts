@@ -14,8 +14,9 @@ export interface Deal {
     updated_at: string;
 
     // Joined fields
+    // Joined fields
     brand_name?: string;
     creator_name?: string;
-    brand_user_id?: number;
-    creator_user_id?: number;
+    brand_user_id: number;
+    creator_user_id: number;
 }

@@ -25,6 +25,7 @@ import AuthModal from '@/components/AuthModal';
 import { cn } from "@/lib/utils";
 import Logo from '@/components/Logo';
 import SmartAvatar from '@/components/SmartAvatar';
+import NotificationBell from '@/components/NotificationBell';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -178,22 +179,25 @@ const Navbar = () => {
           {/* Right Side Actions */}
           <div className="hidden lg:flex items-center gap-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
-                    <SmartAvatar
-                      src={user?.avatar}
-                      type={user?.role === 'BRAND' ? 'brand' : 'creator'}
-                      name={user?.email}
-                      email={user?.email}
-                      className="h-full w-full"
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80" align="end" forceMount>
-                  {renderProfileMenu()}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
+                      <SmartAvatar
+                        src={user?.avatar}
+                        type={user?.role === 'BRAND' ? 'brand' : 'creator'}
+                        name={user?.email}
+                        email={user?.email}
+                        className="h-full w-full"
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-80" align="end" forceMount>
+                    {renderProfileMenu()}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <>
                 <Button

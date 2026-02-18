@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Deal, DealStatus } from '../types/Deal';
 import Navbar from '../components/Navbar';
 import DealTimeline from '../components/DealTimeline';
+import ChatBox from '@/components/ChatBox';
 
 const DealDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -148,6 +149,24 @@ const DealDetails: React.FC = () => {
                         <h3 className="font-semibold text-gray-900 mb-1">Deliverables</h3>
                         <p className="text-gray-700">{deal.deliverables}</p>
                     </div>
+
+                    {/* Contextual Chat Strategy */}
+                    {deal.status !== 'OFFER' && deal.status !== 'CANCELLED' && (
+                        <div className="mb-8">
+                            <ChatBox
+                                dealId={deal.id}
+                                currentUserId={user.id}
+                                creatorId={deal.creator_user_id} // We need to ensure we have this in Deal object
+                                brandUserId={deal.brand_user_id} // And this
+                            />
+                        </div>
+                    )}
+
+                    {deal.status === 'OFFER' && (
+                        <div className="mb-8 bg-blue-50 p-4 rounded-md border border-blue-100 text-blue-700 text-sm">
+                            🔒 Chat is locked during the proposal phase. Accept the offer to start messaging.
+                        </div>
+                    )}
                 </div>
 
                 {/* The Tracker Component */}

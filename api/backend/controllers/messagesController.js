@@ -36,14 +36,29 @@ export const sendMessage = async (c) => {
     const { conversationId, content } = await c.req.json();
     const userId = c.get('userId');
 
-    // Verify user is part of conversation
+    // Verify user is part of conversation and check Deal Status
     const convCheck = await client.query(`
-      SELECT participants FROM conversations 
-      WHERE id = $1 AND participants @> $2::jsonb
+      SELECT c.participants, c.deal_id, d.status as deal_status
+      FROM conversations c
+      LEFT JOIN deals d ON c.deal_id = d.id
+      WHERE c.id = $1 AND c.participants @> $2::jsonb
     `, [conversationId, JSON.stringify([userId])]);
 
     if (convCheck.rows.length === 0) {
       return c.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const conversation = convCheck.rows[0];
+
+    // 🔒 CONTEXTUAL CHAT LOCK
+    // If there is a linked deal, strict chat rules apply.
+    if (conversation.deal_id) {
+      if (conversation.deal_status === 'OFFER') {
+        return c.json({ error: 'Chat is locked until the proposal is accepted.' }, 403);
+      }
+      if (conversation.deal_status === 'CANCELLED' || conversation.deal_status === 'REJECTED') {
+        return c.json({ error: 'Chat is disabled for this deal.' }, 403);
+      }
     }
 
     const result = await client.query(`
@@ -53,7 +68,7 @@ export const sendMessage = async (c) => {
     `, [conversationId, userId, content]);
 
     // Update conversation updated_at
-    await db.query(`
+    await client.query(`
       UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = $1
     `, [conversationId]);
 
@@ -101,19 +116,30 @@ export const getConversations = async (c) => {
 
 export const createConversation = async (c) => {
   try {
-    const { receiverId, campaignId } = await c.req.json();
+    const { receiverId, campaignId, dealId } = await c.req.json();
     const userId = c.get('userId');
 
     if (userId === receiverId) {
       return c.json({ error: 'Cannot create conversation with self' }, 400);
     }
 
-    // Check if conversation already exists
-    const existing = await client.query(`
-      SELECT id FROM conversations 
-      WHERE participants = $1::jsonb
-      ORDER BY created_at ASC LIMIT 1
-    `, [JSON.stringify([userId, receiverId].sort((a, b) => a - b))]);
+    // Check if conversation already exists (modified to include dealId if present)
+    // If dealId is present, we specifically look for a conversation for this deal.
+    let existing;
+    if (dealId) {
+      existing = await client.query(`
+            SELECT id FROM conversations 
+            WHERE participants = $1::jsonb AND deal_id = $2
+            ORDER BY created_at ASC LIMIT 1
+        `, [JSON.stringify([userId, receiverId].sort((a, b) => a - b)), dealId]);
+    } else {
+      // Fallback to existing logic for generic/campaign chats
+      existing = await client.query(`
+            SELECT id FROM conversations 
+            WHERE participants = $1::jsonb AND deal_id IS NULL AND campaign_id = $2
+            ORDER BY created_at ASC LIMIT 1
+        `, [JSON.stringify([userId, receiverId].sort((a, b) => a - b)), campaignId || null]);
+    }
 
     if (existing.rows.length > 0) {
       return c.json({ conversation: { id: existing.rows[0].id } });
@@ -121,10 +147,10 @@ export const createConversation = async (c) => {
 
     // Create new conversation
     const result = await client.query(`
-      INSERT INTO conversations (participants, campaign_id)
-      VALUES ($1, $2)
+      INSERT INTO conversations (participants, campaign_id, deal_id)
+      VALUES ($1, $2, $3)
       RETURNING id, participants, created_at
-    `, [JSON.stringify([userId, receiverId].sort((a, b) => a - b)), campaignId]);
+    `, [JSON.stringify([userId, receiverId].sort((a, b) => a - b)), campaignId || null, dealId || null]);
 
     return c.json({ conversation: result.rows[0] });
   } catch (error) {
