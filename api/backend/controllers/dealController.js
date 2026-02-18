@@ -1,6 +1,5 @@
 import { client } from '../config/database.js';
 import transporter from '../utils/sendEmail.js';
-import transporter from '../utils/sendEmail.js';
 
 // Create a new deal (Offer Pending)
 export const createDeal = async (c) => {
