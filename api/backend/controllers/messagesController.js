@@ -164,15 +164,25 @@ export const getDealConversation = async (c) => {
     const dealId = c.req.param('dealId');
     const userId = c.get('userId');
 
-    // 1. Fetch deal to verify existence and get participants
-    const dealCheck = await client.query('SELECT brand_id, creator_id FROM deals WHERE id = $1', [dealId]);
+    // 1. Fetch deal to verify existence and get actual User IDs from the profiles
+    const dealCheck = await client.query(`
+      SELECT 
+        d.id,
+        bp.user_id as brand_user_id,
+        cp.user_id as creator_user_id
+      FROM deals d
+      JOIN brand_profiles bp ON d.brand_id = bp.id
+      JOIN creator_profiles cp ON d.creator_id = cp.id
+      WHERE d.id = $1
+    `, [dealId]);
+
     if (dealCheck.rows.length === 0) {
       return c.json({ error: 'Deal not found' }, 404);
     }
-    const { brand_id, creator_id } = dealCheck.rows[0];
+    const { brand_user_id, creator_user_id } = dealCheck.rows[0];
 
-    // Ensure user is part of the deal
-    if (userId !== brand_id && userId !== creator_id) {
+    // Ensure user is part of the deal (comparing User IDs, not Profile IDs)
+    if (userId !== brand_user_id && userId !== creator_user_id) {
       return c.json({ error: 'Unauthorized' }, 403);
     }
 
@@ -185,8 +195,8 @@ export const getDealConversation = async (c) => {
 
     let conversation;
     if (convCheck.rows.length === 0) {
-      // Auto-create conversation
-      const participants = JSON.stringify([brand_id, creator_id].sort((a, b) => a - b));
+      // Auto-create conversation using the exact User IDs
+      const participants = JSON.stringify([brand_user_id, creator_user_id].sort((a, b) => a - b));
       const newConv = await client.query(`
         INSERT INTO conversations (participants, deal_id)
         VALUES ($1::jsonb, $2)
