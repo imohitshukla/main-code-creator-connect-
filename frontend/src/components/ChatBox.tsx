@@ -46,9 +46,31 @@ const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, bra
     };
 
     useEffect(() => {
+        let isTabActive = !document.hidden;
+
+        // Fetch immediately on mount
         fetchMessages();
-        const intervalId = setInterval(fetchMessages, 5000); // Poll every 5 seconds
-        return () => clearInterval(intervalId); // Cleanup
+
+        // Setup polling interval that only fires if tab is active
+        const intervalId = setInterval(() => {
+            if (!document.hidden) {
+                fetchMessages();
+            }
+        }, 5000); // Poll every 5 seconds
+
+        // Add event listener to fetch immediately when user focuses the tab again
+        const handleVisibilityChange = () => {
+            if (!document.hidden && !isTabActive) {
+                fetchMessages();
+            }
+            isTabActive = !document.hidden;
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(intervalId);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [dealId]);
 
     useEffect(() => {
