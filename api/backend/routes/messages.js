@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   sendMessage,
-  getConversationMessages,
-  getUserConversations,
+  getMessages,
+  getConversations,
   getDealConversation
-} from '../controllers/messageController.js';
+} from '../controllers/messagesController.js';
 
 const router = new Hono();
 
@@ -13,10 +13,10 @@ const router = new Hono();
 router.use('*', authMiddleware);
 
 // Get user's conversations
-router.get('/conversations', getUserConversations);
+router.get('/conversations', getConversations);
 
 // Get messages for a conversation
-router.get('/conversation/:id', getConversationMessages);
+router.get('/conversation/:conversationId', getMessages);
 
 // Get conversation for a specific deal
 router.get('/deal/:dealId', getDealConversation);
