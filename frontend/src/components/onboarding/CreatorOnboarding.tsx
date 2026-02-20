@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { User, Instagram, Youtube, Globe, DollarSign, BarChart, Target } from 'lucide-react';
+import { User, Users, Instagram, Youtube, Globe, DollarSign, BarChart, Target } from 'lucide-react';
 
 const CreatorOnboarding = () => {
     const { toast } = useToast();
@@ -311,6 +311,140 @@ const CreatorOnboarding = () => {
                                     />
                                 </div>
 
+                                {/* Bio Section */}
+                                <div className="space-y-2 pt-4 border-t border-gray-100">
+                                    <Label htmlFor="bio" className="font-medium text-gray-700">Creator Bio</Label>
+                                    <Textarea
+                                        id="bio"
+                                        value={formData.bio}
+                                        onChange={e => handleChange('bio', e.target.value)}
+                                        placeholder="Tell brands a little bit about yourself and your content style..."
+                                        className="min-h-[100px] bg-gray-50 border-gray-200 focus:bg-white transition-all resize-none"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Social & Performance Data */}
+                        <Card className="border-0 shadow-sm bg-white overflow-hidden mt-8">
+                            <CardHeader className="border-b border-gray-100 pb-6">
+                                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                                    <Globe className="w-5 h-5 text-indigo-500" /> Links & Performance
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="total_followers" className="font-medium text-gray-700">Total Followers</Label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Users className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <Input
+                                                id="total_followers"
+                                                type="number"
+                                                value={formData.total_followers}
+                                                onChange={e => handleChange('total_followers', e.target.value)}
+                                                placeholder="e.g. 15000"
+                                                className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="instagram_link" className="font-medium text-gray-700">Instagram Handle / URL</Label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Instagram className="h-5 w-5 text-pink-500" />
+                                            </div>
+                                            <Input
+                                                id="instagram_link"
+                                                value={formData.instagram_link}
+                                                onChange={e => handleChange('instagram_link', e.target.value)}
+                                                placeholder="@kraaftmedia or https://..."
+                                                className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="youtube_link" className="font-medium text-gray-700">YouTube Channel URL</Label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Youtube className="h-5 w-5 text-red-500" />
+                                            </div>
+                                            <Input
+                                                id="youtube_link"
+                                                value={formData.youtube_link}
+                                                onChange={e => handleChange('youtube_link', e.target.value)}
+                                                placeholder="https://youtube.com/..."
+                                                className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="portfolio_link" className="font-medium text-gray-700">Portfolio / Media Kit URL</Label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Globe className="h-5 w-5 text-blue-500" />
+                                            </div>
+                                            <Input
+                                                id="portfolio_link"
+                                                type="url"
+                                                value={formData.portfolio_link}
+                                                onChange={e => handleChange('portfolio_link', e.target.value)}
+                                                placeholder="Link to your past collaborations"
+                                                className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Collaboration Details */}
+                        <Card className="border-0 shadow-sm bg-white overflow-hidden mt-8">
+                            <CardHeader className="border-b border-gray-100 pb-6">
+                                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                                    <Target className="w-5 h-5 text-indigo-500" /> Audience & Goals
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-8">
+                                <div className="space-y-2">
+                                    <Label htmlFor="audience_breakdown" className="font-medium text-gray-700">Audience Breakdown</Label>
+                                    <Textarea
+                                        id="audience_breakdown"
+                                        value={formData.audience_breakdown}
+                                        onChange={e => handleChange('audience_breakdown', e.target.value)}
+                                        placeholder="e.g., 65% Female, Age 18-24, Top Cities: Mumbai, Delhi..."
+                                        className="min-h-[100px] bg-gray-50 border-gray-200 focus:bg-white transition-all resize-none"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="collaboration_goals" className="font-medium text-gray-700">Collaboration Goals</Label>
+                                    <Textarea
+                                        id="collaboration_goals"
+                                        value={formData.collaboration_goals}
+                                        onChange={e => handleChange('collaboration_goals', e.target.value)}
+                                        placeholder="What kind of brands are you looking to work with?"
+                                        className="min-h-[100px] bg-gray-50 border-gray-200 focus:bg-white transition-all resize-none"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="budget_range" className="font-medium text-gray-700">Expected Pricing / Budget Range</Label>
+                                    <div className="relative max-w-md">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <DollarSign className="h-5 w-5 text-green-600" />
+                                        </div>
+                                        <Input
+                                            id="budget_range"
+                                            value={formData.budget_range}
+                                            onChange={e => handleChange('budget_range', e.target.value)}
+                                            placeholder="e.g. ₹10K - ₹25K or Flexible"
+                                            className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
