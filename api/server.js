@@ -112,7 +112,7 @@ app.use('/*', cors({
     'http://127.0.0.1:8080'
   ],
   credentials: true, // 🛡️ CRITICAL: Allow credentials for cross-domain
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie', 'Expires', 'Pragma', 'Cache-Control'], // 🛡️ Explicitly allow Cookie header
   exposedHeaders: ['Set-Cookie'], // 🛡️ Expose cookie headers to frontend
 }));
