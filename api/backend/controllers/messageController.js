@@ -50,18 +50,30 @@ export const sendMessage = async (c) => {
 
     // Get or create conversation
     let conversation;
+    let currentDeal = null;
+
     if (conversationId) {
-      conversation = await Conversation.findByPk(conversationId);
+      conversation = await Conversation.findByPk(conversationId, { include: ['deal'] });
+      if (conversation && conversation.deal) currentDeal = conversation.deal;
     } else if (dealId) {
-      // Create conversation from deal
-      const deal = await Deal.findByPk(dealId);
-      if (deal) {
-        conversation = await createOrGetConversation(deal.brand_id, deal.creator_id, dealId);
+      currentDeal = await Deal.findByPk(dealId);
+      if (currentDeal) {
+        conversation = await createOrGetConversation(currentDeal.brand_id, currentDeal.creator_id, dealId);
       }
     }
 
     if (!conversation) {
       return c.json({ error: 'Conversation not found' }, 404);
+    }
+
+    // 🔒 CONTEXTUAL CHAT LOCK
+    if (currentDeal) {
+      if (currentDeal.status === 'OFFER' || currentDeal.status === 'REJECTED') {
+        return c.json({ error: 'Chat is locked until the proposal is accepted.' }, 403);
+      }
+      if (currentDeal.status === 'CANCELLED') {
+        return c.json({ error: 'Chat is disabled for cancelled deals.' }, 403);
+      }
     }
 
     // Verify user is participant in conversation
@@ -81,10 +93,10 @@ export const sendMessage = async (c) => {
     await conversation.update({ last_message_at: new Date() });
 
     // Get recipient details
-    const recipientId = conversation.participant_1_id === userId 
-      ? conversation.participant_2_id 
+    const recipientId = conversation.participant_1_id === userId
+      ? conversation.participant_2_id
       : conversation.participant_1_id;
-    
+
     const recipient = await User.findByPk(recipientId);
     const sender = await User.findByPk(userId);
 
@@ -103,8 +115,8 @@ export const sendMessage = async (c) => {
       });
     }
 
-    return c.json({ 
-      success: true, 
+    return c.json({
+      success: true,
       message: await Message.findByPk(message.id, {
         include: [
           { model: User, as: 'sender', attributes: ['id', 'name', 'email'] }
@@ -144,8 +156,8 @@ export const getConversationMessages = async (c) => {
     // Mark messages as read for this user
     await Message.update(
       { read_at: new Date() },
-      { 
-        where: { 
+      {
+        where: {
           conversation_id: conversationId,
           sender_id: { [sequelize.Sequelize.Op.ne]: userId }
         }
@@ -205,5 +217,55 @@ export const addSystemMessage = async (conversationId, content, metadata = {}) =
   } catch (error) {
     console.error('Add system message error:', error);
     throw error;
+  }
+};
+
+// Get deal conversation
+export const getDealConversation = async (c) => {
+  try {
+    const dealId = c.req.param('dealId');
+    const userId = c.get('userId');
+
+    const conversation = await Conversation.findOne({
+      where: { deal_id: dealId },
+      include: [
+        { model: User, as: 'participant1', attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'participant2', attributes: ['id', 'name', 'email'] }
+      ]
+    });
+
+    if (!conversation) {
+      return c.json({ conversation: null, messages: [] });
+    }
+
+    // Verify user is participant
+    if (conversation.participant_1_id !== userId && conversation.participant_2_id !== userId) {
+      return c.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const messages = await Message.findAll({
+      where: { conversation_id: conversation.id },
+      include: [
+        { model: User, as: 'sender', attributes: ['id', 'name', 'email'] }
+      ],
+      order: [['created_at', 'ASC']]
+    });
+
+    // Mark messages as read for this user
+    await Message.update(
+      { read_at: new Date() },
+      {
+        where: {
+          conversation_id: conversation.id,
+          sender_id: { [sequelize.Sequelize.Op.ne]: userId },
+          read_at: null
+        }
+      }
+    );
+
+    return c.json({ conversation, messages });
+  } catch (error) {
+    console.error('Get deal conversation error:', error);
+    return c.json({ error: 'Failed to get deal conversation', details: error.message }, 500);
   }
 };

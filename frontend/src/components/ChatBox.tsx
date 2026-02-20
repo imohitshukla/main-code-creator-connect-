@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { apiCall } from '@/utils/apiHelper';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, Loader2 } from 'lucide-react';
 
 interface Message {
     id: number;
@@ -17,22 +14,16 @@ interface ChatBoxProps {
     dealId: number;
     currentUserId: number;
     creatorId: number;
-    brandUserId: number; // User ID of the brand
+    brandUserId: number;
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, brandUserId }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isSending, setIsSending] = useState(false);
     const [conversationId, setConversationId] = useState<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    const receiverId = currentUserId === brandUserId ? creatorId : brandUserId; // Determine who we are talking to.
-    // Wait, creatorId is likely profile ID or User ID? 
-    // In Deal object: creator_id is Profile ID. brand_id is Profile ID.
-    // We need User IDs for chat.
-    // dealController getDealById joins tables to get brand_user_id and creator_user_id.
-    // So we should pass those.
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,42 +31,126 @@ const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, bra
 
     const fetchMessages = async () => {
         try {
-            // 1. Find or Create Conversation linked to this Deal
-            // We need an endpoint for this. 
-            // Existing createConversation takes receiverId and campaignId. 
-            // We might need to update createConversation or findConversation logic.
-            // Let's assume we can resolve conversation by participants + deal_id in the future, 
-            // but for now, let's try to get conversation by deal_id if possible, or create one.
-
-            // Actually, let's look at `messagesController.js`. `createConversation` takes `receiverId, campaignId`. 
-            // It uses participants to check existence.
-            // We probably want to link specific deal chats.
-
-            // Let's use a specialized endpoint if needed or just use the existing one and filter/link.
-            // For "Contextual Chat", it's best if we check if a conversation exists for these 2 users AND this deal.
-            // Since we added `deal_id` to conversations table, we should use it.
-
-            // Let's call an endpoint to get/create conversation for this deal.
-            const res = await apiCall('/api/messages/deal/' + dealId, {
-                method: 'POST', // POST to ensure creation if checks fail? Or GET?
-                // Let's assume we create a new route: POST /api/messages/init-deal-chat
-                body: JSON.stringify({ dealId, receiverId })
-            });
-
-            // Wait, I didn't create this route!
-            // I only updated `sendMessage` and `getMessages`.
-            // I need a way to get the conversation ID for the chat box.
-
-            // Fallback: Use standard conversation creation, but pass dealId.
-            // I need to update createConversation controller to accept dealId.
+            const res = await apiCall(`/api/messages/deal/${dealId}`) as any;
+            if (res.conversation) {
+                setConversationId(res.conversation.id);
+            }
+            if (res.messages) {
+                setMessages(res.messages);
+            }
         } catch (error) {
             console.error("Error fetching chat:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
-    // ...
-    // RE-EVALUATION: I need to update createConversation in backend to handle deal_id first.
-    // Then I can finish this component.
-    return <div>Chat Component Placeholder</div>;
+
+    useEffect(() => {
+        fetchMessages();
+        const intervalId = setInterval(fetchMessages, 5000); // Poll every 5 seconds
+        return () => clearInterval(intervalId); // Cleanup
+    }, [dealId]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || isSending) return;
+
+        setIsSending(true);
+        try {
+            await apiCall('/api/messages', {
+                method: 'POST',
+                body: JSON.stringify({
+                    content: newMessage.trim(),
+                    dealId: dealId,
+                    conversationId: conversationId
+                })
+            });
+            setNewMessage('');
+            fetchMessages(); // refresh immediately
+        } catch (error: any) {
+            console.error("Failed to send message:", error);
+            alert(error.message || 'Failed to send message');
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    if (isLoading && messages.length === 0) {
+        return (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[500px]">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-indigo-600" />
+                <h3 className="font-semibold text-gray-900">Project Chat</h3>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                        <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
+                        <p className="text-sm">No messages yet. Say hello!</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => {
+                        const isSender = String(msg.sender_id) === String(currentUserId);
+
+                        return (
+                            <div key={msg.id} className={`flex ${isSender ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] rounded-lg px-4 py-2 ${isSender
+                                    ? 'bg-indigo-600 text-white rounded-br-none'
+                                    : 'bg-white text-gray-900 border border-gray-200 rounded-bl-none shadow-sm'
+                                    }`}>
+                                    {!isSender && (
+                                        <p className="text-xs font-semibold mb-1 text-gray-500">
+                                            {msg.sender_name?.split('@')[0] || 'User'}
+                                        </p>
+                                    )}
+                                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                    <p className={`text-[10px] mt-1 text-right ${isSender ? 'text-indigo-200' : 'text-gray-400'}`}>
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 border-t border-gray-200 bg-white rounded-b-lg">
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type your message..."
+                        className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                        disabled={isSending}
+                    />
+                    <button
+                        type="submit"
+                        disabled={!newMessage.trim() || isSending}
+                        className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                        {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
 };
 
 export default ChatBox;
