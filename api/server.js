@@ -21,6 +21,7 @@ import dealRoutes from './backend/routes/deals.js';
 import dashboardRoutes from './backend/routes/dashboard.js';
 import userRoutes from './backend/routes/users.js';
 import brandRoutes from './backend/routes/brands.js';
+import notificationRoutes from './backend/routes/notifications.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
@@ -198,7 +199,7 @@ app.route('/api/deals', dealRoutes);
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/brands', brandRoutes);
-
+app.route('/api/notifications', notificationRoutes);
 
 
 // File Uploads
