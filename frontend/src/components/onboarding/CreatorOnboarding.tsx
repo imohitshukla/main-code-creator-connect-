@@ -62,19 +62,36 @@ const CreatorOnboarding = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.user || data.creator) {
-                        const profile = data.creator || data.user;
+
+                    // Prioritize rawProfile for exact DB matches without fallback strings
+                    const user = data.user || {};
+                    const raw = data.rawProfile || {};
+                    const publicProfile = data.creator || {};
+
+                    if (user.id || raw.id || publicProfile.id) {
                         setIsEditing(true);
                         setFormData(prev => ({
                             ...prev,
-                            displayName: profile.name || '',
-                            professional_email: profile.email || '', // Pre-fill with auth email
-                            phone_number: profile.phone_number || '',
-                            primary_niche: profile.niche || '',
-                            primary_location: profile.location || '',
-                            bio: profile.bio || '',
-                            avatar: profile.avatar || profile.image || '', // Populate avatar
-                            // ... other fields
+                            displayName: raw.name || user.name || '',
+                            professional_email: user.email || '',
+                            phone_number: user.phone_number || '', // Assuming this exists on user if they added it
+                            primary_niche: raw.niche || user.niche || '',
+                            primary_location: raw.location || user.location || '',
+                            bio: raw.bio || user.bio || '',
+                            avatar: raw.avatar || user.avatar || publicProfile.image || '',
+
+                            // Load exact social links without fake instagram URL
+                            instagram_link: raw.instagram_link || user.instagram_handle || '',
+                            youtube_link: raw.youtube_link || '',
+                            portfolio_link: raw.portfolio_link || '',
+
+                            // Load exact followers string
+                            total_followers: raw.follower_count || user.followers_count || '',
+
+                            // Load exact collaboration fields
+                            budget_range: raw.budget_range || '',
+                            audience_breakdown: raw.audience_breakdown || '',
+                            collaboration_goals: raw.collaboration_goals || ''
                         }));
                     }
                 }

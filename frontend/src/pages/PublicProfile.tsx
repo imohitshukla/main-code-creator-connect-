@@ -114,9 +114,9 @@ export default function PublicProfile() {
   const hasLink = (url: string | undefined) =>
     !!url && url.trim() !== '' && url !== '#';
 
-  const instagramUrl = creator.social_links?.instagram;
-  const youtubeUrl = creator.social_links?.youtube;
-  const portfolioUrl = creator.portfolio_links?.portfolio;
+  const instagramUrl = creator.contact?.instagram;
+  const youtubeUrl = creator.contact?.youtube;
+  const portfolioUrl = creator.contact?.portfolio;
   const hasAnyLink = hasLink(instagramUrl) || hasLink(youtubeUrl) || hasLink(portfolioUrl);
 
   // Debug-First Handler

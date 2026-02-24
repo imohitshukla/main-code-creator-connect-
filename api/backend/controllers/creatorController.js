@@ -263,8 +263,14 @@ export const getCreatorProfile = async (c) => {
         email: user.email,
         role: user.role,
         avatar: response.image,
+        followers_count: user.followers_count,
+        instagram_handle: user.instagram_handle,
+        bio: user.bio,
+        location: user.location,
+        niche: user.niche
       },
       creator: response, // The full public profile object
+      rawProfile: creatorProfile, // The exact DB rows without fallbacks
     });
 
   } catch (error) {
