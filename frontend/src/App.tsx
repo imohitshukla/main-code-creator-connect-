@@ -20,7 +20,6 @@ import { PlatformPage, AgencyPage, CareersPage } from "./pages/MarketingPages";
 const Filter = lazy(() => import("./pages/Filter"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
-const AIMatch = lazy(() => import("./pages/AIMatch"));
 const Campaign = lazy(() => import("./pages/Campaign"));
 const Messages = lazy(() => import("./pages/Messages"));
 const EducationHub = lazy(() => import("./pages/EducationHub"));
@@ -60,7 +59,6 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/ai-match" element={<Suspense fallback={<PageFallback />}><AIMatch /></Suspense>} />
 
               {/* Product/Service Pages */}
               <Route path="/platform" element={<PlatformPage />} />

@@ -3,11 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
-import { TrustedByStrip } from '@/components/TrustedByStrip';
-import { PlatformTour } from '@/components/PlatformTour';
-import { TestimonialCarousel } from '@/components/TestimonialCarousel';
-import { UGCGallery } from '@/components/UGCGallery';
-import { AIAnalysisSection } from '@/components/AIAnalysisSection';
+import { CreatorList } from '@/components/CreatorList';
 
 const Home = () => {
   return (
@@ -51,20 +47,9 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Hero Background Elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 opacity-40 pointer-events-none">
-          <div className="absolute top-1/4 left-10 w-72 h-72 bg-primary/20 rounded-full blur-[100px]" />
-          <div className="absolute top-1/3 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]" />
-        </div>
       </section>
 
-      <AIAnalysisSection />
-
-      <PlatformTour />
-
-      <UGCGallery />
-
-      <TestimonialCarousel />
+      <CreatorList />
 
       {/* Final CTA */}
       <section className="py-32 bg-primary text-primary-foreground overflow-hidden relative">
@@ -80,12 +65,6 @@ const Home = () => {
               <Link to="/contact">Get a Demo</Link>
             </Button>
           </div>
-        </div>
-
-        {/* Decorative circles */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-1/2 -right-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
-          <div className="absolute -bottom-1/2 -right-1/4 w-[1000px] h-[1000px] border-[100px] border-white/5 rounded-full" />
         </div>
       </section>
     </PageTransition>
