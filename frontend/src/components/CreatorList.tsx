@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SmartAvatar from '@/components/SmartAvatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { Quote } from 'lucide-react';
 
 export const CreatorList = () => {
     const [creators, setCreators] = useState<any[]>([]);
@@ -41,60 +42,114 @@ export const CreatorList = () => {
         );
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.15
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 30 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    };
+
     return (
-        <section className="py-24 bg-white border-t border-gray-200">
-            <div className="container mx-auto px-4 max-w-6xl">
-                <div className="mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                        Creator Directory
+        <section className="py-24 bg-gray-50 border-t border-gray-200">
+            <div className="container mx-auto px-4 max-w-7xl">
+                <div className="mb-16 text-center">
+                    <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                        Featured Creators
                     </h2>
-                    <p className="text-gray-600">
-                        Real data from our platform. Browse our growing list of authentic creators.
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Discover authentic voices driving real engagement. Browse our network of talented creators.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {creators.map((creator) => (
-                        <Card key={creator.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                                <SmartAvatar
-                                    src={creator.avatar}
-                                    type="creator"
-                                    name={creator.name || creator.email?.split('@')[0]}
-                                    email={creator.email}
-                                    className="h-12 w-12 border border-gray-100"
-                                />
-                                <div>
-                                    <CardTitle className="text-lg font-semibold text-gray-900">
-                                        {creator.name || creator.email?.split('@')[0] || `Creator #${creator.id}`}
-                                    </CardTitle>
-                                    <p className="text-sm text-gray-500 font-medium">{creator.niche || 'General Content'}</p>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
-                                    <div>
-                                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Followers</p>
-                                        <p className="font-semibold text-gray-800">
-                                            {creator.follower_count ? creator.follower_count.toLocaleString() : 'N/A'}
-                                        </p>
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, margin: "-100px" }}
+                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+                >
+                    {creators.map((creator) => {
+                        // Extract tags from niche
+                        const tags = creator.niche
+                            ? creator.niche.split(/[|,]/).map((t: string) => t.trim()).filter(Boolean)
+                            : ['Creator'];
+
+                        // Default fallback image if they have absolutely no image
+                        const imageUrl = creator.image || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=600&fit=crop';
+
+                        return (
+                            <motion.div key={creator.id} variants={itemVariants}>
+                                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col bg-white rounded-2xl group">
+                                    {/* Large Image Header */}
+                                    <div className="relative h-64 overflow-hidden bg-gray-100">
+                                        <div className="absolute inset-0 bg-gray-900/10 group-hover:bg-transparent transition-colors z-10" />
+                                        <img
+                                            src={imageUrl}
+                                            alt={creator.name || 'Creator'}
+                                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=600&fit=crop';
+                                            }}
+                                        />
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Engagement</p>
-                                        <p className="font-semibold text-gray-800">
-                                            {creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {creator.bio && (
-                                    <p className="text-sm text-gray-600 mt-4 line-clamp-2">
-                                        {creator.bio}
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+
+                                    <CardContent className="p-6 flex-1 flex flex-col">
+                                        {/* Name & Tags */}
+                                        <div className="mb-4">
+                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                                {creator.name || creator.email?.split('@')[0] || `Creator #${creator.id}`}
+                                            </h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {tags.slice(0, 3).map((tag: string, i: number) => (
+                                                    <span key={i} className="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-100">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                                {tags.length > 3 && (
+                                                    <span className="px-2 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-100">
+                                                        +{tags.length - 3}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Quote / Bio */}
+                                        <div className="flex-1 bg-gray-50/50 rounded-xl p-4 mb-6 relative">
+                                            <Quote className="absolute top-2 left-2 text-gray-200 w-8 h-8 -z-10 transform -rotate-12" />
+                                            <p className="text-gray-600 text-sm italic leading-relaxed line-clamp-3 relative z-10 pt-1">
+                                                "{creator.bio || 'Passionate about creating authentic content that resonates with my audience and builds real communities.'}"
+                                            </p>
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 mt-auto">
+                                            <div>
+                                                <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Followers</p>
+                                                <p className="font-bold text-gray-900 text-lg">
+                                                    {creator.follower_count ? creator.follower_count.toLocaleString() : 'N/A'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Engagement</p>
+                                                <p className="font-bold text-gray-900 text-lg">
+                                                    {creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
             </div>
         </section>
     );
