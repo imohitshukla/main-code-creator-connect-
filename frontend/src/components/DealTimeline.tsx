@@ -307,7 +307,14 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                             <div>
                                 {deal.current_stage_metadata?.tracking_number && (
                                     <div className="mb-6 p-3 bg-blue-50 border border-blue-100 rounded text-blue-800 text-sm">
-                                        <strong>Incoming Shipment/Brief:</strong> {deal.current_stage_metadata.tracking_number}
+                                        <strong>Incoming Shipment/Brief:</strong>{' '}
+                                        {deal.current_stage_metadata.tracking_number.startsWith('http') ? (
+                                            <a href={deal.current_stage_metadata.tracking_number} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
+                                                {deal.current_stage_metadata.tracking_number}
+                                            </a>
+                                        ) : (
+                                            deal.current_stage_metadata.tracking_number
+                                        )}
                                     </div>
                                 )}
                                 <p className="text-sm text-gray-500 mb-4">Click below once you have received the product or brief to start production.</p>

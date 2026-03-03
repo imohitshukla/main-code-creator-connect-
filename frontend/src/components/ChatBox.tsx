@@ -31,12 +31,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, bra
 
     const fetchMessages = async () => {
         try {
-            const res = await apiCall(`/api/messages/deal/${dealId}`) as any;
-            if (res.conversation) {
-                setConversationId(res.conversation.id);
+            const response = await apiCall(`/api/messages/deal/${dealId}`);
+            if (!response.ok) throw new Error("Failed to fetch messages");
+
+            const data = await response.json();
+            if (data.conversation) {
+                setConversationId(data.conversation.id);
             }
-            if (res.messages) {
-                setMessages(res.messages);
+            if (data.messages) {
+                setMessages(data.messages);
             }
         } catch (error) {
             console.error("Error fetching chat:", error);
@@ -83,7 +86,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, bra
 
         setIsSending(true);
         try {
-            await apiCall('/api/messages', {
+            const response = await apiCall('/api/messages', {
                 method: 'POST',
                 body: JSON.stringify({
                     content: newMessage.trim(),
@@ -91,6 +94,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ dealId, currentUserId, creatorId, bra
                     conversationId: conversationId
                 })
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to send message");
+            }
+
             setNewMessage('');
             fetchMessages(); // refresh immediately
         } catch (error: any) {

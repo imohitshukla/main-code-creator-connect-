@@ -125,10 +125,11 @@ export const getCreators = async (c) => {
     const { niche, search } = c.req.query();
 
     // Explicitly fetching columns needed for the card
-    // Removing 'role' check if it was causing issues, or keeping it if safe. 
-    // User requested removing it in "Safe Mode", but here they just said "Replace".
-    // I'll keep it simple: findAll users.
-    const whereClause = {};
+    // Filtering by role = 'CREATOR' to ensure brands are not displayed
+    const whereClause = {
+      role: 'CREATOR'
+    };
+
     if (search) {
       whereClause[Op.or] = [
         { email: { [Op.iLike]: `%${search}%` } },
