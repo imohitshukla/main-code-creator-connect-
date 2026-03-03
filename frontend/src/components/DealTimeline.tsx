@@ -34,6 +34,13 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+    const getDraftUrl = (path?: string) => {
+        if (!path) return '#';
+        if (path.startsWith('http')) return path;
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+    };
+
     const getCurrentStepIndex = () => {
         if (deal.status === 'CANCELLED') return -1;
         return steps.findIndex(s => s.status === deal.status);
@@ -380,7 +387,7 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
 
                         {deal.current_stage_metadata?.draft_url && (
                             <div className="mb-4">
-                                <a href={deal.current_stage_metadata.draft_url} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
+                                <a href={getDraftUrl(deal.current_stage_metadata.draft_url)} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
                                     View Submitted Draft
                                 </a>
                                 <p className="text-xs text-gray-400 mt-1">Uploaded: {new Date(deal.current_stage_metadata.draft_uploaded_at || deal.updated_at).toLocaleString()}</p>
