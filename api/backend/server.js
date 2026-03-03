@@ -43,15 +43,7 @@ app.use('*', cors({
 app.options('*', cors());
 // -----------------------------
 app.use('*', logger());
-import { serveStatic } from '@hono/node-server/serve-static';
-
-// Serve uploaded files statically
-app.use('/uploads/*', serveStatic({
-  // IMPORTANT: this backend runs with CWD already at "/backend"
-  // so uploaded files live at "./uploads", not "./backend/uploads".
-  root: './',
-  rewriteRequestPath: (path) => path
-}));
+// Note: File uploads now go directly to Cloudinary CDN (no local disk storage needed)
 
 // Routes
 app.route('/api/auth', authRoutes);
