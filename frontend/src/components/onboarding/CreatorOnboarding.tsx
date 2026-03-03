@@ -115,44 +115,32 @@ const CreatorOnboarding = () => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Show loading state or toast
-        const loadingToast = toast({
-            title: "Uploading...",
-            description: "Please wait while we upload your image.",
-        });
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const url = `${import.meta.env.VITE_API_URL || ''}/api/upload/image`;
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setFormData(prev => ({ ...prev, avatar: data.url }));
-                toast({
-                    title: "Success",
-                    description: "Profile picture uploaded!",
-                });
-            } else {
-                throw new Error('Upload failed');
-            }
-        } catch (error) {
-            console.error("Upload error", error);
+        // 5MB limit check
+        if (file.size > 5 * 1024 * 1024) {
             toast({
-                title: "Error",
-                description: "Failed to upload image. Please try again.",
+                title: "File too large",
+                description: "Please choose an image under 5MB.",
                 variant: "destructive"
             });
+            return;
         }
+
+        // Convert to base64 locally — no server upload needed.
+        // This is how all other creator photos are stored (Divyansh, Harshit, etc.)
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result as string;
+            setFormData(prev => ({ ...prev, avatar: base64 }));
+            toast({ title: "Photo ready!", description: "Click Continue to save your profile." });
+        };
+        reader.onerror = () => {
+            toast({ title: "Error", description: "Could not read image file.", variant: "destructive" });
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
