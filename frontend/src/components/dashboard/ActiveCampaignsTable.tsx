@@ -61,8 +61,11 @@ const ActiveCampaignsTable: React.FC<ActiveCampaignsTableProps> = ({ campaigns, 
                                     {campaign.status}
                                 </Badge>
                             </TableCell>
-                            <TableCell>{campaign.product_type}</TableCell>
-                            <TableCell>{campaign.applicant_count || 0}</TableCell>
+                            <TableCell>
+                                <div className="text-center font-semibold">
+                                    {campaign.applicant_count || 0}
+                                </div>
+                            </TableCell>
                             <TableCell>{new Date(campaign.created_at).toLocaleDateString()}</TableCell>
                             <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">

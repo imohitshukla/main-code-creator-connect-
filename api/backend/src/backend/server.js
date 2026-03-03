@@ -38,15 +38,41 @@ app.options('*', cors());
 
 // Middleware
 app.use('*', logger());
-import { serveStatic } from '@hono/node-server/serve-static';
+import { readFileSync, existsSync } from 'fs';
+import path from 'path';
+import mime from 'mime-types'; // Note: Or use simple extname checks
 
-// Serve uploaded files statically
-// Note: Render runs from /backend or /api/backend. The root should match the directory where 'uploads' is created.
-// Since uploadRoutes creates files in process.cwd()/uploads, serve from './'
-app.use('/uploads/*', serveStatic({
-  root: './',
-  rewriteRequestPath: (path) => path
-}));
+// Custom File Serving Endpoint to handle ephemeral disk access explicitly
+app.get('/uploads/:filename', (c) => {
+  const filename = c.req.param('filename');
+  // Secure dynamic path from root config directory
+  const filepath = path.join(process.cwd(), 'uploads', filename);
+
+  if (!existsSync(filepath)) {
+    return c.json({ error: 'Endpoint not found or file expired', details: 'Render ephemeral disk likely wiped the storage' }, 404);
+  }
+
+  try {
+    const ext = path.extname(filename).toLowerCase();
+    let mimeType = 'application/octet-stream';
+    if (ext === '.png') mimeType = 'image/png';
+    else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+    else if (ext === '.pdf') mimeType = 'application/pdf';
+    else if (ext === '.json') mimeType = 'application/json';
+
+    const buffer = readFileSync(filepath);
+    return new Response(buffer, {
+      status: 200,
+      headers: {
+        'Content-Type': mimeType,
+        'Cache-Control': 'public, max-age=31536000',
+      }
+    });
+  } catch (err) {
+    console.error('File serving error:', err);
+    return c.json({ error: 'Failed to read file' }, 500);
+  }
+});
 
 // Routes
 app.route('/api/auth', authRoutes);
