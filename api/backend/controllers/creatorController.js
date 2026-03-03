@@ -127,7 +127,7 @@ export const getCreators = async (c) => {
     // Explicitly fetching columns needed for the card
     // Filtering by role = 'CREATOR' to ensure brands are not displayed
     const whereClause = {
-      role: 'CREATOR'
+      role: 'creator'
     };
 
     if (search) {
