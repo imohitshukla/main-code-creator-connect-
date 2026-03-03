@@ -39,12 +39,20 @@ router.post('/image', async (c) => {
 
         // Safety check
         if (!(file instanceof File)) {
-            // Sometimes parseBody returns string for text fields, verify it is a File
-            // In some Hono versions/adapters, this might be tricky.
-            // Let's check if it has arrayBuffer method.
             if (typeof file === 'string') {
                 return c.json({ error: 'Invalid file upload' }, 400);
             }
+        }
+
+        // ✅ Enforce image-only uploads
+        if (!file.type.startsWith('image/')) {
+            return c.json({ error: 'Only image files are allowed (JPG, PNG, GIF, WebP, etc.)' }, 400);
+        }
+
+        // ✅ Enforce 5MB size limit
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            return c.json({ error: `File too large. Maximum allowed size is 5MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.` }, 413);
         }
 
         const arrayBuffer = await file.arrayBuffer();
