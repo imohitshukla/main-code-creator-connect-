@@ -26,8 +26,11 @@ export const getErrorMessage = (error: any): string => {
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-    const defaultHeaders = {
+    const token = localStorage.getItem('auth_token');
+
+    const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     };
 
     const config: RequestInit = {
