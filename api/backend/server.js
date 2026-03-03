@@ -19,6 +19,7 @@ import newsletterRoutes from './routes/newsletter.js';
 import notificationRoutes from './routes/notifications.js';
 import welcomeRoutes from './src/backend/routes/welcome.js';
 import testEmailRoutes from './src/backend/routes/testEmail.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = new Hono();
 
@@ -69,6 +70,7 @@ app.route('/api/contact', contactRoutes);
 app.route('/api/newsletter', newsletterRoutes);
 app.route('/api/notifications', notificationRoutes);
 app.route('/api/dashboard', dashboardRoutes);
+app.route('/api/upload', uploadRoutes);
 
 // Add the new welcome route
 app.route('/api/welcome', welcomeRoutes);

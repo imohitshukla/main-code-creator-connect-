@@ -16,6 +16,7 @@ import adminRoutes from '../../routes/admin.js';
 import contactRoutes from '../../routes/contact.js';
 import dealRoutes from '../../routes/deals.js';
 import brandRoutes from '../../routes/brands.js';
+import uploadRoutes from '../../routes/uploadRoutes.js';
 
 const app = new Hono();
 
@@ -37,6 +38,15 @@ app.options('*', cors());
 
 // Middleware
 app.use('*', logger());
+import { serveStatic } from '@hono/node-server/serve-static';
+
+// Serve uploaded files statically
+// Note: Render runs from /backend or /api/backend. The root should match the directory where 'uploads' is created.
+// Since uploadRoutes creates files in process.cwd()/uploads, serve from './'
+app.use('/uploads/*', serveStatic({
+  root: './',
+  rewriteRequestPath: (path) => path
+}));
 
 // Routes
 app.route('/api/auth', authRoutes);
@@ -53,6 +63,7 @@ app.route('/api/admin', adminRoutes);
 app.route('/api/contact', contactRoutes);
 app.route('/api/deals', dealRoutes);
 app.route('/api/brands', brandRoutes);
+app.route('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (c) => {
