@@ -118,58 +118,89 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
   };
 }
 
-// 1. LIST VIEW (Fixes "0 Followers" on the cards)
-// Backend for /api/creators?search=...
+// Helper: convert "62.3k", "10k", "55200" → number for sorting
+function parseFollowers(raw) {
+  if (!raw) return 0;
+  const s = String(raw).replace(/,/g, '').trim().toLowerCase();
+  if (s.endsWith('k')) return parseFloat(s) * 1000;
+  if (s.endsWith('m')) return parseFloat(s) * 1000000;
+  return parseFloat(s) || 0;
+}
+
+// Helper: format follower number nicely for display
+function formatFollowers(raw) {
+  const n = parseFollowers(raw);
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return n > 0 ? String(Math.round(n)) : '0';
+}
+
+// 1. LIST VIEW
 export const getCreators = async (c) => {
   try {
-    const { niche, search } = c.req.query();
+    const { niche, search, limit: limitParam } = c.req.query();
+    const limit = Math.min(parseInt(limitParam, 10) || 100, 200);
 
-    // Explicitly fetching columns needed for the card
-    // Filtering by role = 'CREATOR' to ensure brands are not displayed
-    const whereClause = {
-      role: 'creator'
-    };
+    // Build WHERE conditions
+    const conditions = [`u.role = 'creator'`];
+    const values = [];
 
     if (search) {
-      whereClause[Op.or] = [
-        { email: { [Op.iLike]: `%${search}%` } },
-        { name: { [Op.iLike]: `%${search}%` } },
-        { niche: { [Op.iLike]: `%${search}%` } }
-      ];
+      values.push(`%${search}%`);
+      const idx = values.length;
+      conditions.push(`(u.name ILIKE $${idx} OR u.email ILIKE $${idx} OR u.niche ILIKE $${idx})`);
     }
+
     if (niche) {
-      whereClause.niche = { [Op.iLike]: `%${niche}%` };
+      values.push(`%${niche}%`);
+      conditions.push(`u.niche ILIKE $${values.length}`);
     }
 
-    const limit = Math.min(parseInt(c.req.query('limit'), 10) || 100, 200);
-    const users = await User.findAll({
-      where: whereClause,
-      attributes: ['id', 'name', 'profile_image', 'avatar', 'niche', 'followers_count', 'location', 'bio', 'email'],
-      limit,
-      order: [['id', 'ASC']]
-    });
+    const where = conditions.join(' AND ');
 
-    const formatted = users.map(user => ({
+    // JOIN creator_profiles to get engagement_rate
+    const { rows } = await client.query(`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.niche,
+        u.followers_count,
+        u.avatar,
+        u.profile_image,
+        u.bio,
+        u.location,
+        cp.engagement_rate
+      FROM users u
+      LEFT JOIN creator_profiles cp ON cp.user_id = u.id
+      WHERE ${where}
+      LIMIT $${values.length + 1}
+    `, [...values, limit]);
+
+    // Sort by followers DESC in JS (handles mixed text formats like "62.3k")
+    rows.sort((a, b) => parseFollowers(b.followers_count) - parseFollowers(a.followers_count));
+
+    const formatted = rows.map(user => ({
       id: user.id,
       name: user.name,
-      // Prefer `avatar` over legacy `profile_image` so newly uploaded photos win
       image: buildAbsoluteUrl(c, user.avatar || user.profile_image) || getFallbackAvatar(user.email),
-      niche: user.niche || "General",
-      // Map BOTH followers (for new frontend) and follower_count (for existing Filter.tsx)
-      followers: user.followers_count || "0",
-      follower_count: user.followers_count || "0",
-      location: user.location || "India",
-      bio: user.bio || "No bio available"
+      niche: user.niche || 'General',
+      followers: formatFollowers(user.followers_count),
+      follower_count: formatFollowers(user.followers_count),
+      engagement_rate: user.engagement_rate != null ? Number(user.engagement_rate).toFixed(1) : null,
+      location: user.location || 'India',
+      bio: user.bio || 'No bio available',
+      email: user.email,
     }));
 
-    // Return wrapped object because Filter.tsx expects data.creators.map
     return c.json({ creators: formatted });
 
   } catch (error) {
-    console.error("List Error:", error);
-    return c.json({ error: "Failed to load list", details: error.message }, 500);
+    console.error('List Error:', error);
+    return c.json({ error: 'Failed to load list', details: error.message }, 500);
   }
 };
+
 
 // 2. PROFILE VIEW (Fixes Blank Page & Missing Bio)
 export const getCreatorById = async (c) => {

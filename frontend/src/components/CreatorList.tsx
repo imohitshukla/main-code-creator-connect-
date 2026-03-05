@@ -134,13 +134,13 @@ export const CreatorList = () => {
                                             <div>
                                                 <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Followers</p>
                                                 <p className="font-bold text-gray-900 text-lg">
-                                                    {creator.follower_count ? creator.follower_count.toLocaleString() : 'N/A'}
+                                                    {creator.followers || creator.follower_count || '—'}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Engagement</p>
                                                 <p className="font-bold text-gray-900 text-lg">
-                                                    {creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A'}
+                                                    {creator.engagement_rate ? `${creator.engagement_rate}%` : '—'}
                                                 </p>
                                             </div>
                                         </div>
