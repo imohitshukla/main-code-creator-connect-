@@ -4,6 +4,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 
+// Deterministic color for initials placeholder
+function getColorFromString(str: string) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return { bg: `hsl(${hue}, 45%, 80%)`, text: `hsl(${hue}, 40%, 25%)` };
+}
+function getInitials(name: string) {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return (name || '?').slice(0, 2).toUpperCase();
+}
+
 export const CreatorList = () => {
     const [creators, setCreators] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -82,8 +95,8 @@ export const CreatorList = () => {
                             ? creator.niche.split(/[|,]/).map((t: string) => t.trim()).filter(Boolean)
                             : ['Creator'];
 
-                        // Default fallback image if they have absolutely no image
-                        const imageUrl = creator.image || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=600&fit=crop';
+                        // Only use a real uploaded image — no external fallbacks
+                        const imageUrl = creator.image && !creator.image.includes('pravatar') && !creator.image.includes('unsplash') ? creator.image : null;
 
                         return (
                             <motion.div key={creator.id} variants={itemVariants}>
@@ -91,14 +104,34 @@ export const CreatorList = () => {
                                     {/* Large Image Header */}
                                     <div className="relative h-64 overflow-hidden bg-gray-100">
                                         <div className="absolute inset-0 bg-gray-900/10 group-hover:bg-transparent transition-colors z-10" />
-                                        <img
-                                            src={imageUrl}
-                                            alt={creator.name || 'Creator'}
-                                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=600&fit=crop';
+                                        {creator.image ? (
+                                            <img
+                                                src={creator.image}
+                                                alt={creator.name || 'Creator'}
+                                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    // On load failure, hide the img and show initials placeholder
+                                                    const parent = (e.target as HTMLImageElement).parentElement;
+                                                    if (parent) {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                        const placeholder = parent.querySelector('.initials-placeholder') as HTMLElement;
+                                                        if (placeholder) placeholder.style.display = 'flex';
+                                                    }
+                                                }}
+                                            />
+                                        ) : null}
+                                        {/* Initials placeholder — shown when no image */}
+                                        <div
+                                            className="initials-placeholder absolute inset-0 flex items-center justify-center text-5xl font-bold select-none"
+                                            style={{
+                                                ...getColorFromString(creator.name || ''),
+                                                display: creator.image ? 'none' : 'flex',
+                                                backgroundColor: getColorFromString(creator.name || '').bg,
+                                                color: getColorFromString(creator.name || '').text,
                                             }}
-                                        />
+                                        >
+                                            {getInitials(creator.name || '')}
+                                        </div>
                                     </div>
 
                                     <CardContent className="p-6 flex-1 flex flex-col">
