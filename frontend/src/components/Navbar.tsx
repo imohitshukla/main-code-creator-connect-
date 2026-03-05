@@ -228,6 +228,7 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center gap-2">
+            {user && <NotificationBell />}
             <Button
               variant="ghost"
               size="sm"
@@ -241,56 +242,56 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden border-t py-4 space-y-4 bg-background h-screen">
-            <div className="px-4 space-y-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Platform</h4>
-                <Link to="/filter" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Influencer Discovery</Link>
-                <Link to="/campaign" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Campaign Management</Link>
-                <Link to="/brand-dashboard" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Analytics</Link>
+          <div className="lg:hidden border-t bg-background animate-in slide-in-from-top-2 duration-200">
+            <div className="px-4 py-4 space-y-4">
+
+              {/* Logged-in user banner */}
+              {user && (
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-2">
+                  <SmartAvatar
+                    src={user?.avatar}
+                    type={user?.role === 'BRAND' ? 'brand' : 'creator'}
+                    name={user?.email}
+                    email={user?.email}
+                    className="h-10 w-10 rounded-full border border-border"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{user?.name || user?.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Platform</h4>
+                <Link to="/filter" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Influencer Discovery</Link>
+                <Link to="/campaign" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Campaign Management</Link>
+                <Link to="/brand-dashboard" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Analytics</Link>
               </div>
 
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Services</h4>
-                <Link to="/agency" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Agency Services</Link>
-                <Link to="/stories" onClick={() => setIsOpen(false)} className="block py-2 text-lg font-medium">Customer Stories</Link>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Services</h4>
+                <Link to="/agency" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Agency Services</Link>
+                <Link to="/stories" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Customer Stories</Link>
               </div>
 
-              <div className="pt-4 border-t">
+              {user && (
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">My Account</h4>
+                  <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Dashboard</Link>
+                  <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Profile</Link>
+                  <Link to="/my-deals" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">My Deals</Link>
+                </div>
+              )}
+
+              <div className="pt-2 border-t">
                 {!user ? (
                   <div className="grid gap-3">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-center"
-                      onClick={() => {
-                        setIsOpen(false);
-                        setAuthMode('login');
-                        setIsAuthModalOpen(true);
-                      }}
-                    >
-                      Login
-                    </Button>
-                    <Button
-                      className="w-full justify-center bg-[#0f172a] text-white rounded-full"
-                      onClick={() => {
-                        setIsOpen(false);
-                        window.location.href = '/contact';
-                      }}
-                    >
-                      Book a demo
-                    </Button>
+                    <Button variant="outline" className="w-full" onClick={() => { setIsOpen(false); setAuthMode('login'); setIsAuthModalOpen(true); }}>Login</Button>
+                    <Button className="w-full bg-[#0f172a] text-white rounded-full" onClick={() => { setIsOpen(false); window.location.href = '/contact'; }}>Book a demo</Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="destructive"
-                    className="w-full justify-center"
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                  >
-                    Log out
-                  </Button>
+                  <Button variant="destructive" className="w-full" onClick={() => { logout(); setIsOpen(false); }}>Log out</Button>
                 )}
               </div>
             </div>

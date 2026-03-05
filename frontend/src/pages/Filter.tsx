@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Search, Filter as FilterIcon, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter as FilterIcon, RotateCcw, SlidersHorizontal, Users } from 'lucide-react';
 import CreatorCard, { Creator } from '@/components/CreatorCard';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
@@ -30,7 +30,8 @@ function transformCreator(creator: any): Creator {
     avatar: creator.avatar,
     image: creator.image,
     email: creator.email,
-    followers: creator.follower_count ? `${creator.follower_count}` : '0',
+    location: creator.location,
+    followers: creator.followers || creator.follower_count || '0',
     audience: creator.audience || { engagement: creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A' },
     budget: creator.budget,
     social_links: creator.social_links,
@@ -332,11 +333,22 @@ const Filter = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-muted/20 rounded-xl">
-              <FilterIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold">No creators found</h3>
-              <p className="text-muted-foreground mb-6">Try adjusting your filters to see more results.</p>
-              <Button onClick={resetFilters}>Clear All Filters</Button>
+            <div className="text-center py-20 bg-muted/20 rounded-2xl border border-dashed border-border">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No creators found</h3>
+              <p className="text-muted-foreground mb-2 max-w-sm mx-auto">
+                No creators match your current filters. Try:
+              </p>
+              <ul className="text-sm text-muted-foreground mb-6 space-y-1">
+                <li>• Removing the niche filter</li>
+                <li>• Lowering the minimum followers</li>
+                <li>• Clearing the search term</li>
+              </ul>
+              <Button onClick={resetFilters} className="rounded-xl px-6">
+                <RotateCcw className="h-4 w-4 mr-2" /> Reset All Filters
+              </Button>
             </div>
           )}
         </div>

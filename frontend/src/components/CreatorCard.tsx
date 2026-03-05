@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import SmartAvatar from '@/components/SmartAvatar';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,14 +10,15 @@ export interface Creator {
   niche: string;
   bio: string;
   image: string;
-  avatar?: string; // Added avatar field from backend
+  avatar?: string;
+  location?: string;
   followers?: string;
   rating?: number;
   audience?: any;
   budget?: any;
   social_links?: any;
   portfolio_links?: any;
-  email?: string; // Added for SmartAvatar fallback
+  email?: string;
 }
 
 interface CreatorCardProps {
@@ -55,11 +56,18 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
             {creator.name}
           </h3>
 
-          <div className="flex flex-wrap gap-2 justify-center mb-4">
+          <div className="flex flex-wrap gap-2 justify-center mb-2">
             <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
               {creator.niche || 'General'}
             </span>
           </div>
+
+          {creator.location && (
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-3">
+              <MapPin className="h-3 w-3" />
+              <span>{creator.location}</span>
+            </div>
+          )}
 
           <p className="text-muted-foreground text-sm line-clamp-2 mb-6 max-w-[250px] min-h-[40px]">
             {creator.bio || 'Open to collaborations'}
