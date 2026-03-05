@@ -130,7 +130,7 @@ const Footer = () => {
                         <span className="text-2xl font-bold tracking-tight">Creator Connect</span>
                         <div className="flex flex-col text-xs text-gray-400 mt-1">
                             <span>© 2026 Creator Connect, Inc. All rights reserved</span>
-                            <span>hello@creatorconnect.tech</span>
+                            <span>creatorconnect.tech@gmail.com</span>
                         </div>
                     </div>
 
