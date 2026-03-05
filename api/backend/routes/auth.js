@@ -84,30 +84,45 @@ auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassw
 
 // 🚨 CRITICAL: Add /me endpoint for session check
 auth.get('/me', authMiddleware, async (c) => {
-  // 1. Get's user from Context (set by your middleware)
-  const user = c.get('user');
+  // 1. Get's user from Context (set by your middleware) — only has JWT fields (id, email, role)
+  const jwtUser = c.get('user');
 
-  if (!user) {
+  if (!jwtUser) {
     return c.json({ authenticated: false }, 401);
   }
 
-  // 2. Return's user data
-  return c.json({
-    authenticated: true,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      username: user.username,
-      avatar: user.avatar,
-      company_name: user.company_name,
-      phone_number: user.phone_number,
-      portfolio_link: user.portfolio_link
-      // ... any other fields you need
+  // 2. Query DB for fresh data (avatar, name etc. are NOT in JWT — they're set after login)
+  try {
+    const { rows } = await client.query(
+      'SELECT id, email, role, name, avatar, profile_image, company_name, phone_number, portfolio_link FROM users WHERE id = $1',
+      [jwtUser.id]
+    );
+
+    if (rows.length === 0) {
+      return c.json({ authenticated: false }, 401);
     }
-  });
+
+    const user = rows[0];
+
+    return c.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        avatar: user.avatar || user.profile_image || null,
+        company_name: user.company_name,
+        phone_number: user.phone_number,
+        portfolio_link: user.portfolio_link,
+      }
+    });
+  } catch (err) {
+    console.error('/me DB error:', err);
+    return c.json({ error: 'Server error' }, 500);
+  }
 });
+
 
 // Temporary route to bypass login for testing (only for dev)
 auth.post('/login-bypass', async (c) => {
