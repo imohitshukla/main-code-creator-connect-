@@ -218,7 +218,7 @@ const Navbar = () => {
                 </Button>
                 <Button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 shadow-glow transition-all duration-300"
-                  onClick={() => window.location.href = '/contact'}
+                  onClick={() => window.open('https://calendly.com/creatorconnect/15min', '_blank')}
                 >
                   Book a demo
                 </Button>

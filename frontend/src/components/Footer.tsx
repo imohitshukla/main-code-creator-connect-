@@ -129,8 +129,8 @@ const Footer = () => {
                     <div className="flex flex-col gap-1">
                         <span className="text-2xl font-bold tracking-tight">Creator Connect</span>
                         <div className="flex flex-col text-xs text-gray-400 mt-1">
-                            <span>© 2025 Creator Connect, Inc. All rights reserved</span>
-                            <span>mohitshukla57662@gmail.com</span>
+                            <span>© 2026 Creator Connect, Inc. All rights reserved</span>
+                            <span>hello@creatorconnect.tech</span>
                         </div>
                     </div>
 
