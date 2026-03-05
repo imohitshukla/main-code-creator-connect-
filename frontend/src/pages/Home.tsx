@@ -94,8 +94,8 @@ const Home = () => {
               {
                 icon: <BadgeDollarSign className="w-6 h-6 text-green-600" />,
                 bg: 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/40',
-                label: '0% Agency Fee. Always.',
-                points: ['Traditional agencies take 20%+', 'We charge a flat platform fee', 'More budget goes to the creator'],
+                label: 'Affordable. Always.',
+                points: ['Transparent, flat pricing', 'No hidden cuts or markups', 'More budget goes to the creator'],
                 bad: false,
               },
             ].map((card) => (
