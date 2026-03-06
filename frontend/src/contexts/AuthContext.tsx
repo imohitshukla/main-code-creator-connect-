@@ -34,14 +34,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      try {
-        const storedToken = localStorage.getItem('auth_token');
-        setToken(storedToken); // Sync state
+      const storedToken = localStorage.getItem('auth_token');
 
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (storedToken) {
-          headers['Authorization'] = `Bearer ${storedToken}`;
-        }
+      try {
+        setToken(storedToken); // Sync state immediately
 
         const res = await apiCall('/api/auth/me');
 
@@ -52,16 +48,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             data.user.role = data.user.role.toUpperCase();
           }
           setUser(data.user);
-        } else {
-          if (res.status === 401) {
-            localStorage.removeItem('auth_token');
-            setToken(null);
-          }
+        } else if (res.status === 401) {
+          // Only treat 401 as "logged out" — server explicitly rejected the token
+          localStorage.removeItem('auth_token');
+          setToken(null);
           setUser(null);
+        } else {
+          // 500 / network error / server down — DO NOT log the user out.
+          // Fall back to the stored token so ProtectedRoute keeps them in.
+          if (storedToken) {
+            // Reconstruct a minimal user from localStorage if available
+            const cachedUser = localStorage.getItem('cached_user');
+            if (cachedUser) {
+              try { setUser(JSON.parse(cachedUser)); } catch (_) { }
+            }
+            // User stays on protected page; the real /api/auth/me will succeed next load
+          } else {
+            setUser(null);
+          }
         }
       } catch (error) {
-        console.error("Auth check failed", error);
-        setUser(null);
+        // Network completely down — do NOT kick user out if they have a token
+        console.warn('Auth check failed (network/server error). Keeping session if token exists.', error);
+        if (storedToken) {
+          const cachedUser = localStorage.getItem('cached_user');
+          if (cachedUser) {
+            try { setUser(JSON.parse(cachedUser)); } catch (_) { }
+          }
+        } else {
+          setUser(null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -95,12 +111,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setUser(userObj);
     setIsLoading(false);
+
+    // Cache user object for fallback restoration during server errors
+    try { localStorage.setItem('cached_user', JSON.stringify(userObj)); } catch (_) { }
   };
 
   const logout = async () => {
     // 🛡️ SET LOGOUT FLAG
     localStorage.setItem('explicit_logout', 'true');
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('cached_user'); // Clear cached user on logout
     localStorage.removeItem('intended_role'); // Clean up partial states
     setUser(null);
     setToken(null);
