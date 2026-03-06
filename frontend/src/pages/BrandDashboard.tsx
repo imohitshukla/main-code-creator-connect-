@@ -4,6 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 import ActiveCampaignsTable from '../components/dashboard/ActiveCampaignsTable';
 import CreateCampaignModal from '../components/dashboard/CreateCampaignModal';
 import { apiCall } from '@/utils/apiHelper';
+import RazorpayCheckout from '@/components/RazorpayCheckout';
+
+interface EscrowDeal {
+  id: number;
+  title?: string;
+  deliverables?: string;
+  amount: number;
+  currency: string;
+  status: string;
+  payment_status: string;
+  creator_name?: string;
+}
 
 const BrandDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -14,6 +26,10 @@ const BrandDashboard: React.FC = () => {
     totalApplicants: 0,
     totalSpent: 0
   });
+  // Deals needing escrow funding
+  const [pendingEscrowDeals, setPendingEscrowDeals] = useState<EscrowDeal[]>([]);
+  const [escrowLoading, setEscrowLoading] = useState(true);
+  const [fundingDealId, setFundingDealId] = useState<number | null>(null);
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -37,11 +53,35 @@ const BrandDashboard: React.FC = () => {
     }
   };
 
+  // Fetch deals awaiting escrow from the brand
+  const fetchPendingEscrowDeals = async () => {
+    setEscrowLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/my-deals`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const pending = (data.deals || []).filter(
+          (d: EscrowDeal) =>
+            d.payment_status === 'PENDING' &&
+            ['SIGNING', 'LOGISTICS', 'PRODUCTION', 'REVIEW', 'APPROVED'].includes(d.status)
+        );
+        setPendingEscrowDeals(pending);
+      }
+    } catch (e) {
+      console.error('Escrow deals fetch error:', e);
+    } finally {
+      setEscrowLoading(false);
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this campaign?')) return;
     try {
       await apiCall(`/api/campaigns/${id}`, { method: 'DELETE' });
-      fetchDashboardData(); // Refresh
+      fetchDashboardData();
     } catch (error) {
       console.error('Error deleting campaign:', error);
     }
@@ -49,6 +89,7 @@ const BrandDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchPendingEscrowDeals();
   }, []);
 
   return (
@@ -62,7 +103,71 @@ const BrandDashboard: React.FC = () => {
           <CreateCampaignModal onCampaignCreated={fetchDashboardData} />
         </div>
 
-        {/* Quick Stats */}
+        {/* ── Escrow Vault Panel ── */}
+        {pendingEscrowDeals.length > 0 && (
+          <div className="mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-start gap-4 mb-5">
+              <span className="text-3xl">🔐</span>
+              <div>
+                <h2 className="text-lg font-bold text-amber-900">Escrow Vault — Action Required</h2>
+                <p className="text-sm text-amber-700 mt-1">
+                  The creators below are waiting to start. Fund escrow upfront to unlock their priority slot and give them confidence to begin.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {pendingEscrowDeals.map(deal => (
+                <div key={deal.id} className="bg-white rounded-xl border border-amber-100 p-5 shadow-sm">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold border border-amber-200">
+                          {deal.status}
+                        </span>
+                        <span className="text-xs text-gray-400">Deal #{deal.id}</span>
+                      </div>
+                      <p className="font-semibold text-gray-900">Creator: {deal.creator_name || 'Assigned Creator'}</p>
+                      {deal.deliverables && <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{deal.deliverables}</p>}
+                      <p className="text-sm font-bold text-indigo-700 mt-2">
+                        {deal.currency || '₹'} {Number(deal.amount).toLocaleString('en-IN')} — awaiting escrow
+                      </p>
+                    </div>
+
+                    <div className="shrink-0">
+                      {fundingDealId === deal.id ? (
+                        <RazorpayCheckout
+                          dealId={deal.id}
+                          amount={deal.amount}
+                          currency={deal.currency || 'INR'}
+                          onSuccess={() => {
+                            setFundingDealId(null);
+                            fetchPendingEscrowDeals();
+                          }}
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setFundingDealId(deal.id)}
+                          className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:from-amber-600 hover:to-orange-600 transition-all shadow-md shadow-amber-200 flex items-center gap-2"
+                        >
+                          <span>💳</span> Add Funds to Escrow
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-4 text-xs text-amber-700">
+              <span>✅ You hold all control — funds only release after your approval</span>
+              <span>✅ Creators prioritize funded campaigns</span>
+              <span>✅ Zero administrative friction — one transfer, we handle payouts</span>
+            </div>
+          </div>
+        )}
+
+        {/* ── Quick Stats ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
@@ -79,9 +184,7 @@ const BrandDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metrics.totalApplicants}</div>
-              <p className="text-xs text-muted-foreground mt-1 text-gray-400">
-                Across all campaigns
-              </p>
+              <p className="text-xs text-muted-foreground mt-1 text-gray-400">Across all campaigns</p>
             </CardContent>
           </Card>
 
@@ -90,15 +193,40 @@ const BrandDashboard: React.FC = () => {
               <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${metrics.totalSpent}</div>
-              <p className="text-xs text-muted-foreground mt-1 text-gray-400">
-                Lifetime spend
-              </p>
+              <div className="text-2xl font-bold">₹{Number(metrics.totalSpent).toLocaleString('en-IN')}</div>
+              <p className="text-xs text-muted-foreground mt-1 text-gray-400">Lifetime spend</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Active Campaigns Table */}
+        {/* ── Escrow Guarantee Banner (static info) ── */}
+        <div className="mb-8 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg shadow-indigo-200">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="flex-1">
+              <h3 className="font-bold text-lg mb-1">🚀 Escrow-First Advantage</h3>
+              <p className="text-sm text-indigo-100">
+                Fund your campaign upfront and <strong className="text-white">jump to the front of the creator queue</strong>. Top creators prioritize funded deals for faster turnaround.
+                Your money is safe — released <em>only</em> after you approve the final content.
+              </p>
+            </div>
+            <div className="flex-shrink-0 grid grid-cols-2 gap-3 text-sm">
+              {[
+                ['🔒', 'Risk-Free', 'Approve before release'],
+                ['⚡', 'Priority Queue', 'Funded = faster delivery'],
+                ['📋', 'Zero Invoices', 'One transfer, we handle rest'],
+                ['✅', '0% Fees', 'Net payout to creator'],
+              ].map(([icon, title, desc]) => (
+                <div key={title as string} className="bg-white/10 rounded-xl p-3 text-center">
+                  <div className="text-xl mb-1">{icon}</div>
+                  <div className="font-semibold text-xs">{title as string}</div>
+                  <div className="text-indigo-200 text-[10px] mt-0.5">{desc as string}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Campaigns Table ── */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Your Campaigns</CardTitle>

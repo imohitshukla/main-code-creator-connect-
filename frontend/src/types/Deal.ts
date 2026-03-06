@@ -7,13 +7,16 @@ export interface Deal {
     campaign_id?: number;
     status: DealStatus;
     amount: number;
+    budget?: number;
     currency: string;
     deliverables: string;
     current_stage_metadata: Record<string, any>;
+    payment_status?: 'PENDING' | 'FUNDED' | 'RELEASED';
+    live_post_url?: string;
+    completed_at?: string;
     created_at: string;
     updated_at: string;
 
-    // Joined fields
     // Joined fields
     brand_name?: string;
     creator_name?: string;

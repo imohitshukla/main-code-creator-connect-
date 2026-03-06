@@ -58,8 +58,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">
-        {user?.role === 'brand' ? 'Brand Dashboard' : 'Creator Dashboard'}
-        {user?.role === 'creator' && (
+        {user?.role === 'BRAND' ? 'Brand Dashboard' : 'Creator Dashboard'}
+        {user?.role === 'CREATOR' && (
           <Button variant="outline" size="sm" className="ml-4 gap-2" onClick={() => window.location.href = '/profile-setup'}>
             ✏️ Edit Profile
           </Button>
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {user?.role === 'brand' ? (
+        {user?.role === 'BRAND' ? (
           <>
             <Card>
               <CardHeader>
@@ -153,7 +153,7 @@ const Dashboard: React.FC = () => {
                       <Badge className={getStatusColor(item.status || item.proposal_status || '')}>
                         {item.status || item.proposal_status}
                       </Badge>
-                      {user?.role === 'brand' && item.proposal_count !== undefined && (
+                      {user?.role === 'BRAND' && item.proposal_count !== undefined && (
                         <span className="text-sm text-gray-600">
                           {item.proposal_count} proposals
                         </span>

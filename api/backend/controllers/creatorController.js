@@ -287,6 +287,16 @@ export const getCreatorProfile = async (c) => {
     }
 
     // Return flattened structure for editing
+    // Also load payout fields directly from DB
+    let payoutData = {};
+    try {
+      const payoutRes = await client.query(
+        'SELECT payout_method, upi_id, bank_account_number, bank_ifsc, bank_account_name FROM creator_profiles WHERE user_id = $1',
+        [user.id]
+      );
+      if (payoutRes.rows.length > 0) payoutData = payoutRes.rows[0];
+    } catch (e) { /* payout columns may not exist yet */ }
+
     return c.json({
       success: true,
       user: {
@@ -302,7 +312,7 @@ export const getCreatorProfile = async (c) => {
         niche: user.niche
       },
       creator: response, // The full public profile object
-      rawProfile: creatorProfile, // The exact DB rows without fallbacks
+      rawProfile: { ...creatorProfile?.dataValues, ...payoutData }, // The exact DB rows without fallbacks + payout
     });
 
   } catch (error) {
@@ -366,6 +376,23 @@ export const updateCreatorProfile = async (c) => {
 
     if (Object.keys(profileUpdates).length > 0) {
       await creatorProfile.update(profileUpdates);
+    }
+
+    // 3) Save payout details directly via raw SQL (fields added by migration)
+    const payoutUpdates = [];
+    const payoutValues = [];
+    let pidx = 1;
+    if (body.payout_method !== undefined) { payoutUpdates.push(`payout_method = $${pidx++}`); payoutValues.push(body.payout_method); }
+    if (body.upi_id !== undefined) { payoutUpdates.push(`upi_id = $${pidx++}`); payoutValues.push(body.upi_id); }
+    if (body.bank_account_number !== undefined) { payoutUpdates.push(`bank_account_number = $${pidx++}`); payoutValues.push(body.bank_account_number); }
+    if (body.bank_ifsc !== undefined) { payoutUpdates.push(`bank_ifsc = $${pidx++}`); payoutValues.push(body.bank_ifsc); }
+    if (body.bank_account_name !== undefined) { payoutUpdates.push(`bank_account_name = $${pidx++}`); payoutValues.push(body.bank_account_name); }
+    if (payoutUpdates.length > 0) {
+      payoutValues.push(user.id);
+      await client.query(
+        `UPDATE creator_profiles SET ${payoutUpdates.join(', ')} WHERE user_id = $${pidx}`,
+        payoutValues
+      );
     }
 
     return c.json({ success: true, message: "Profile updated successfully!", user, creatorProfile });

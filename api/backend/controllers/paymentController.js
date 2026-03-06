@@ -1,170 +1,254 @@
 import { client } from '../config/database.js';
-// import Stripe from 'stripe';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Razorpay — keys from .env
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret',
+});
 
-export const createContract = async (c) => {
+// ────────────────────────────────────────────────────────────
+// 1. Brand creates a Razorpay order to fund escrow
+// POST /api/payments/create-order
+// Body: { deal_id }
+// ────────────────────────────────────────────────────────────
+export const createOrder = async (c) => {
   try {
-    const { proposalId, terms } = await c.req.json();
-    const userId = c.get('userId');
+    const user = c.get('user');
+    const { deal_id } = await c.req.json();
 
-    // Verify proposal ownership (brand)
-    const proposal = await db.query(`
-      SELECT p.id, c.brand_id FROM proposals p
-      JOIN campaigns c ON p.campaign_id = c.id
-      WHERE p.id = $1 AND c.brand_id = (SELECT id FROM brand_profiles WHERE user_id = $2)
-    `, [proposalId, userId]);
+    if (!deal_id) return c.json({ error: 'deal_id is required' }, 400);
 
-    if (proposal.rows.length === 0) {
-      return c.json({ error: 'Unauthorized' }, 403);
+    // Fetch deal + verify brand ownership
+    const dealRes = await client.query(`
+      SELECT d.*, b.user_id as brand_user_id
+      FROM deals d
+      JOIN brand_profiles b ON d.brand_id = b.id
+      WHERE d.id = $1
+    `, [deal_id]);
+
+    if (dealRes.rows.length === 0) return c.json({ error: 'Deal not found' }, 404);
+    const deal = dealRes.rows[0];
+
+    if (deal.brand_user_id !== user.id) {
+      return c.json({ error: 'Only the brand can fund this deal' }, 403);
     }
 
-    const result = await db.query(`
-      INSERT INTO contracts (proposal_id, terms)
-      VALUES ($1, $2)
-      RETURNING id, terms, signed, created_at
-    `, [proposalId, terms]);
+    // Check if already funded
+    const existingEscrow = await client.query(
+      'SELECT * FROM escrow_payments WHERE deal_id = $1',
+      [deal_id]
+    );
+    if (existingEscrow.rows.length > 0 && existingEscrow.rows[0].status === 'FUNDED') {
+      return c.json({ error: 'Escrow already funded for this deal' }, 400);
+    }
 
-    return c.json({ contract: result.rows[0] });
+    const amountPaise = Math.round(Number(deal.amount || deal.budget || 0) * 100); // Razorpay works in paise
+    if (amountPaise === 0) return c.json({ error: 'Deal has no amount set' }, 400);
+
+    // Create Razorpay order
+    const order = await razorpay.orders.create({
+      amount: amountPaise,
+      currency: deal.currency || 'INR',
+      receipt: `deal_${deal_id}_${Date.now()}`,
+      notes: {
+        deal_id: String(deal_id),
+        brand_user_id: String(user.id),
+      },
+    });
+
+    // Upsert escrow_payments record as PENDING
+    await client.query(`
+      INSERT INTO escrow_payments (deal_id, razorpay_order_id, amount, currency, status)
+      VALUES ($1, $2, $3, $4, 'PENDING')
+      ON CONFLICT (deal_id) DO UPDATE
+        SET razorpay_order_id = EXCLUDED.razorpay_order_id,
+            status = 'PENDING',
+            updated_at = CURRENT_TIMESTAMP
+    `, [deal_id, order.id, deal.amount || deal.budget, deal.currency || 'INR']);
+
+    return c.json({
+      success: true,
+      order_id: order.id,
+      amount: amountPaise,
+      currency: deal.currency || 'INR',
+      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to create contract' }, 500);
+    console.error('Error creating Razorpay order:', error);
+    return c.json({ error: 'Failed to create payment order', details: error.message }, 500);
   }
 };
 
-export const signContract = async (c) => {
+// ────────────────────────────────────────────────────────────
+// 2. Verify Razorpay payment signature & mark escrow as FUNDED
+// POST /api/payments/verify
+// Body: { deal_id, razorpay_order_id, razorpay_payment_id, razorpay_signature }
+// ────────────────────────────────────────────────────────────
+export const verifyPayment = async (c) => {
   try {
-    const contractId = c.req.param('id');
-    const { signatureData } = await c.req.json();
-    const userId = c.get('userId');
+    const { deal_id, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await c.req.json();
 
-    // Verify access (brand or creator from proposal)
-    const accessCheck = await db.query(`
-      SELECT 1 FROM contracts ct
-      JOIN proposals p ON ct.proposal_id = p.id
-      JOIN campaigns c ON p.campaign_id = c.id
-      WHERE ct.id = $1 AND (c.brand_id = (SELECT id FROM brand_profiles WHERE user_id = $2) OR p.creator_id = (SELECT id FROM creator_profiles WHERE user_id = $2))
-    `, [contractId, userId]);
+    // Verify signature
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret')
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
 
-    if (accessCheck.rows.length === 0) {
-      return c.json({ error: 'Unauthorized' }, 403);
+    if (expectedSignature !== razorpay_signature) {
+      return c.json({ error: 'Invalid payment signature — possible fraud attempt' }, 400);
     }
 
-    await db.query(`
-      UPDATE contracts SET signed = TRUE, signature_data = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-    `, [JSON.stringify(signatureData), contractId]);
+    // Mark escrow as FUNDED
+    await client.query(`
+      UPDATE escrow_payments
+      SET razorpay_payment_id = $1,
+          status = 'FUNDED',
+          funded_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE deal_id = $2
+    `, [razorpay_payment_id, deal_id]);
 
-    return c.json({ message: 'Contract signed successfully' });
+    // Update deal's payment_status
+    await client.query(`
+      UPDATE deals SET payment_status = 'FUNDED', updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `, [deal_id]);
+
+    // Insert in-app notification for creator
+    try {
+      await client.query(`
+        INSERT INTO notifications (user_id, type, message, link)
+        SELECT cr.user_id, 'ESCROW_FUNDED',
+          '💰 Funds have been secured in escrow for your deal!',
+          '/deals/' || $1
+        FROM deals d
+        JOIN creator_profiles cr ON d.creator_id = cr.id
+        WHERE d.id = $1
+      `, [deal_id]);
+    } catch (notifyErr) {
+      console.error('Failed to send escrow funded notification:', notifyErr);
+    }
+
+    return c.json({ success: true, message: 'Payment verified. Escrow funded!' });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to sign contract' }, 500);
+    console.error('Error verifying payment:', error);
+    return c.json({ error: 'Payment verification failed', details: error.message }, 500);
   }
 };
 
-export const createPaymentIntent = async (c) => {
-  try {
-    const { contractId, amount } = await c.req.json();
-    const userId = c.get('userId');
-
-    // Verify contract ownership (brand)
-    const contract = await db.query(`
-      SELECT ct.id FROM contracts ct
-      JOIN proposals p ON ct.proposal_id = p.id
-      JOIN campaigns c ON p.campaign_id = c.id
-      WHERE ct.id = $1 AND c.brand_id = (SELECT id FROM brand_profiles WHERE user_id = $2)
-    `, [contractId, userId]);
-
-    if (contract.rows.length === 0) {
-      return c.json({ error: 'Unauthorized' }, 403);
-    }
-
-    // const paymentIntent = await stripe.paymentIntents.create({
-    //   amount: Math.round(amount * 100), // Convert to cents
-    //   currency: 'usd',
-    //   metadata: { contractId }
-    // });
-
-    // Save payment record
-    await db.query(`
-      INSERT INTO payments (contract_id, amount, status)
-      VALUES ($1, $2, 'pending')
-    `, [contractId, amount]);
-
-    return c.json({ message: 'Payment intent created (Stripe disabled for testing)' });
-  } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to create payment intent' }, 500);
-  }
-};
-
+// ────────────────────────────────────────────────────────────
+// 3. Release escrow to creator (triggered after go-live)
+// POST /api/payments/release/:dealId
+// Body: { live_post_url }
+// ────────────────────────────────────────────────────────────
 export const releaseEscrow = async (c) => {
   try {
-    const paymentId = c.req.param('id');
-    const userId = c.get('userId');
+    const user = c.get('user');
+    const dealId = c.req.param('dealId');
+    const { live_post_url } = await c.req.json();
 
-    // Verify payment ownership (creator)
-    const payment = await db.query(`
-      SELECT p.id FROM payments p
-      JOIN contracts ct ON p.contract_id = ct.id
-      JOIN proposals pr ON ct.proposal_id = pr.id
-      WHERE p.id = $1 AND pr.creator_id = (SELECT id FROM creator_profiles WHERE user_id = $2)
-    `, [paymentId, userId]);
+    if (!live_post_url) return c.json({ error: 'Live post URL is required' }, 400);
 
-    if (payment.rows.length === 0) {
-      return c.json({ error: 'Unauthorized' }, 403);
+    // Fetch deal + verify it's the creator
+    const dealRes = await client.query(`
+      SELECT d.*, cr.user_id as creator_user_id
+      FROM deals d
+      JOIN creator_profiles cr ON d.creator_id = cr.id
+      WHERE d.id = $1
+    `, [dealId]);
+
+    if (dealRes.rows.length === 0) return c.json({ error: 'Deal not found' }, 404);
+    const deal = dealRes.rows[0];
+
+    if (deal.creator_user_id !== user.id && user.role !== 'ADMIN') {
+      return c.json({ error: 'Only the creator or admin can submit live link' }, 403);
     }
 
-    // Simulate escrow release (Stripe disabled for testing)
-    // await stripe.transfers.create({
-    //   amount: Math.round(payment.rows[0].amount * 100),
-    //   currency: 'usd',
-    //   destination: 'acct_1234567890', // Placeholder - would be creator's Stripe account
-    //   transfer_group: payment.rows[0].stripe_id
-    // });
+    // Check escrow is funded
+    const escrowRes = await client.query(
+      'SELECT * FROM escrow_payments WHERE deal_id = $1',
+      [dealId]
+    );
+    if (escrowRes.rows.length === 0 || escrowRes.rows[0].status !== 'FUNDED') {
+      return c.json({ error: 'Escrow is not in FUNDED state' }, 400);
+    }
 
-    await db.query(`
-      UPDATE payments SET escrow_released = TRUE, status = 'released', updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1
-    `, [paymentId]);
+    // Mark escrow as RELEASED
+    await client.query(`
+      UPDATE escrow_payments
+      SET status = 'RELEASED',
+          live_post_url = $1,
+          released_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE deal_id = $2
+    `, [live_post_url, dealId]);
 
-    return c.json({ message: 'Escrow released successfully' });
+    // Update deal: add live_post_url, payment_status, move to COMPLETED
+    await client.query(`
+      UPDATE deals
+      SET payment_status = 'RELEASED',
+          live_post_url = $1,
+          status = 'COMPLETED',
+          completed_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+    `, [live_post_url, dealId]);
+
+    // Notify brand
+    try {
+      await client.query(`
+        INSERT INTO notifications (user_id, type, message, link)
+        SELECT b.user_id, 'DEAL_COMPLETED',
+          '🎉 Creator submitted live link! Deal is now complete. Payment released.',
+          '/deals/' || $1
+        FROM deals d
+        JOIN brand_profiles b ON d.brand_id = b.id
+        WHERE d.id = $1
+      `, [dealId]);
+    } catch (notifyErr) {
+      console.error('Failed to send completion notification:', notifyErr);
+    }
+
+    return c.json({ success: true, message: 'Escrow released. Deal completed!' });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to release escrow' }, 500);
+    console.error('Error releasing escrow:', error);
+    return c.json({ error: 'Failed to release escrow', details: error.message }, 500);
   }
 };
 
-export const getPayments = async (c) => {
+// ────────────────────────────────────────────────────────────
+// 4. Get escrow payment status for a deal
+// GET /api/payments/deal/:dealId
+// ────────────────────────────────────────────────────────────
+export const getDealPayment = async (c) => {
   try {
-    const userId = c.get('userId');
-    const userRole = c.get('userRole');
+    const user = c.get('user');
+    const dealId = c.req.param('dealId');
 
-    let query;
-    if (userRole === 'brand') {
-      query = `
-        SELECT p.*, ct.terms, c.title as campaign_title
-        FROM payments p
-        JOIN contracts ct ON p.contract_id = ct.id
-        JOIN proposals pr ON ct.proposal_id = pr.id
-        JOIN campaigns c ON pr.campaign_id = c.id
-        WHERE c.brand_id = (SELECT id FROM brand_profiles WHERE user_id = $1)
-      `;
-    } else {
-      query = `
-        SELECT p.*, ct.terms, c.title as campaign_title
-        FROM payments p
-        JOIN contracts ct ON p.contract_id = ct.id
-        JOIN proposals pr ON ct.proposal_id = pr.id
-        JOIN campaigns c ON pr.campaign_id = c.id
-        WHERE pr.creator_id = (SELECT id FROM creator_profiles WHERE user_id = $1)
-      `;
+    // Verify user belongs to deal
+    const accessCheck = await client.query(`
+      SELECT 1
+      FROM deals d
+      LEFT JOIN brand_profiles b ON d.brand_id = b.id
+      LEFT JOIN creator_profiles cr ON d.creator_id = cr.id
+      WHERE d.id = $1 AND (b.user_id = $2 OR cr.user_id = $2)
+    `, [dealId, user.id]);
+
+    if (accessCheck.rows.length === 0 && user.role !== 'ADMIN') {
+      return c.json({ error: 'Unauthorized' }, 403);
     }
 
-    const payments = await db.query(query, [userId]);
-    return c.json({ payments: payments.rows });
+    const escrowRes = await client.query(
+      'SELECT * FROM escrow_payments WHERE deal_id = $1',
+      [dealId]
+    );
+
+    const payment = escrowRes.rows[0] || null;
+    return c.json({ payment });
   } catch (error) {
-    console.error(error);
-    return c.json({ error: 'Failed to fetch payments' }, 500);
+    console.error('Error fetching deal payment:', error);
+    return c.json({ error: 'Failed to fetch payment info' }, 500);
   }
 };

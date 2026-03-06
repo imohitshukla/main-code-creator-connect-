@@ -37,7 +37,13 @@ const CreatorOnboarding = () => {
         // Collaboration
         budget_range: '',
         audience_breakdown: '',
-        collaboration_goals: ''
+        collaboration_goals: '',
+        // Payout
+        payout_method: 'UPI',
+        upi_id: '',
+        bank_account_name: '',
+        bank_account_number: '',
+        bank_ifsc: ''
     });
 
     // File input ref
@@ -91,7 +97,13 @@ const CreatorOnboarding = () => {
                             // Load exact collaboration fields
                             budget_range: raw.budget_range || '',
                             audience_breakdown: raw.audience_breakdown || '',
-                            collaboration_goals: raw.collaboration_goals || ''
+                            collaboration_goals: raw.collaboration_goals || '',
+                            // Load payout details
+                            payout_method: raw.payout_method || 'UPI',
+                            upi_id: raw.upi_id || '',
+                            bank_account_name: raw.bank_account_name || '',
+                            bank_account_number: raw.bank_account_number || '',
+                            bank_ifsc: raw.bank_ifsc || '',
                         }));
                     }
                 }
@@ -449,6 +461,95 @@ const CreatorOnboarding = () => {
                                             className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
                                         />
                                     </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* ─── Payout Method ─── */}
+                        <Card className="border-0 shadow-sm bg-white overflow-hidden mt-8">
+                            <CardHeader className="border-b border-gray-100 pb-6">
+                                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                                    <span className="text-2xl">🔐</span> Payout Method
+                                </CardTitle>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Your payout details are stored securely. Creator Connect releases funds directly to your account once a deal is completed.
+                                </p>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-6">
+                                {/* Method Toggle */}
+                                <div className="flex gap-3">
+                                    {['UPI', 'BANK'].map(method => (
+                                        <button
+                                            key={method}
+                                            type="button"
+                                            onClick={() => handleChange('payout_method', method)}
+                                            className={`px-5 py-2 rounded-lg text-sm font-semibold border transition-all ${formData.payout_method === method
+                                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                                                }`}
+                                        >
+                                            {method === 'UPI' ? '📱 UPI / GPay' : '🏦 Bank Transfer (IMPS)'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* UPI Fields */}
+                                {formData.payout_method === 'UPI' && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="upi_id" className="font-medium text-gray-700">UPI ID</Label>
+                                        <Input
+                                            id="upi_id"
+                                            value={formData.upi_id}
+                                            onChange={e => handleChange('upi_id', e.target.value)}
+                                            placeholder="e.g. yourname@paytm or 9876543210@ybl"
+                                            className="h-12 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                        <p className="text-xs text-gray-400">Works with PhonePe, GPay, Paytm, BHIM, and all UPI apps.</p>
+                                    </div>
+                                )}
+
+                                {/* Bank Fields */}
+                                {formData.payout_method === 'BANK' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="bank_account_name" className="font-medium text-gray-700">Account Holder Name</Label>
+                                            <Input
+                                                id="bank_account_name"
+                                                value={formData.bank_account_name}
+                                                onChange={e => handleChange('bank_account_name', e.target.value)}
+                                                placeholder="As per bank records"
+                                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="bank_account_number" className="font-medium text-gray-700">Account Number</Label>
+                                            <Input
+                                                id="bank_account_number"
+                                                value={formData.bank_account_number}
+                                                onChange={e => handleChange('bank_account_number', e.target.value)}
+                                                placeholder="Enter account number"
+                                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="bank_ifsc" className="font-medium text-gray-700">IFSC Code</Label>
+                                            <Input
+                                                id="bank_ifsc"
+                                                value={formData.bank_ifsc}
+                                                onChange={e => handleChange('bank_ifsc', e.target.value.toUpperCase())}
+                                                placeholder="e.g. HDFC0001234"
+                                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 flex items-start gap-3">
+                                    <span className="text-lg">🔒</span>
+                                    <p className="text-xs text-emerald-700">
+                                        Your details are encrypted and only used for IMPS/UPI payouts once a brand approves your work and the escrow is released.
+                                        <strong> Creator Connect charges 0% commission</strong> on creator payouts.
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
