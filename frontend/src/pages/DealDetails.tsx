@@ -64,7 +64,8 @@ const DealDetails: React.FC = () => {
             if (!response.ok) throw new Error('Failed to update status');
 
             const data = await response.json();
-            setDeal(data.deal);
+            // Preserve joined fields (brand_name, creator_name) since update endpoint doesn't return them
+            setDeal(prev => prev ? { ...prev, ...data.deal } : data.deal);
         } catch (err) {
             console.error(err);
             alert('Failed to update deal status');
@@ -101,10 +102,13 @@ const DealDetails: React.FC = () => {
         setIsSavingAmount(true);
         try {
             const acceptedAmount = deal.current_stage_metadata.proposed_amount;
-            // Clear the proposal from metadata
-            const newMetadata = { ...deal.current_stage_metadata };
-            delete newMetadata.proposed_amount;
-            delete newMetadata.proposed_by_role;
+
+            // Explicitly set these to null so the backend merge overwrites them
+            const newMetadata = {
+                ...deal.current_stage_metadata,
+                proposed_amount: null,
+                proposed_by_role: null
+            };
 
             // This will actually update the deal.amount and reset signatures because amount is passed
             await handleStatusUpdate(deal!.status as DealStatus, newMetadata, acceptedAmount);
