@@ -156,6 +156,15 @@ export const updateDealStatus = async (c) => {
 
     const newMetadata = { ...currentMetadata, ...userMetadata };
 
+    // 🤝 NEGOTIATION LOGIC: Reset signatures if the amount is changed during SIGNING
+    if (amount !== undefined && amount !== null && !isNaN(Number(amount)) && Number(amount) !== Number(deal.amount)) {
+      if (deal.status === 'SIGNING' || status === 'SIGNING') {
+        newMetadata.brand_signed = false;
+        newMetadata.creator_signed = false;
+        console.log(`Amount changed from ${deal.amount} to ${amount}. Resetting signatures for negotiation.`);
+      }
+    }
+
     console.log(`Updating deal ${id} status to ${status}. Metadata:`, newMetadata);
 
     let updateQuery = `

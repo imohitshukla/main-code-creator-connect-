@@ -166,7 +166,13 @@ const DealDetails: React.FC = () => {
                         <span className="bg-gray-100 px-3 py-1 rounded-full">ID: #{deal.id}</span>
                         <span className="bg-gray-100 px-3 py-1 rounded-full">Started: {new Date(deal.created_at).toLocaleDateString()}</span>
 
-                        {/* Amount Display / Edit Logic */}
+                        {deal.current_stage_metadata?.proposed_budget && (
+                            <span className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full border border-yellow-200" title="Initial Budget Estimate">
+                                Budget Est: {deal.current_stage_metadata.proposed_budget}
+                            </span>
+                        )}
+
+                        {/* Amount Display / Negotiation Edit Logic */}
                         {isEditingAmount ? (
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center bg-white border border-gray-300 rounded-md px-3 py-1 h-8 focus-within:ring-2 focus-within:ring-green-500">
@@ -202,20 +208,27 @@ const DealDetails: React.FC = () => {
                         ) : (
                             <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 font-semibold flex items-center gap-2 group cursor-pointer"
                                 onClick={() => {
-                                    // Only allow Brand to edit, and only if not completed/cancelled
-                                    if (user.role === 'BRAND' && !['COMPLETED', 'CANCELLED'].includes(deal.status)) {
+                                    // Allow both BRAND and CREATOR to edit during negotiation phases (OFFER, SIGNING)
+                                    if (!['LOGISTICS', 'PRODUCTION', 'REVIEW', 'APPROVED', 'COMPLETED', 'CANCELLED'].includes(deal.status)) {
                                         setEditAmountValue(deal.amount?.toString() || '');
                                         setIsEditingAmount(true);
                                     }
                                 }}
                             >
                                 <span>{deal.currency} {deal.amount ? Number(deal.amount).toLocaleString('en-IN') : '0'}</span>
-                                {user.role === 'BRAND' && !['COMPLETED', 'CANCELLED'].includes(deal.status) && (
-                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" title="Edit Amount">✏️</span>
+                                {!['LOGISTICS', 'PRODUCTION', 'REVIEW', 'APPROVED', 'COMPLETED', 'CANCELLED'].includes(deal.status) && (
+                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" title="Negotiate Amount">✏️</span>
                                 )}
                             </div>
                         )}
                     </div>
+
+                    {/* Negotiation Warning */}
+                    {isEditingAmount && deal.status === 'SIGNING' && (
+                        <div className="text-xs text-orange-600 mb-4 flex items-center gap-1">
+                            <span>⚠️</span> Changing the amount during Signing will require both parties to re-sign the contract.
+                        </div>
+                    )}
 
                     <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
                         <h3 className="font-semibold text-gray-900 mb-1">Deliverables</h3>
