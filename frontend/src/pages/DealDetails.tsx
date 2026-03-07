@@ -15,6 +15,11 @@ const DealDetails: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Amount Editing State
+    const [isEditingAmount, setIsEditingAmount] = useState(false);
+    const [editAmountValue, setEditAmountValue] = useState('');
+    const [isSavingAmount, setIsSavingAmount] = useState(false);
+
     const fetchDeal = async () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${id}`, {
@@ -63,6 +68,23 @@ const DealDetails: React.FC = () => {
         } catch (err) {
             console.error(err);
             alert('Failed to update deal status');
+        }
+    };
+
+    const handleEditAmount = async () => {
+        if (!editAmountValue || isNaN(Number(editAmountValue))) {
+            setIsEditingAmount(false);
+            return;
+        }
+
+        setIsSavingAmount(true);
+        try {
+            await handleStatusUpdate(deal!.status as DealStatus, deal!.current_stage_metadata, Number(editAmountValue));
+            setIsEditingAmount(false);
+        } catch (err) {
+            console.error('Failed to edit amount', err);
+        } finally {
+            setIsSavingAmount(false);
         }
     };
 
@@ -140,12 +162,59 @@ const DealDetails: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">
                         {user.role === 'BRAND' ? `Deal with ${deal.creator_name}` : `Deal with ${deal.brand_name}`}
                     </h1>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 items-center">
                         <span className="bg-gray-100 px-3 py-1 rounded-full">ID: #{deal.id}</span>
                         <span className="bg-gray-100 px-3 py-1 rounded-full">Started: {new Date(deal.created_at).toLocaleDateString()}</span>
-                        <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 font-semibold">
-                            {deal.currency} {deal.amount}
-                        </span>
+
+                        {/* Amount Display / Edit Logic */}
+                        {isEditingAmount ? (
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center bg-white border border-gray-300 rounded-md px-3 py-1 h-8 focus-within:ring-2 focus-within:ring-green-500">
+                                    <span className="font-medium text-gray-500 mr-2">{deal.currency}</span>
+                                    <input
+                                        type="number"
+                                        value={editAmountValue}
+                                        onChange={(e) => setEditAmountValue(e.target.value)}
+                                        placeholder={deal.amount?.toString() || '0'}
+                                        className="w-20 outline-none border-none p-0 text-gray-900 bg-transparent text-sm"
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleEditAmount();
+                                            if (e.key === 'Escape') setIsEditingAmount(false);
+                                        }}
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleEditAmount}
+                                    disabled={isSavingAmount}
+                                    className="bg-green-600 text-white px-3 py-1 rounded h-8 text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                                >
+                                    {isSavingAmount ? 'Saving...' : 'Save'}
+                                </button>
+                                <button
+                                    onClick={() => setIsEditingAmount(false)}
+                                    disabled={isSavingAmount}
+                                    className="text-gray-500 hover:text-gray-700 text-xs px-2"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 font-semibold flex items-center gap-2 group cursor-pointer"
+                                onClick={() => {
+                                    // Only allow Brand to edit, and only if not completed/cancelled
+                                    if (user.role === 'BRAND' && !['COMPLETED', 'CANCELLED'].includes(deal.status)) {
+                                        setEditAmountValue(deal.amount?.toString() || '');
+                                        setIsEditingAmount(true);
+                                    }
+                                }}
+                            >
+                                <span>{deal.currency} {deal.amount ? Number(deal.amount).toLocaleString('en-IN') : '0'}</span>
+                                {user.role === 'BRAND' && !['COMPLETED', 'CANCELLED'].includes(deal.status) && (
+                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" title="Edit Amount">✏️</span>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
