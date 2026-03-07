@@ -42,15 +42,18 @@ const DealDetails: React.FC = () => {
         }
     }, [token, id]);
 
-    const handleStatusUpdate = async (newStatus: DealStatus, metadata?: any) => {
+    const handleStatusUpdate = async (newStatus: DealStatus, metadata?: any, amount?: number) => {
         try {
+            const payload: any = { status: newStatus, metadata };
+            if (amount !== undefined) payload.amount = amount;
+
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${id}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ status: newStatus, metadata })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) throw new Error('Failed to update status');

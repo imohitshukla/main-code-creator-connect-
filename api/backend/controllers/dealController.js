@@ -111,7 +111,8 @@ export const getDealById = async (c) => {
 export const updateDealStatus = async (c) => {
   try {
     const id = c.req.param('id');
-    const { status, metadata } = await c.req.json();
+    const payload = await c.req.json();
+    const { status, metadata, amount } = payload;
     const user = c.get('user');
 
     // Fetch deal to verify ownership and current status
@@ -157,12 +158,21 @@ export const updateDealStatus = async (c) => {
 
     console.log(`Updating deal ${id} status to ${status}. Metadata:`, newMetadata);
 
-    const updatedDeal = await client.query(`
+    let updateQuery = `
       UPDATE deals
       SET status = $1, current_stage_metadata = $2, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
-      RETURNING *
-    `, [status, newMetadata, id]);
+    `;
+    let queryParams = [status, newMetadata];
+
+    if (amount !== undefined && amount !== null && !isNaN(Number(amount))) {
+      updateQuery += `, amount = $3 WHERE id = $4 RETURNING *`;
+      queryParams.push(Number(amount), id);
+    } else {
+      updateQuery += ` WHERE id = $3 RETURNING *`;
+      queryParams.push(id);
+    }
+
+    const updatedDeal = await client.query(updateQuery, queryParams);
 
     return c.json({ success: true, deal: updatedDeal.rows[0] });
   } catch (error) {

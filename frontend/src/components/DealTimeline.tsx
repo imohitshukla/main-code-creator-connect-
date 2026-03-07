@@ -7,7 +7,7 @@ interface DealTimelineProps {
     deal: Deal;
     currentUserId: number;
     userRole: 'BRAND' | 'CREATOR';
-    onStatusUpdate: (newStatus: DealStatus, metadata?: any) => Promise<void>;
+    onStatusUpdate: (newStatus: DealStatus, metadata?: any, amount?: number) => Promise<void>;
     onTerminate: (reason: string) => Promise<void>;
     onUploadDraft: (file: File) => Promise<void>;
 }
@@ -47,6 +47,7 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
     const [releasingEscrow, setReleasingEscrow] = useState(false);
     const [escrowPayment, setEscrowPayment] = useState<EscrowPayment | null>(null);
     const [escrowLoading, setEscrowLoading] = useState(true);
+    const [finalAmount, setFinalAmount] = useState('');
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -139,6 +140,15 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
         if (!terminationReason) return;
         setLoading(true);
         try { await onTerminate(terminationReason); setShowTerminateModal(false); } finally { setLoading(false); }
+    };
+
+    const handleSetFinalAmount = async () => {
+        if (!finalAmount) return;
+        setLoading(true);
+        try {
+            await onStatusUpdate(deal.status, deal.current_stage_metadata, Number(finalAmount));
+            setFinalAmount('');
+        } finally { setLoading(false); }
     };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,12 +347,38 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                                 ) : userRole === 'BRAND' ? (
                                     <div>
                                         <p className="text-sm text-gray-600 mb-4">Both signed! Now secure the payment in escrow to begin production.</p>
-                                        <RazorpayCheckout
-                                            dealId={deal.id}
-                                            amount={deal.amount || deal.budget || 0}
-                                            currency={deal.currency || 'INR'}
-                                            onSuccess={() => { setEscrowPayment({ ...escrowPayment, status: 'FUNDED' } as EscrowPayment); window.location.reload(); }}
-                                        />
+                                        {!(deal.amount || deal.budget) ? (
+                                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4 text-left inline-block">
+                                                <h4 className="font-semibold text-yellow-800 mb-1">Wait! The final amount is not set.</h4>
+                                                <p className="text-sm text-yellow-700 mb-3">Please enter the negotiated deal amount before you can secure the funds.</p>
+                                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                                                    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-2 w-full sm:w-auto focus-within:ring-2 focus-within:ring-indigo-500">
+                                                        <span className="font-medium text-gray-500">{deal.currency || 'INR'}</span>
+                                                        <input
+                                                            type="number"
+                                                            value={finalAmount}
+                                                            onChange={(e) => setFinalAmount(e.target.value)}
+                                                            placeholder="0.00"
+                                                            className="w-full sm:w-24 outline-none border-none p-0 text-gray-900"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={handleSetFinalAmount}
+                                                        disabled={loading || !finalAmount}
+                                                        className="bg-indigo-600 text-white px-4 py-2 flex-shrink-0 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                                                    >
+                                                        {loading ? 'Saving...' : 'Set Amount'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <RazorpayCheckout
+                                                dealId={deal.id}
+                                                amount={deal.amount || deal.budget || 0}
+                                                currency={deal.currency || 'INR'}
+                                                onSuccess={() => { setEscrowPayment({ ...escrowPayment, status: 'FUNDED' } as EscrowPayment); window.location.reload(); }}
+                                            />
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-700 text-sm">

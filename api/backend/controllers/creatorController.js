@@ -517,15 +517,18 @@ export const sendProposal = async (c) => {
     }
 
     // 3. Create Deal Record
-    // Parse budget string if possible, or store 0 if range
-    // For now, storing 0 or attempting to parse simple numbers.
-    // Ideally budget input should be structured.
+    // Parse budget string if possible
     let numericAmount = 0;
-    const amountMatch = budget ? budget.match(/(\d+)/) : null;
-    if (amountMatch) numericAmount = parseInt(amountMatch[0], 10);
-    // If range like 10k, multiply by 1000? Let's keep it simple for now. 
-    // The deal amount is DECIMAL. 
-    // Let's store 0 and put the range in metadata or deliverables for now, or just try to parse.
+    if (budget) {
+      const amountMatch = budget.match(/(\d+)/);
+      if (amountMatch) {
+        numericAmount = parseInt(amountMatch[0], 10);
+        const lower = budget.toLowerCase();
+        if (lower.includes('k')) numericAmount *= 1000;
+        else if (lower.includes('l')) numericAmount *= 100000;
+        else if (lower.includes('m')) numericAmount *= 1000000;
+      }
+    }
 
     const newDeal = await client.query(`
         INSERT INTO deals (brand_id, creator_id, status, amount, deliverables, current_stage_metadata)
@@ -534,7 +537,8 @@ export const sendProposal = async (c) => {
     `, [
       brandProfileId,
       creatorProfileId,
-      0, // Placeholder amount, real negotiation happens in SIGNING
+      numericAmount, // Parsed from budget
+
       `Initial Proposal: ${message}`,
       JSON.stringify({
         proposed_budget: budget,
