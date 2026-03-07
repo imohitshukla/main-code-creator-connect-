@@ -29,74 +29,15 @@ const port = process.env.PORT || 10000;
 console.log('🚀 Server starting... Upload routes registered at /api/upload');
 
 // 🛡️ PROFESSIONAL: Add comprehensive request logging for debugging
+// Lightweight request logger (production-safe)
 app.use('*', async (c, next) => {
-  const start = Date.now();
-  const url = c.req.url;
-  const method = c.req.method;
-
-  console.log('🔍 DEBUG: === REQUEST START ===');
-  console.log('🔍 DEBUG: Request URL:', url);
-  console.log('🔍 DEBUG: Request method:', method);
-
-  // 🛡️ LOG ALL HEADERS FOR DEBUGGING
-  const allHeaders = {
-    'cookie': c.req.header('Cookie'),
-    'content-type': c.req.header('Content-Type'),
-    'authorization': c.req.header('Authorization'),
-    'user-agent': c.req.header('User-Agent'),
-    'origin': c.req.header('Origin'),
-    'referer': c.req.header('Referer'),
-    'accept': c.req.header('Accept'),
-    'accept-language': c.req.header('Accept-Language'),
-    'accept-encoding': c.req.header('Accept-Encoding'),
-    'connection': c.req.header('Connection'),
-    'upgrade-insecure-requests': c.req.header('Upgrade-Insecure-Requests'),
-    'sec-fetch-dest': c.req.header('Sec-Fetch-Dest'),
-    'sec-fetch-mode': c.req.header('Sec-Fetch-Mode'),
-    'sec-fetch-site': c.req.header('Sec-Fetch-Site'),
-    'sec-fetch-user': c.req.header('Sec-Fetch-User'),
-    'cache-control': c.req.header('Cache-Control'),
-    'pragma': c.req.header('Pragma'),
-  };
-
-  console.log('🔍 DEBUG: Request headers:', allHeaders);
-
-  // 🛡️ SPECIAL DEBUGGING FOR LOGIN REQUESTS
-  if (url.includes('/api/auth/login')) {
-    console.log('🔍 DEBUG: === LOGIN REQUEST DETECTED ===');
-    console.log('🔍 DEBUG: This is a login request - will monitor cookie setting...');
-  }
-
-  // 🛡️ SPECIAL DEBUGGING FOR BRAND PROFILE REQUESTS
-  if (url.includes('/api/brands/profile')) {
-    console.log('🔍 DEBUG: === BRAND PROFILE REQUEST DETECTED ===');
-    console.log('🔍 DEBUG: This is a brand profile request - checking for cookie...');
-    if (!c.req.header('Cookie')) {
-      console.log('❌ CRITICAL: No cookie header found in brand profile request');
-      console.log('❌ This means login cookie was not set or not being sent');
-    } else {
-      console.log('✅ Cookie header found in brand profile request');
-    }
-  }
-
   await next();
-
-  const duration = Date.now() - start;
-
-  // 🛡️ LOG RESPONSE HEADERS FOR DEBUGGING
-  const responseHeaders = {};
-  for (const [key, value] of c.res.headers.entries()) {
-    responseHeaders[key] = value;
+  // Only log errors to avoid massive log overhead on every request
+  if (c.res.status >= 500) {
+    console.error(`❌ ${c.req.method} ${new URL(c.req.url).pathname} → ${c.res.status}`);
   }
-
-  console.log('🔍 DEBUG: Response headers set:', {
-    'set-cookie': responseHeaders['set-cookie'] || null,
-    'access-control-allow-credentials': responseHeaders['access-control-allow-credentials'],
-    'access-control-allow-origin': responseHeaders['access-control-allow-origin'],
-  });
-
-  console.log(`🔍 DEBUG: === REQUEST END (${duration}ms) ===`);
 });
+
 
 // PILLAR 1: Strict CORS with Credentials
 app.use('/*', cors({
@@ -227,14 +168,27 @@ app.onError((err, c) => {
 });
 
 // Start Server
-// Start Server
 initializeDatabase().then(() => {
   serve({
     fetch: app.fetch,
     port: port,
     hostname: '0.0.0.0'
   }, (info) => {
-    console.log(`Server is running on port ${info.port}`);
+    console.log(`✅ Server running on port ${info.port}`);
+
+    // ─── Keep-alive: ping self every 14 minutes to prevent Render free-tier cold starts ───
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${info.port}`;
+    if (process.env.NODE_ENV === 'production') {
+      setInterval(async () => {
+        try {
+          const res = await fetch(`${SELF_URL}/api/health`);
+          console.log(`🏓 Keep-alive ping → ${res.status}`);
+        } catch (e) {
+          console.warn('Keep-alive ping failed:', e.message);
+        }
+      }, 14 * 60 * 1000); // 14 minutes
+      console.log('🏓 Keep-alive pinger started (every 14 min)');
+    }
   });
 });
 
