@@ -79,10 +79,37 @@ const DealDetails: React.FC = () => {
 
         setIsSavingAmount(true);
         try {
-            await handleStatusUpdate(deal!.status as DealStatus, deal!.current_stage_metadata, Number(editAmountValue));
+            // Instead of fully updating the amount, we set a proposal in the metadata
+            const newMetadata = {
+                ...deal!.current_stage_metadata,
+                proposed_amount: Number(editAmountValue),
+                proposed_by_role: user.role
+            };
+
+            // Only update metadata, don't update actual amount yet
+            await handleStatusUpdate(deal!.status as DealStatus, newMetadata);
             setIsEditingAmount(false);
         } catch (err) {
-            console.error('Failed to edit amount', err);
+            console.error('Failed to propose amount', err);
+        } finally {
+            setIsSavingAmount(false);
+        }
+    };
+
+    const handleAcceptProposedAmount = async () => {
+        if (!deal?.current_stage_metadata?.proposed_amount) return;
+        setIsSavingAmount(true);
+        try {
+            const acceptedAmount = deal.current_stage_metadata.proposed_amount;
+            // Clear the proposal from metadata
+            const newMetadata = { ...deal.current_stage_metadata };
+            delete newMetadata.proposed_amount;
+            delete newMetadata.proposed_by_role;
+
+            // This will actually update the deal.amount and reset signatures because amount is passed
+            await handleStatusUpdate(deal!.status as DealStatus, newMetadata, acceptedAmount);
+        } catch (err) {
+            console.error('Failed to accept amount', err);
         } finally {
             setIsSavingAmount(false);
         }
@@ -195,7 +222,7 @@ const DealDetails: React.FC = () => {
                                     disabled={isSavingAmount}
                                     className="bg-green-600 text-white px-3 py-1 rounded h-8 text-xs font-medium hover:bg-green-700 disabled:opacity-50"
                                 >
-                                    {isSavingAmount ? 'Saving...' : 'Save'}
+                                    {isSavingAmount ? 'Sending...' : 'Propose'}
                                 </button>
                                 <button
                                     onClick={() => setIsEditingAmount(false)}
@@ -204,6 +231,36 @@ const DealDetails: React.FC = () => {
                                 >
                                     Cancel
                                 </button>
+                            </div>
+                        ) : deal.current_stage_metadata?.proposed_amount ? (
+                            <div className="flex items-center gap-3 bg-indigo-50 border border-indigo-200 p-2 rounded-lg">
+                                <span className="text-indigo-800 font-medium whitespace-nowrap">
+                                    {deal.current_stage_metadata.proposed_by_role === user.role ? 'You proposed: ' : 'New proposal: '}
+                                    {deal.currency} {Number(deal.current_stage_metadata.proposed_amount).toLocaleString('en-IN')}
+                                </span>
+
+                                {deal.current_stage_metadata.proposed_by_role !== user.role ? (
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleAcceptProposedAmount}
+                                            disabled={isSavingAmount}
+                                            className="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700 disabled:opacity-50"
+                                        >
+                                            Accept
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setEditAmountValue(deal.current_stage_metadata?.proposed_amount?.toString() || '');
+                                                setIsEditingAmount(true);
+                                            }}
+                                            className="bg-white border border-indigo-200 text-indigo-600 px-3 py-1 rounded text-xs font-medium hover:bg-indigo-50"
+                                        >
+                                            Counter
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-indigo-500 italic">Waiting for response...</span>
+                                )}
                             </div>
                         ) : (
                             <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100 font-semibold flex items-center gap-2 group cursor-pointer"
@@ -224,7 +281,7 @@ const DealDetails: React.FC = () => {
                     </div>
 
                     {/* Negotiation Warning */}
-                    {isEditingAmount && deal.status === 'SIGNING' && (
+                    {deal.status === 'SIGNING' && (isEditingAmount || deal.current_stage_metadata?.proposed_amount) && (
                         <div className="text-xs text-orange-600 mb-4 flex items-center gap-1">
                             <span>⚠️</span> Changing the amount during Signing will require both parties to re-sign the contract.
                         </div>
