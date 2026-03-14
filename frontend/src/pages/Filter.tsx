@@ -35,7 +35,9 @@ function transformCreator(creator: any): Creator {
     audience: creator.audience || { engagement: creator.engagement_rate ? `${creator.engagement_rate}%` : 'N/A' },
     budget: creator.budget,
     social_links: creator.social_links,
-    portfolio_links: creator.portfolio_links
+    portfolio_links: creator.portfolio_links,
+    details: creator.details,
+    contact: creator.contact
   };
 }
 

@@ -162,7 +162,7 @@ export const getCreators = async (c) => {
 
     const where = conditions.join(' AND ');
 
-    // JOIN creator_profiles to get engagement_rate
+    // JOIN creator_profiles to get engagement_rate and details
     const { rows } = await client.query(`
       SELECT
         u.id,
@@ -174,7 +174,14 @@ export const getCreators = async (c) => {
         u.profile_image,
         u.bio,
         u.location,
-        cp.engagement_rate
+        u.instagram_handle,
+        cp.engagement_rate,
+        cp.budget_range,
+        cp.audience_breakdown,
+        cp.collaboration_goals,
+        cp.instagram_link,
+        cp.youtube_link,
+        cp.portfolio_link
       FROM users u
       LEFT JOIN creator_profiles cp ON cp.user_id = u.id
       WHERE ${where}
@@ -195,6 +202,16 @@ export const getCreators = async (c) => {
       location: user.location || 'India',
       bio: user.bio || 'No bio available',
       email: user.email,
+      details: {
+        budget_range: user.budget_range || '',
+        audience_breakdown: user.audience_breakdown || '',
+        collaboration_goals: user.collaboration_goals || ''
+      },
+      contact: {
+        instagram: user.instagram_link || user.instagram_handle || '',
+        youtube: user.youtube_link || '',
+        portfolio: user.portfolio_link || ''
+      }
     }));
 
     return c.json({ creators: formatted });

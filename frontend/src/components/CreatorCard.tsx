@@ -19,6 +19,16 @@ export interface Creator {
   social_links?: any;
   portfolio_links?: any;
   email?: string;
+  details?: {
+    budget_range?: string;
+    audience_breakdown?: string;
+    collaboration_goals?: string;
+  };
+  contact?: {
+    instagram?: string;
+    youtube?: string;
+    portfolio?: string;
+  };
 }
 
 interface CreatorCardProps {
