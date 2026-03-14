@@ -81,6 +81,10 @@ module.exports = (sequelize, DataTypes) => {
     collaboration_goals: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    shipping_address: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     tableName: 'creator_profiles',

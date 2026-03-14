@@ -76,6 +76,30 @@ module.exports = (sequelize, DataTypes) => {
     updated_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
+    },
+    compensation_type: {
+      type: DataTypes.STRING(50),
+      defaultValue: 'CASH'
+    },
+    product_name: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    product_mrp: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    shipping_awb: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    product_received_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    barter_tos_accepted_at: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     tableName: 'deals',

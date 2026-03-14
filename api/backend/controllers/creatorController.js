@@ -390,6 +390,7 @@ export const updateCreatorProfile = async (c) => {
     if (body.primary_location) profileUpdates.location = body.primary_location;
     if (body.primary_niche) profileUpdates.niche = body.primary_niche;
     if (body.bio) profileUpdates.bio = body.bio;
+    if (body.shipping_address !== undefined) profileUpdates.shipping_address = body.shipping_address || null;
     if (body.instagram_link !== undefined) profileUpdates.instagram_link = (body.instagram_link && String(body.instagram_link).trim()) || null;
     if (body.youtube_link !== undefined) profileUpdates.youtube_link = body.youtube_link || null;
     if (body.portfolio_link !== undefined) profileUpdates.portfolio_link = body.portfolio_link || null;
@@ -493,7 +494,7 @@ export const verifyCreator = async (c) => {
 // 6. SEND PROPOSAL & CREATE DEAL
 export const sendProposal = async (c) => {
   try {
-    const { creatorId, brandName, budget, message } = await c.req.json();
+    const { creatorId, brandName, compensationType, cashAmount, productName, productMrp, message } = await c.req.json();
     const userId = c.get('userId'); // Brand user ID
 
     // Validate required fields
@@ -538,34 +539,31 @@ export const sendProposal = async (c) => {
     }
 
     // 3. Create Deal Record
-    // Parse budget string if possible
     let numericAmount = 0;
-    if (budget) {
-      const amountMatch = budget.match(/(\d+)/);
-      if (amountMatch) {
-        numericAmount = parseInt(amountMatch[0], 10);
-        const lower = budget.toLowerCase();
-        if (lower.includes('k')) numericAmount *= 1000;
-        else if (lower.includes('l')) numericAmount *= 100000;
-        else if (lower.includes('m')) numericAmount *= 1000000;
-      }
+    if (cashAmount) {
+      numericAmount = parseFloat(cashAmount) || 0;
     }
 
     const newDeal = await client.query(`
-        INSERT INTO deals (brand_id, creator_id, status, amount, deliverables, current_stage_metadata)
-        VALUES ($1, $2, 'OFFER', $3, $4, $5)
+        INSERT INTO deals (brand_id, creator_id, status, amount, deliverables, current_stage_metadata, compensation_type, product_name, product_mrp)
+        VALUES ($1, $2, 'OFFER', $3, $4, $5, $6, $7, $8)
         RETURNING id
     `, [
       brandProfileId,
       creatorProfileId,
-      numericAmount, // Parsed from budget
-
+      numericAmount, // Cash amount
       `Initial Proposal: ${message}`,
       JSON.stringify({
-        proposed_budget: budget,
         initial_message: message,
-        brand_name: brandNameFinal
-      })
+        brand_name: brandNameFinal,
+        compensation_type: compensationType,
+        cash_amount: cashAmount,
+        product_name: productName,
+        product_mrp: productMrp
+      }),
+      compensationType || 'CASH',
+      productName || null,
+      productMrp ? parseFloat(productMrp) : null
     ]);
 
     const dealId = newDeal.rows[0].id;
@@ -601,7 +599,9 @@ export const sendProposal = async (c) => {
             <h2>📋 Proposal Details</h2>
             <div class="proposal-details">
               <p><strong>From:</strong> ${brandNameFinal}</p>
-              <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
+              <p><strong>Compensation Type:</strong> ${compensationType}</p>
+              ${compensationType !== 'BARTER' ? `<p><strong>Cash Amount:</strong> ₹${cashAmount || '0'}</p>` : ''}
+              ${compensationType !== 'CASH' ? `<p><strong>Product:</strong> ${productName || 'N/A'} (MRP: ₹${productMrp || 'N/A'})</p>` : ''}
               <p><strong>Message:</strong></p>
               <div style="background: white; padding: 10px; border-radius: 4px; margin-top: 10px;">
                 ${message.replace(/\n/g, '<br>')}
@@ -650,7 +650,10 @@ export const sendProposal = async (c) => {
       proposal: {
         creatorId,
         brandName: brandNameFinal,
-        budget,
+        compensationType,
+        cashAmount,
+        productName,
+        productMrp,
         message,
         sentAt: new Date().toISOString()
       }

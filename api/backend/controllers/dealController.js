@@ -172,14 +172,34 @@ export const updateDealStatus = async (c) => {
       SET status = $1, current_stage_metadata = $2, updated_at = CURRENT_TIMESTAMP
     `;
     let queryParams = [status, newMetadata];
+    let paramIndex = 3;
 
     if (amount !== undefined && amount !== null && !isNaN(Number(amount))) {
-      updateQuery += `, amount = $3 WHERE id = $4 RETURNING *`;
-      queryParams.push(Number(amount), id);
-    } else {
-      updateQuery += ` WHERE id = $3 RETURNING *`;
-      queryParams.push(id);
+      updateQuery += `, amount = $${paramIndex}`;
+      queryParams.push(Number(amount));
+      paramIndex++;
     }
+
+    if (newMetadata.barter_tos_accepted_at && !deal.barter_tos_accepted_at) {
+      updateQuery += `, barter_tos_accepted_at = $${paramIndex}`;
+      queryParams.push(newMetadata.barter_tos_accepted_at);
+      paramIndex++;
+    }
+
+    if (newMetadata.tracking_number && deal.shipping_awb !== newMetadata.tracking_number) {
+      updateQuery += `, shipping_awb = $${paramIndex}`;
+      queryParams.push(newMetadata.tracking_number);
+      paramIndex++;
+    }
+
+    if (newMetadata.received_at && !deal.product_received_at) {
+      updateQuery += `, product_received_at = $${paramIndex}`;
+      queryParams.push(newMetadata.received_at);
+      paramIndex++;
+    }
+
+    updateQuery += ` WHERE id = $${paramIndex} RETURNING *`;
+    queryParams.push(id);
 
     const updatedDeal = await client.query(updateQuery, queryParams);
 

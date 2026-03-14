@@ -43,7 +43,10 @@ const CreatorOnboarding = () => {
         upi_id: '',
         bank_account_name: '',
         bank_account_number: '',
-        bank_ifsc: ''
+        bank_ifsc: '',
+
+        // Logistics
+        shipping_address: ''
     });
 
     // File input ref
@@ -104,6 +107,9 @@ const CreatorOnboarding = () => {
                             bank_account_name: raw.bank_account_name || '',
                             bank_account_number: raw.bank_account_number || '',
                             bank_ifsc: raw.bank_ifsc || '',
+
+                            // Logistics
+                            shipping_address: raw.shipping_address || '',
                         }));
                     }
                 }
@@ -550,6 +556,31 @@ const CreatorOnboarding = () => {
                                         Your details are encrypted and only used for IMPS/UPI payouts once a brand approves your work and the escrow is released.
                                         <strong> Creator Connect charges 0% commission</strong> on creator payouts.
                                     </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* ─── Secure Logistics Vault ─── */}
+                        <Card className="border-0 shadow-sm bg-white overflow-hidden mt-8">
+                            <CardHeader className="border-b border-gray-100 pb-6">
+                                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                                    <span className="text-2xl">📦</span> Secure Logistics Vault
+                                </CardTitle>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Your shipping address is kept private and NEVER shown on your public profile. It is only shared automatically with a brand AFTER you accept the terms of a Barter Deal.
+                                </p>
+                            </CardHeader>
+                            <CardContent className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="shipping_address" className="font-medium text-gray-700">Full Home / Office Address</Label>
+                                    <Textarea
+                                        id="shipping_address"
+                                        value={formData.shipping_address}
+                                        onChange={e => handleChange('shipping_address', e.target.value)}
+                                        placeholder="Flat No, Building Name\nStreet, Locality\nCity, State, Pincode"
+                                        className="min-h-[120px] bg-gray-50 border-gray-200 focus:bg-white transition-all resize-none"
+                                    />
+                                    <p className="text-xs text-gray-400">Include landmarks and full pincode to ensure accurate delivery of barter products.</p>
                                 </div>
                             </CardContent>
                         </Card>

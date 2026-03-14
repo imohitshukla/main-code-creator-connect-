@@ -9,6 +9,9 @@ export interface Deal {
     amount: number;
     budget?: number;
     currency: string;
+    compensation_type: string;
+    product_name?: string;
+    product_mrp?: number;
     deliverables: string;
     current_stage_metadata: Record<string, any>;
     payment_status?: 'PENDING' | 'FUNDED' | 'RELEASED';
@@ -22,4 +25,5 @@ export interface Deal {
     creator_name?: string;
     brand_user_id: number;
     creator_user_id: number;
+    creator_shipping_address?: string;
 }

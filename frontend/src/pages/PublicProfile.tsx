@@ -53,8 +53,12 @@ export default function PublicProfile() {
   const stateCreator = location.state?.creator ?? null;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [brandName, setBrandName] = useState('');
-  const [budget, setBudget] = useState('');
   const [message, setMessage] = useState('');
+  // Compensation state
+  const [compensationType, setCompensationType] = useState('CASH');
+  const [cashAmount, setCashAmount] = useState('');
+  const [productName, setProductName] = useState('');
+  const [productMrp, setProductMrp] = useState('');
 
   const { data: creator, isLoading, error, isError } = useQuery({
     queryKey: ['creator', id], // Fix: Removed Date.now() to prevent infinite re-fetching loop
@@ -125,7 +129,7 @@ export default function PublicProfile() {
     console.log("🔴 BUTTON CLICKED - Handler Started"); // Step 1: Prove it clicks
 
     // Log the data we are trying to send
-    console.log("Payload:", { brandName, budget, message });
+    console.log("Payload:", { brandName, compensationType, cashAmount, productName, productMrp, message });
 
     if (!brandName || !message) {
       alert("Please fill in all fields"); // Temporary fallback alert 
@@ -144,7 +148,10 @@ export default function PublicProfile() {
         body: JSON.stringify({
           creatorId: creator?.id,
           brandName,
-          budget,
+          compensationType,
+          cashAmount,
+          productName,
+          productMrp,
           message
         }),
       });
@@ -157,7 +164,10 @@ export default function PublicProfile() {
         setIsModalOpen(false); // Close modal on success
         // Reset form
         setBrandName('');
-        setBudget('');
+        setCompensationType('CASH');
+        setCashAmount('');
+        setProductName('');
+        setProductMrp('');
         setMessage('');
       } else {
         alert(`Error: ${data.message || "Failed to send"}`);
@@ -324,26 +334,80 @@ export default function PublicProfile() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="modal-budget" className="text-xs font-bold text-gray-500 uppercase block mb-1">
-                  Budget
-                </label>
-                <select id="modal-budget" className="w-full p-3 border rounded-lg bg-white" value={budget} onChange={(e) => setBudget(e.target.value)}>
-                  <option value="">Select Budget</option>
-                  <option value="₹10k - ₹50k">₹10k - ₹50k</option>
-                  <option value="₹50k - ₹1 Lakh">₹50k - ₹1 Lakh</option>
-                  <option value="₹1 Lakh+">₹1 Lakh+</option>
-                </select>
+              {/* Compensation Details */}
+              <div className="bg-gray-50 border p-4 rounded-lg space-y-4">
+                <div>
+                  <label htmlFor="modal-comp-type" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                    Compensation Type
+                  </label>
+                  <select
+                    id="modal-comp-type"
+                    className="w-full p-3 border rounded-lg bg-white outline-none"
+                    value={compensationType}
+                    onChange={(e) => setCompensationType(e.target.value)}
+                  >
+                    <option value="CASH">Cash Only</option>
+                    <option value="BARTER">Product Barter Only</option>
+                    <option value="HYBRID">Hybrid (Product + Cash)</option>
+                  </select>
+                </div>
+
+                {(compensationType === 'BARTER' || compensationType === 'HYBRID') && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="modal-prod-name" className="text-xs font-bold text-gray-500 uppercase block mb-1 text-truncate">
+                        Product Name
+                      </label>
+                      <input
+                        id="modal-prod-name"
+                        type="text"
+                        className="w-full p-3 border rounded-lg bg-white outline-none text-sm"
+                        placeholder="e.g. Skin Serum"
+                        value={productName}
+                        onChange={(e) => setProductName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="modal-prod-mrp" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                        MRP (₹)
+                      </label>
+                      <input
+                        id="modal-prod-mrp"
+                        type="number"
+                        className="w-full p-3 border rounded-lg bg-white outline-none text-sm"
+                        placeholder="e.g. 1500"
+                        value={productMrp}
+                        onChange={(e) => setProductMrp(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {(compensationType === 'CASH' || compensationType === 'HYBRID') && (
+                  <div>
+                    <label htmlFor="modal-cash-amount" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                      Cash Amount (₹)
+                    </label>
+                    <input
+                      id="modal-cash-amount"
+                      type="number"
+                      className="w-full p-3 border rounded-lg bg-white outline-none"
+                      placeholder="e.g. 5000"
+                      value={cashAmount}
+                      onChange={(e) => setCashAmount(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
                 <label htmlFor="modal-message" className="text-xs font-bold text-gray-500 uppercase block mb-1">
-                  Message
+                  Message / Deliverables
                 </label>
                 <textarea
                   id="modal-message"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black outline-none h-24"
-                  placeholder="Describe your campaign..."
+                  placeholder="Describe your campaign or deliverables expected..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />

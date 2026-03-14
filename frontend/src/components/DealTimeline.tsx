@@ -48,6 +48,7 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
     const [escrowPayment, setEscrowPayment] = useState<EscrowPayment | null>(null);
     const [escrowLoading, setEscrowLoading] = useState(true);
     const [finalAmount, setFinalAmount] = useState('');
+    const [barterTosAccepted, setBarterTosAccepted] = useState(false);
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -108,7 +109,12 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
         try {
             const metadata = { ...deal.current_stage_metadata };
             if (userRole === 'BRAND') metadata.brand_signed = true;
-            if (userRole === 'CREATOR') metadata.creator_signed = true;
+            if (userRole === 'CREATOR') {
+                metadata.creator_signed = true;
+                if (deal.compensation_type === 'BARTER' || deal.compensation_type === 'HYBRID') {
+                    metadata.barter_tos_accepted_at = new Date().toISOString();
+                }
+            }
             let newStatus = deal.status;
             if (metadata.brand_signed && metadata.creator_signed) newStatus = 'LOGISTICS';
             await onStatusUpdate(newStatus, metadata);
@@ -330,9 +336,36 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                                 {deal.current_stage_metadata?.creator_signed ? <span className="text-green-600 text-sm">✓ Signed</span> : <span className="text-gray-400 text-sm">Waiting...</span>}
                             </div>
                         </div>
+
+                        {/* Barter Digital Contract */}
+                        {userRole === 'CREATOR' && !deal.current_stage_metadata?.creator_signed && 
+                         (deal.compensation_type === 'BARTER' || deal.compensation_type === 'HYBRID') && (
+                            <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg mb-6 text-left max-w-lg mx-auto shadow-sm">
+                                <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
+                                    <span>⚖️</span> Barter Terms of Service
+                                </h4>
+                                <p className="text-sm text-orange-700 mb-3">
+                                    If the content is not submitted within 14 days of receiving <strong>{deal.product_name || 'the product'}</strong>, the creator agrees to return the product in original condition or be legally invoiced for <strong>₹{deal.product_mrp || '0'}</strong>. Failure to comply results in a permanent ban from Creator Connect.
+                                </p>
+                                <label className="flex items-start gap-2 text-sm text-gray-800 cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={barterTosAccepted}
+                                        onChange={(e) => setBarterTosAccepted(e.target.checked)}
+                                        className="mt-1"
+                                    />
+                                    <span>I accept the Barter Terms of Service & authorize the release of my shipping address to the brand.</span>
+                                </label>
+                            </div>
+                        )}
+
                         {((userRole === 'BRAND' && !deal.current_stage_metadata?.brand_signed) ||
                             (userRole === 'CREATOR' && !deal.current_stage_metadata?.creator_signed)) && (
-                                <button onClick={handleSign} disabled={loading} className="bg-indigo-600 text-white px-6 py-2 rounded-md font-medium hover:bg-indigo-700 disabled:opacity-50">
+                                <button 
+                                    onClick={handleSign} 
+                                    disabled={loading || (userRole === 'CREATOR' && (deal.compensation_type === 'BARTER' || deal.compensation_type === 'HYBRID') && !barterTosAccepted)} 
+                                    className="bg-indigo-600 text-white px-6 py-2 rounded-md font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                >
                                     {loading ? 'Signing...' : 'I Agree & Sign Contract'}
                                 </button>
                             )}
@@ -343,6 +376,10 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                                 {escrowPayment?.status === 'FUNDED' ? (
                                     <div className="flex items-center justify-center gap-2 text-emerald-700 font-semibold">
                                         <span>💰</span> Escrow funded! Moving to Logistics...
+                                    </div>
+                                ) : deal.compensation_type === 'BARTER' ? (
+                                    <div className="flex items-center justify-center gap-2 text-indigo-700 font-semibold">
+                                        <span>📦</span> Barter Terms Accepted! Moving to Logistics...
                                     </div>
                                 ) : userRole === 'BRAND' ? (
                                     <div>
@@ -398,6 +435,17 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                         <p className="text-sm text-gray-600 mb-6">Coordinate product shipping or share the creative brief.</p>
                         {userRole === 'BRAND' && (
                             <div className="max-w-md mx-auto">
+                                {(deal.compensation_type === 'BARTER' || deal.compensation_type === 'HYBRID') && (
+                                    <div className="mb-6 bg-orange-50 p-4 border border-orange-200 rounded-lg text-left hidden-print">
+                                        <h4 className="font-semibold text-orange-900 flex items-center gap-1">
+                                            <span>🔒</span> Creator Logistics Vault Unlocked
+                                        </h4>
+                                        <p className="text-sm text-orange-800 mt-2 whitespace-pre-line">
+                                            <strong>Shipping Address:</strong><br/>
+                                            {deal.creator_shipping_address || 'Address pending...'}
+                                        </p>
+                                    </div>
+                                )}
                                 <label className="block text-sm font-medium text-gray-700 mb-1 text-left">Tracking Number or Brief URL</label>
                                 <div className="flex gap-2">
                                     <input type="text" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="e.g., UPS12345 or Brief Link" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm" />
@@ -430,6 +478,23 @@ const DealTimeline: React.FC<DealTimelineProps> = ({ deal, currentUserId, userRo
                 {deal.status === 'PRODUCTION' && (
                     <div className="text-center">
                         <h3 className="font-bold text-gray-900 mb-2">In Production</h3>
+                        
+                        {/* 14-Day SLA Barter Tracker */}
+                        {(deal.compensation_type === 'BARTER' || deal.compensation_type === 'HYBRID') && deal.current_stage_metadata?.received_at && (
+                            <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-5 mx-auto max-w-lg shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-red-100 p-3 rounded-full text-2xl animate-pulse text-red-600">
+                                        ⏱️
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <h4 className="font-bold text-red-900 mb-1 uppercase tracking-wide text-sm">Anti-Ghosting SLA Tracker</h4>
+                                        <p className="text-xs text-red-700">Content deadline: <strong>14 days from {new Date(deal.current_stage_metadata.received_at).toLocaleDateString()}</strong></p>
+                                        <p className="text-[10px] text-red-500 mt-1 uppercase font-semibold">Legally liable for MRP (₹{deal.product_mrp}) if deadline missed.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {deal.current_stage_metadata?.feedback && (
                             <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4 rounded-md text-left mx-auto max-w-lg">
                                 <h4 className="font-bold text-yellow-800 mb-1">⚠️ Revision Requested</h4>

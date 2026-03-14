@@ -27,7 +27,10 @@ const CampaignPage = () => {
     title: '',
     product_type: 'UGC',
     description: '',
-    budget: '',
+    compensation_type: 'CASH',
+    cash_amount: '',
+    product_name: '',
+    product_mrp: '',
     requirements: '',
     isUrgent: false,
     isFeatured: false
@@ -93,7 +96,7 @@ const CampaignPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formData.companyName || !formData.title || !formData.description || !formData.budget) {
+    if (!formData.companyName || !formData.title || !formData.description) {
       toast({
         title: 'Missing Information',
         description: 'Please fill in all required fields.',
@@ -101,6 +104,15 @@ const CampaignPage = () => {
       });
       setIsSubmitting(false);
       return;
+    }
+
+    let compiledBudget = '';
+    if (formData.compensation_type === 'CASH') {
+      compiledBudget = `₹${formData.cash_amount}`;
+    } else if (formData.compensation_type === 'BARTER') {
+      compiledBudget = `Barter: ${formData.product_name} (₹${formData.product_mrp})`;
+    } else {
+      compiledBudget = `₹${formData.cash_amount} + ${formData.product_name}`;
     }
 
     try {
@@ -113,7 +125,7 @@ const CampaignPage = () => {
           title: formData.title,
           product_type: formData.product_type,
           description: formData.description,
-          budget_range: formData.budget, // Send as string/varchar
+          budget_range: compiledBudget, // Sent formatted string to db
           requirements: formData.requirements,
           is_urgent: formData.isUrgent,
           is_featured: formData.isFeatured
@@ -131,7 +143,10 @@ const CampaignPage = () => {
           title: '',
           product_type: 'UGC',
           description: '',
-          budget: '',
+          compensation_type: 'CASH',
+          cash_amount: '',
+          product_name: '',
+          product_mrp: '',
           requirements: '',
           isUrgent: false,
           isFeatured: false
@@ -340,21 +355,76 @@ const CampaignPage = () => {
                       className="bg-background border-border focus:border-primary"
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="budget" className="text-sm font-medium">
-                      Budget Range *
+                {/* Compensation Section */}
+                <div className="bg-gray-50 border p-4 rounded-lg space-y-4">
+                  <div>
+                    <Label htmlFor="comp-type" className="text-sm font-medium block mb-2">
+                      Compensation Type *
                     </Label>
-                    <Input
-                      id="budget"
-                      name="budget"
-                      value={formData.budget}
-                      onChange={handleInputChange}
-                      placeholder="e.g., $500 - $2,000"
-                      required
-                      className="bg-background border-border focus:border-primary"
-                    />
+                    <select
+                      id="comp-type"
+                      name="compensation_type"
+                      className="w-full p-2 border rounded-md bg-white outline-none"
+                      value={formData.compensation_type}
+                      onChange={(e) => setFormData(prev => ({ ...prev, compensation_type: e.target.value }))}
+                    >
+                      <option value="CASH">Cash Only</option>
+                      <option value="BARTER">Product Barter Only</option>
+                      <option value="HYBRID">Hybrid (Product + Cash)</option>
+                    </select>
                   </div>
+
+                  {(formData.compensation_type === 'BARTER' || formData.compensation_type === 'HYBRID') && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="prod-name" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                          Product Name
+                        </Label>
+                        <Input
+                          id="prod-name"
+                          name="product_name"
+                          type="text"
+                          className="bg-white"
+                          placeholder="e.g. Skin Serum"
+                          value={formData.product_name}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prod-mrp" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                          MRP (₹)
+                        </Label>
+                        <Input
+                          id="prod-mrp"
+                          name="product_mrp"
+                          type="number"
+                          className="bg-white"
+                          placeholder="e.g. 1500"
+                          value={formData.product_mrp}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {(formData.compensation_type === 'CASH' || formData.compensation_type === 'HYBRID') && (
+                    <div>
+                      <Label htmlFor="cash-amount" className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                        Cash Amount (₹)
+                      </Label>
+                      <Input
+                        id="cash-amount"
+                        name="cash_amount"
+                        type="number"
+                        className="bg-white"
+                        placeholder="e.g. 5000"
+                        value={formData.cash_amount}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
