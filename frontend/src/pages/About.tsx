@@ -7,10 +7,10 @@ import PageTransition from '@/components/PageTransition';
 
 const About = () => {
     const stats = [
-        { label: 'Creators', value: '50K+', icon: Users },
-        { label: 'Brands', value: '1,000+', icon: Award },
-        { label: 'Countries', value: '30+', icon: Globe },
-        { label: 'Campaigns', value: '10K+', icon: Heart },
+        { label: 'Vetted Creators', value: '500+', icon: Users },
+        { label: 'Agency Fees', value: '0%', icon: Award },
+        { label: 'Secured', value: 'Razorpay', icon: Globe },
+        { label: 'Delivery SLA', value: '14-Day', icon: Heart },
     ];
 
     const values = [
@@ -93,16 +93,16 @@ const About = () => {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                         >
-                            <h2 className="text-4xl font-bold mb-6">Built for the future of marketing</h2>
+                            <h2 className="text-4xl font-bold mb-6">Built for the High-Velocity Creator Economy</h2>
                             <div className="space-y-4 text-lg text-muted-foreground">
                                 <p>
-                                    Founded in 2024, Creator Connect emerged from a simple observation: the most powerful way to sell a product is through a trusted recommendation.
+                                    Founded in 2025, Creator Connect was built to solve a single, expensive problem: the trust gap in influencer marketing.
                                 </p>
                                 <p>
-                                    Traditional advertising was losing its impact, while the creator economy was booming. However, brands struggled to find the right creators, and creators struggled to monetize their influence consistently.
+                                    We watched as brands lost inventory to ghosting and creators struggled with delayed payments. We knew there was a better way. We built a platform that replaces messy WhatsApp chats with a 7-Step Automated Deal Tracker and insecure payments with Razorpay-backed Escrow.
                                 </p>
                                 <p>
-                                    We built Creator Connect to bridge this gap. Our platform uses advanced technology to match brands with creators who genuinely love their products, resulting in authentic content that drives real results.
+                                    Today, Creator Connect serves as the infrastructure for India's most aesthetic D2C brands and cinematic creators. We don't just connect people; we de-risk the entire collaboration process so you can focus on what matters—scaling your brand.
                                 </p>
                             </div>
                         </motion.div>
