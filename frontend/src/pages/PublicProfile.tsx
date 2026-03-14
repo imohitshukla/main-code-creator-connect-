@@ -57,7 +57,7 @@ export default function PublicProfile() {
   const [message, setMessage] = useState('');
 
   const { data: creator, isLoading, error, isError } = useQuery({
-    queryKey: ['creator', id, Date.now()], // Force cache invalidation
+    queryKey: ['creator', id], // Fix: Removed Date.now() to prevent infinite re-fetching loop
     queryFn: async () => {
       const res = await fetch(`${getApiUrl()}/api/creators/id/${id}?v=${Date.now()}`, {
         cache: 'no-store', // Disable browser cache
