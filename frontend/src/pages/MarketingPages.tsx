@@ -33,21 +33,21 @@ export const PlatformPage = () => (
                             ))}
                         </ul>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-2 border border-purple-100 dark:border-purple-900/50 h-full flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-2 border border-purple-100 dark:border-purple-900/50 h-full flex items-center justify-center overflow-hidden">
                         <img 
-                            src="/platform/vetted-creator-marketplace.png" 
-                            alt="Find Your Perfect Creator Grid showing Shivam and Abhishek" 
-                            className="bg-background rounded-xl shadow-sm border w-full h-auto object-cover"
+                            src="/assets/platform/find-creator.png" 
+                            alt="Find Your Perfect Creator Grid" 
+                            className="rounded-xl shadow-sm border w-full object-cover"
                         />
                     </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
-                    <div className="order-2 md:order-1 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-2 border border-blue-100 dark:border-blue-900/50 h-full flex items-center justify-center">
+                    <div className="order-2 md:order-1 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-2 border border-blue-100 dark:border-blue-900/50 h-full flex items-center justify-center overflow-hidden">
                         <img 
-                            src="/platform/barter-protection-engine.png" 
-                            alt="Hire Shivam Modal showing Product Barter/MRP fields" 
-                            className="bg-background rounded-xl shadow-sm border w-full h-auto object-cover"
+                            src="/assets/platform/hire-creator.png" 
+                            alt="Hire Creator Modal Barter Details" 
+                            className="rounded-xl shadow-sm border w-full object-cover"
                         />
                     </div>
                     <div className="order-1 md:order-2 space-y-6">
@@ -91,11 +91,11 @@ export const PlatformPage = () => (
                             ))}
                         </ul>
                     </div>
-                    <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-2 border border-green-100 dark:border-green-900/50 h-full flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-2 border border-green-100 dark:border-green-900/50 h-full flex items-center justify-center overflow-hidden">
                         <img 
-                            src="/platform/razorpay-backed-escrow.png" 
-                            alt="Screenshot of Escrow Payment interface or success screen" 
-                            className="bg-background rounded-xl shadow-sm border w-full h-auto object-cover"
+                            src="/assets/platform/deal-tracker.png" 
+                            alt="Deal Tracker Progress" 
+                            className="rounded-xl shadow-sm border w-full object-cover"
                         />
                     </div>
                 </div>
