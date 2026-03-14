@@ -2,7 +2,7 @@
 import React from 'react';
 import CMSPage from './CMSPage';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Zap, BarChart3, Globe2 } from 'lucide-react';
+import { CheckCircle2, Zap, BarChart3, Globe2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 /* --- PLatform Page --- */
@@ -13,54 +13,84 @@ export const PlatformPage = () => (
         content={
             <div className="space-y-16">
                 {/* Feature Grid */}
-                <div className="grid md:grid-cols-2 gap-12">
+                <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="space-y-6">
                         <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600">
                             <Zap className="w-6 h-6" />
                         </div>
-                        <h3 className="text-2xl font-bold">AI-Powered Discovery</h3>
+                        <h3 className="text-2xl font-bold">Vetted Creator Marketplace</h3>
                         <p className="text-muted-foreground text-lg">
-                            Stop guessing. Our AI analyzes millions of data points to match you with creators who actually reach your target audience. Filter by niche, engagement rate, location, and audience demographics.
+                            Stop scrolling, start scaling. Access an exclusive roster of cinematic creators and lifestyle authorities. Every profile comes with verified audience demographics and a direct line to collaborate.
                         </p>
                         <ul className="space-y-2">
-                            {['Audience Credibility Score', 'Lookalike Creator Search', 'Content Style Matching'].map(item => (
-                                <li key={item} className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            {['Verified Audience Insights: No more "fake followers"—see the real deal.', 
+                              'Aesthetic-First Matching: Find creators who actually fit your brand’s visual identity.', 
+                              'Direct-to-Creator Chat: Build relationships, not just one-off posts.'].map(item => (
+                                <li key={item} className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-green-500 mt-1 shrink-0" />
                                     <span>{item}</span>
                                 </li>
                             ))}
                         </ul>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-8 border border-purple-100 dark:border-purple-900/50">
-                        {/* Placeholder for platform UI screenshot */}
-                        <div className="aspect-video bg-background rounded-lg shadow-sm border flex items-center justify-center text-muted-foreground">
-                            Interactive Discovery Dashboard
+                    <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-8 border border-purple-100 dark:border-purple-900/50 h-full flex items-center justify-center">
+                        <div className="aspect-video bg-background rounded-lg shadow-sm border flex items-center justify-center p-6 text-center text-muted-foreground w-full">
+                            [Image: High-res screenshot of "Find Your Perfect Creator" grid showing Shivam and Abhishek]
                         </div>
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-12">
-                    <div className="order-2 md:order-1 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-8 border border-blue-100 dark:border-blue-900/50">
-                        <div className="aspect-video bg-background rounded-lg shadow-sm border flex items-center justify-center text-muted-foreground">
-                            Campaign Analytics View
+                <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
+                    <div className="order-2 md:order-1 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-8 border border-blue-100 dark:border-blue-900/50 h-full flex items-center justify-center">
+                        <div className="aspect-video bg-background rounded-lg shadow-sm border flex items-center justify-center p-6 text-center text-muted-foreground w-full">
+                            [Image: Screenshot of "Hire Shivam" modal showing Product Barter/MRP fields]
                         </div>
                     </div>
                     <div className="order-1 md:order-2 space-y-6">
                         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600">
                             <BarChart3 className="w-6 h-6" />
                         </div>
-                        <h3 className="text-2xl font-bold">Real-Time ROI Tracking</h3>
+                        <h3 className="text-2xl font-bold">The Barter Protection Engine™</h3>
                         <p className="text-muted-foreground text-lg">
-                            Track every click, conversion, and dollar spent. Our pixel integration and unique tracking links give you full visibility into campaign performance.
+                            Scaling high-ticket physical products shouldn't be a gamble. Our platform acts as your insurance policy, tracking every unit shipped and holding creators to a strict delivery timeline.
                         </p>
                         <ul className="space-y-2">
-                            {['Automated Reporting', 'Cross-Platform Aggregation', 'Cost-Per-Acquisition (CPA) Analysis'].map(item => (
-                                <li key={item} className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            {['SLA Protection: Creators digitally sign a binding delivery agreement before you ship.', 
+                              'MRP Tracking: Input your product value to ensure total inventory accountability.', 
+                              'The 7-Step Deal Tracker: A live visual pipeline from "Offer Sent" to "Content Approved."'].map(item => (
+                                <li key={item} className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-green-500 mt-1 shrink-0" />
                                     <span>{item}</span>
                                 </li>
                             ))}
                         </ul>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
+                    <div className="space-y-6">
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center text-green-600">
+                            <ShieldCheck className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-2xl font-bold">Razorpay-Backed Escrow</h3>
+                        <p className="text-muted-foreground text-lg">
+                            Take the stress out of payments. For paid campaigns, your budget is held securely in Escrow and is only released once you’ve approved the final content.
+                        </p>
+                        <ul className="space-y-2">
+                            {['100% Control: You are the final authority on every release.', 
+                              'Transparent Pricing: No hidden agency markups—what you pay goes to the creator.', 
+                              'Instant Finalization: The second you hit "Approve," the deal is done.'].map(item => (
+                                <li key={item} className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-green-500 mt-1 shrink-0" />
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-8 border border-green-100 dark:border-green-900/50 h-full flex items-center justify-center">
+                        <div className="aspect-video bg-background rounded-lg shadow-sm border flex items-center justify-center p-6 text-center text-muted-foreground w-full">
+                            [Image: Screenshot of Escrow payment interface or success screen]
+                        </div>
                     </div>
                 </div>
 
