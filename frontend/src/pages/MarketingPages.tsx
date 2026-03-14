@@ -45,7 +45,7 @@ export const PlatformPage = () => (
                 <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
                     <div className="order-2 md:order-1 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-2 border border-blue-100 dark:border-blue-900/50 h-full flex items-center justify-center overflow-hidden">
                         <img 
-                            src="/assets/platform/hire-creator.png" 
+                            src="/assets/platform/hire-creator.jpg" 
                             alt="Hire Creator Modal Barter Details" 
                             className="rounded-xl shadow-sm border w-full object-cover"
                         />
