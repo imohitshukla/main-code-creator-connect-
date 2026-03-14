@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import CMSPage from "./pages/CMSPage";
 import LegalPage from "./pages/LegalPage";
 import { PlatformPage, AgencyPage, CareersPage } from "./pages/MarketingPages";
+import BrandSupport from "./pages/BrandSupport";
 
 const Filter = lazy(() => import("./pages/Filter"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
@@ -72,7 +73,7 @@ const App = () => (
               <Route path="/blog" element={<CMSPage title="Blog" subtitle="Insights, trends, and tips." />} />
               <Route path="/careers" element={<CareersPage />} />
               <Route path="/education" element={<Suspense fallback={<PageFallback />}><EducationHub /></Suspense>} />
-              <Route path="/support/brand" element={<CMSPage title="Brand Support" subtitle="Help center for brands." />} />
+              <Route path="/support/brand" element={<Suspense fallback={<PageFallback />}><BrandSupport /></Suspense>} />
               <Route path="/support/creator" element={<CMSPage title="Creator Support" subtitle="Help center for creators." />} />
               <Route path="/partners" element={<CMSPage title="Partner Program" subtitle="Grow with us." />} />
 
