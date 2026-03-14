@@ -142,7 +142,11 @@ export const getCreators = async (c) => {
     const limit = Math.min(parseInt(limitParam, 10) || 100, 200);
 
     // Build WHERE conditions
-    const conditions = [`u.role = 'creator'`];
+    // Hide testing profiles from the main website
+    const conditions = [
+      `u.role = 'creator'`,
+      `u.email NOT ILIKE 'mohitshukla%'`
+    ];
     const values = [];
 
     if (search) {
