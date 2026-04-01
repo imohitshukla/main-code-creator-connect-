@@ -113,10 +113,13 @@ const Navbar = () => {
                         </NavigationMenuLink>
                       </li>
                       <li>
-                        <Link to="/filter" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                          <div className="text-sm font-medium leading-none">Influencer Discovery</div>
+                        <Link to="/stories" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none flex items-center">
+                            <span className="bg-[#dcfce7] text-[#14532d] text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">New</span>
+                            Customer Stories
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            Find the perfect creators for your brand.
+                            Read success stories from our brands and creators.
                           </p>
                         </Link>
                       </li>
@@ -147,9 +150,8 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link to="/stories" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
-                    <span className="bg-[#dcfce7] text-[#14532d] text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">New</span>
-                    Customer Stories
+                  <Link to="/filter" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
+                    Influencer Discovery
                   </Link>
                 </NavigationMenuItem>
 
@@ -264,7 +266,10 @@ const Navbar = () => {
 
               <div className="space-y-1">
                 <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Platform</h4>
-                <Link to="/filter" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Influencer Discovery</Link>
+                <Link to="/stories" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">
+                  <span className="bg-[#dcfce7] text-[#14532d] text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">New</span>
+                  Customer Stories
+                </Link>
                 <Link to="/campaign" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Campaign Management</Link>
                 <Link to="/brand-dashboard" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Analytics</Link>
               </div>
@@ -272,7 +277,7 @@ const Navbar = () => {
               <div className="space-y-1">
                 <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Services</h4>
                 <Link to="/agency" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Agency Services</Link>
-                <Link to="/stories" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Customer Stories</Link>
+                <Link to="/filter" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Influencer Discovery</Link>
               </div>
 
               {user && (
