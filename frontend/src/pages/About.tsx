@@ -1,5 +1,4 @@
 
-import { motion } from 'framer-motion';
 import { Users, Globe, Award, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -35,25 +34,15 @@ const About = () => {
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-black/90 z-0" />
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-4xl mx-auto text-center">
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                            className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
-                        >
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-fade-in">
                             We're on a mission to <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
                                 democratize influence.
                             </span>
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                            className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed"
-                        >
+                        </h1>
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay-1">
                             Creator Connect builds the infrastructure that powers the creator economy. We help brands tell authentic stories and creators get paid for their passion.
-                        </motion.p>
+                        </p>
                     </div>
                 </div>
             </section>
@@ -63,13 +52,10 @@ const About = () => {
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                         {stats.map((stat, index) => (
-                            <motion.div
+                            <div
                                 key={stat.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="text-center"
+                                className="text-center animate-fade-in"
+                                style={{ animationDelay: `${index * 100}ms` }}
                             >
                                 <div className="flex justify-center mb-4">
                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
@@ -78,7 +64,7 @@ const About = () => {
                                 </div>
                                 <div className="text-3xl font-bold mb-1">{stat.value}</div>
                                 <div className="text-muted-foreground">{stat.label}</div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -88,11 +74,7 @@ const About = () => {
             <section className="py-24">
                 <div className="container mx-auto px-4">
                     <div className="grid md:grid-cols-2 gap-16 items-center">
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                        >
+                        <div className="animate-fade-in">
                             <h2 className="text-4xl font-bold mb-6">Built for the High-Velocity Creator Economy</h2>
                             <div className="space-y-4 text-lg text-muted-foreground">
                                 <p>
@@ -105,20 +87,16 @@ const About = () => {
                                     Today, Creator Connect serves as the infrastructure for India's most aesthetic D2C brands and cinematic creators. We don't just connect people; we de-risk the entire collaboration process so you can focus on what matters—scaling your brand.
                                 </p>
                             </div>
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            className="relative"
-                        >
+                        </div>
+                        <div className="relative animate-fade-in" style={{ animationDelay: '200ms' }}>
                             <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-3xl transform rotate-3" />
                             <img
                                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
                                 alt="Team collaboration"
                                 className="relative rounded-3xl shadow-2xl"
+                                loading="lazy"
                             />
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -135,19 +113,16 @@ const About = () => {
 
                     <div className="grid md:grid-cols-3 gap-8">
                         {values.map((value, index) => (
-                            <motion.div
+                            <div
                                 key={value.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-background p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow"
+                                className="bg-background p-8 rounded-2xl border shadow-sm hover:shadow-md transition-shadow animate-fade-in"
+                                style={{ animationDelay: `${index * 100}ms` }}
                             >
                                 <h3 className="text-xl font-bold mb-3">{value.title}</h3>
                                 <p className="text-muted-foreground leading-relaxed">
                                     {value.description}
                                 </p>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>

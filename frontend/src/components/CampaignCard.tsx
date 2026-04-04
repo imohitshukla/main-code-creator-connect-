@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, DollarSign, Calendar, Users, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import SmartAvatar from '@/components/SmartAvatar';
 
 export interface Campaign {
@@ -34,12 +33,7 @@ const CampaignCard = ({ campaign, onApply, isOwner, onClose }: CampaignCardProps
   const isClosed = campaign.status === 'closed';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="animate-fade-in hover:-translate-y-1 transition-transform duration-300">
       <Card className={`group hover:shadow-hover transition-all duration-300 bg-gradient-card border-0 ${isClosed ? 'opacity-75' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
@@ -170,7 +164,7 @@ const CampaignCard = ({ campaign, onApply, isOwner, onClose }: CampaignCardProps
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

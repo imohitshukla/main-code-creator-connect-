@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle2, Zap, MessageSquareX, BadgeDollarSign, GitPullRequestArrow } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, CheckCircle2, MessageSquareX, BadgeDollarSign, GitPullRequestArrow } from 'lucide-react';
 import PageTransition from '@/components/PageTransition';
 import { CreatorList } from '@/components/CreatorList';
 
@@ -16,31 +15,22 @@ const Home = () => {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1]"
+            <h1
+              className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1] animate-fade-in"
             >
               A marketplace for <br />
               <span className="text-primary">brand-creator collaborations.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            <p
+              className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-delay-1"
             >
               Find creators, run deals, and track approvals — all in one place.
               <strong className="text-foreground"> Zero agency fees. Zero WhatsApp chaos.</strong>
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+            <div
+              className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in-delay-2"
             >
               <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-primary/25 transition-all">
                 <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
@@ -51,7 +41,7 @@ const Home = () => {
               <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full">
                 <Link to="/filter">Browse Creators</Link>
               </Button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -136,9 +126,9 @@ const Home = () => {
                     key={stage.label}
                     className={`rounded-xl p-4 text-center text-sm font-semibold transition-all border-2 ${stage.color} ${stage.active ? 'border-amber-400 scale-105 shadow-lg' : 'border-transparent'}`}
                   >
-                    <div className="text-xs opacity-80 mb-1">Step {i + 1}</div>
+                    <div className="text-xs font-medium mb-1">Step {i + 1}</div>
                     {stage.label}
-                    {stage.active && <div className="text-xs mt-1 font-normal opacity-90">← You are here</div>}
+                    {stage.active && <div className="text-xs mt-1 font-normal">← You are here</div>}
                   </div>
                 ))}
               </div>

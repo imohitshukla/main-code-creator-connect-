@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
-import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 
 // Deterministic color for initials placeholder
@@ -55,21 +54,6 @@ export const CreatorList = () => {
         );
     }
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.15
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-    };
-
     return (
         <section className="py-24 bg-gray-50 border-t border-gray-200">
             <div className="container mx-auto px-4 max-w-7xl">
@@ -82,24 +66,19 @@ export const CreatorList = () => {
                     </p>
                 </div>
 
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, margin: "-100px" }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-                >
-                    {creators.map((creator) => {
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {creators.map((creator, index) => {
                         // Extract tags from niche
                         const tags = creator.niche
                             ? creator.niche.split(/[|,]/).map((t: string) => t.trim()).filter(Boolean)
                             : ['Creator'];
 
-                        // Only use a real uploaded image — no external fallbacks
-                        const imageUrl = creator.image && !creator.image.includes('pravatar') && !creator.image.includes('unsplash') ? creator.image : null;
-
                         return (
-                            <motion.div key={creator.id} variants={itemVariants}>
+                            <div
+                                key={creator.id}
+                                className="animate-fade-in"
+                                style={{ animationDelay: `${index * 100}ms` }}
+                            >
                                 <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col bg-white rounded-2xl group">
                                     {/* Large Image Header */}
                                     <div className="relative h-64 overflow-hidden bg-gray-100">
@@ -109,8 +88,8 @@ export const CreatorList = () => {
                                                 src={creator.image}
                                                 alt={creator.name || 'Creator'}
                                                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                                loading="lazy"
                                                 onError={(e) => {
-                                                    // On load failure, hide the img and show initials placeholder
                                                     const parent = (e.target as HTMLImageElement).parentElement;
                                                     if (parent) {
                                                         (e.target as HTMLImageElement).style.display = 'none';
@@ -179,10 +158,10 @@ export const CreatorList = () => {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </motion.div>
+                            </div>
                         );
                     })}
-                </motion.div>
+                </div>
             </div>
         </section>
     );
