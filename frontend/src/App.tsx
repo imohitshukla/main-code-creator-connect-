@@ -35,8 +35,6 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const MyDeals = lazy(() => import("./pages/MyDeals"));
 const DealDetails = lazy(() => import("./pages/DealDetails"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,10 +112,6 @@ const App = () => (
                 <Route path="/my-deals" element={<Suspense fallback={<PageFallback />}><MyDeals /></Suspense>} />
                 <Route path="/deals/:id" element={<Suspense fallback={<PageFallback />}><DealDetails /></Suspense>} />
               </Route>
-              {/* Blog Routes */}
-              <Route path="/blog" element={<Suspense fallback={<PageFallback />}><Blog /></Suspense>} />
-              <Route path="/blog/:slug" element={<Suspense fallback={<PageFallback />}><BlogPost /></Suspense>} />
-
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<Suspense fallback={<PageFallback />}><NotFound /></Suspense>} />
             </Routes>
