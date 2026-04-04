@@ -107,7 +107,7 @@ const Filter = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle pt-24 pb-16 px-4">
+    <main className="min-h-screen bg-gradient-subtle pt-24 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-display font-bold text-foreground mb-4">
@@ -131,6 +131,7 @@ const Filter = () => {
                   className="pl-9"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
+                  aria-label="Search"
                 />
               </div>
             </div>
@@ -139,6 +140,7 @@ const Filter = () => {
             <div className="col-span-3 space-y-2">
               <Label>Niche</Label>
               <select
+                aria-label="Select Niche"
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={selectedNiche}
                 onChange={(e) => setSelectedNiche(e.target.value)}
@@ -232,7 +234,7 @@ const Filter = () => {
                 </SheetContent>
               </Sheet>
 
-              <Button variant="ghost" size="icon" onClick={resetFilters} title="Reset Filters">
+              <Button variant="ghost" size="icon" onClick={resetFilters} title="Reset Filters" aria-label="Reset Filters">
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
@@ -272,10 +274,11 @@ const Filter = () => {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="flex-1"
+            aria-label="Search Input"
           />
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Open Filters">
                 <FilterIcon className="h-4 w-4" />
               </Button>
             </SheetTrigger>
@@ -287,6 +290,7 @@ const Filter = () => {
                 <div className="space-y-2">
                   <Label>Niche</Label>
                   <select
+                    aria-label="Mobile Select Niche"
                     className="w-full h-10 rounded-md border border-input bg-background px-3"
                     value={selectedNiche}
                     onChange={(e) => setSelectedNiche(e.target.value)}
@@ -321,7 +325,7 @@ const Filter = () => {
           {isLoading ? (
             <div className="grid md:grid-cols-3 gap-6">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-[400px] w-full bg-slate-100 animate-pulse rounded-xl" />
+                <div key={i} className="h-[430px] w-full bg-slate-100 animate-pulse rounded-xl" />
               ))}
             </div>
           ) : creators.length > 0 ? (
@@ -339,7 +343,7 @@ const Filter = () => {
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No creators found</h3>
+              <h2 className="text-xl font-semibold mb-2">No creators found</h2>
               <p className="text-muted-foreground mb-2 max-w-sm mx-auto">
                 No creators match your current filters. Try:
               </p>
@@ -355,7 +359,7 @@ const Filter = () => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

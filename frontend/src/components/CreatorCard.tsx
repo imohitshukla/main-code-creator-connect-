@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, MapPin } from 'lucide-react';
@@ -62,9 +63,9 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
             )}
           </div>
 
-          <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+          <h2 className="text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
             {creator.name}
-          </h3>
+          </h2>
 
           <div className="flex flex-wrap gap-2 justify-center mb-2">
             <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
@@ -110,4 +111,4 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
   );
 };
 
-export default CreatorCard;
+export default React.memo(CreatorCard);
