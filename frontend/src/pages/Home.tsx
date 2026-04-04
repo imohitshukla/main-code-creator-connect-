@@ -11,6 +11,7 @@ const CALENDLY_URL = 'https://calendly.com/creatorconnect/15min';
 const Home = () => {
   return (
     <PageTransition className="min-h-screen bg-background">
+      <main>
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
@@ -135,9 +136,9 @@ const Home = () => {
                     key={stage.label}
                     className={`rounded-xl p-4 text-center text-sm font-semibold transition-all border-2 ${stage.color} ${stage.active ? 'border-amber-400 scale-105 shadow-lg' : 'border-transparent'}`}
                   >
-                    <div className="text-xs opacity-60 mb-1">Step {i + 1}</div>
+                    <div className="text-xs opacity-80 mb-1">Step {i + 1}</div>
                     {stage.label}
-                    {stage.active && <div className="text-xs mt-1 font-normal opacity-80">← You are here</div>}
+                    {stage.active && <div className="text-xs mt-1 font-normal opacity-90">← You are here</div>}
                   </div>
                 ))}
               </div>
@@ -171,6 +172,7 @@ const Home = () => {
           <p className="text-sm text-primary-foreground/50 mt-6">No commitment. Book for tomorrow.</p>
         </div>
       </section>
+      </main>
     </PageTransition>
   );
 };

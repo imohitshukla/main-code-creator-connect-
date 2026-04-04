@@ -46,7 +46,7 @@ const queryClient = new QueryClient({
 
 function PageFallback() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
       <div className="animate-pulse rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
     </div>
   );
@@ -59,8 +59,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen">
+          <div className="min-h-screen flex flex-col">
             <Navbar />
+            <div className="flex-1">
             <Routes>
               <Route path="/" element={<Suspense fallback={<PageFallback />}><Home /></Suspense>} />
               <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
@@ -112,6 +113,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<Suspense fallback={<PageFallback />}><NotFound /></Suspense>} />
             </Routes>
+            </div>
             <Footer />
           </div>
         </BrowserRouter>
