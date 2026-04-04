@@ -69,7 +69,7 @@ const NotificationBell = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative p-2 h-10 w-10">
+                <Button variant="ghost" className="relative p-2 h-10 w-10" aria-label="Notifications">
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
                         <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white text-xs p-0">

@@ -317,7 +317,7 @@ const Filter = () => {
 
 
         {/* Results Grid */}
-        <div>
+        <div className="min-h-[500px]">
           <div className="mb-4 text-sm text-muted-foreground">
             Found {creators.length} creator{creators.length !== 1 ? 's' : ''}
           </div>

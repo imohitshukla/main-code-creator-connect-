@@ -191,7 +191,7 @@ const Navbar = () => {
                 <NotificationBell />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200">
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full overflow-hidden border border-border shadow-sm p-0 hover:shadow-md transition-all duration-200" aria-label="Open profile menu">
                       <SmartAvatar
                         src={user?.avatar}
                         type={user?.role === 'BRAND' ? 'brand' : 'creator'}
@@ -236,6 +236,7 @@ const Navbar = () => {
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
               className="p-2"
+              aria-label="Toggle navigation menu"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>

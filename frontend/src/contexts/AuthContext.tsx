@@ -36,6 +36,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const storedToken = localStorage.getItem('auth_token');
 
+      // No token means user is logged out — skip the API call entirely to avoid 401 console errors
+      if (!storedToken) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setToken(storedToken); // Sync state immediately
 

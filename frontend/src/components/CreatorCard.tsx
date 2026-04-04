@@ -42,7 +42,7 @@ const CreatorCard = ({ creator, onContact }: CreatorCardProps) => {
 
   return (
     <Card
-      className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0 overflow-hidden cursor-pointer"
+      className="group hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1 bg-gradient-card border-0 overflow-hidden cursor-pointer min-h-[430px]"
       onClick={() => navigate(`/profile/${creator.id}`, { state: { creator } })}
     >
       <CardContent className="p-0">
