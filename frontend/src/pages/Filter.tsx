@@ -8,6 +8,7 @@ import { Search, Filter as FilterIcon, RotateCcw, SlidersHorizontal, Users } fro
 import CreatorCard, { Creator } from '@/components/CreatorCard';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
+import SEO from '@/components/SEO';
 import {
   Sheet,
   SheetContent,

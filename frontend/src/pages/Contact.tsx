@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Mail, Phone, MapPin, Send, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
+import SEO from '@/components/SEO';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -118,6 +119,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle pt-24 pb-16">
+      <SEO
+        title="Contact Creator Connect"
+        description="Get in touch with Creator Connect. Have questions about brand-creator collaborations? We'd love to hear from you."
+        path="/contact"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">

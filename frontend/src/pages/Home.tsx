@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, MessageSquareX, BadgeDollarSign, GitPullRequestArrow } from 'lucide-react';
 import PageTransition from '@/components/PageTransition';
 import { CreatorList } from '@/components/CreatorList';
+import SEO from '@/components/SEO';
 
 // ✏️ Replace with your actual Calendly link
 const CALENDLY_URL = 'https://calendly.com/creatorconnect/15min';
@@ -11,6 +12,11 @@ const Home = () => {
   return (
     <PageTransition className="min-h-screen bg-background">
       <main>
+      <SEO
+        title="Creator Connect — Brand-Creator Collaboration Marketplace"
+        description="Creator Connect is India's #1 marketplace for brand-creator collaborations. Find vetted creators, run barter and paid deals with a visual 7-step tracker, and pay securely via Razorpay escrow. Zero agency fees."
+        path="/"
+      />
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">

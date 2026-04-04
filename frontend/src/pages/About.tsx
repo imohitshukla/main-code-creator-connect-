@@ -3,6 +3,7 @@ import { Users, Globe, Award, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import PageTransition from '@/components/PageTransition';
+import SEO from '@/components/SEO';
 
 const About = () => {
     const stats = [
@@ -29,6 +30,11 @@ const About = () => {
 
     return (
         <PageTransition className="min-h-screen bg-background">
+            <SEO
+                title="About Creator Connect"
+                description="Creator Connect is building the infrastructure for India's creator economy. Zero agency fees, Razorpay escrow payments, and a 7-step deal tracker for brand-creator collaborations."
+                path="/about"
+            />
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-black text-white">
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-black/90 z-0" />
