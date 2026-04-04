@@ -21,6 +21,9 @@ import welcomeRoutes from './src/backend/routes/welcome.js';
 import testEmailRoutes from './src/backend/routes/testEmail.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
+import cron from 'node-cron';
+import { runEngagementRateUpdater } from './services/engagementService.js';
+
 const app = new Hono();
 
 // --- 🚀 UNIVERSAL CORS FIX ---
@@ -95,4 +98,13 @@ serve({
   port: PORT
 }, (info) => {
   console.log(`Server is running on port ${info.port}`);
+
+  // Schedule the Auto-Engagement Rate Updater to run EVERY WEEK (Sunday at Midnight)
+  cron.schedule('0 0 * * 0', () => {
+    console.log('[Cron] Engaging weekly metrics updater...');
+    runEngagementRateUpdater();
+  });
+
+  // Run once on boot automatically (after 5 seconds) to fill any current gaps immediately without waiting 7 days.
+  setTimeout(runEngagementRateUpdater, 5000);
 });
