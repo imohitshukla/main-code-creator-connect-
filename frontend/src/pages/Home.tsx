@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, MessageSquareX, BadgeDollarSign, GitPullReque
 import PageTransition from '@/components/PageTransition';
 import { CreatorList } from '@/components/CreatorList';
 import SEO from '@/components/SEO';
+import { HeroDemo } from '@/components/ui/demo';
 
 // ✏️ Replace with your actual Calendly link
 const CALENDLY_URL = 'https://calendly.com/creatorconnect/15min';
@@ -18,39 +19,7 @@ const Home = () => {
         path="/"
       />
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h1
-              className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1] animate-fade-in"
-            >
-              A marketplace for <br />
-              <span className="text-primary">brand-creator collaborations.</span>
-            </h1>
-
-            <p
-              className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-delay-1"
-            >
-              Find creators, run deals, and track approvals — all in one place.
-              <strong className="text-foreground"> Zero agency fees. Zero WhatsApp chaos.</strong>
-            </p>
-
-            <div
-              className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in-delay-2"
-            >
-              <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-primary/25 transition-all">
-                <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
-                  Book a 15-min Demo
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </a>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full">
-                <Link to="/filter">Browse Creators</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroDemo />
 
       {/* ──────────────────────────────────────────────
           LIVE DEAL TRACKER SPOTLIGHT
