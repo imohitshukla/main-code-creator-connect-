@@ -913,7 +913,7 @@ const googleAuth = async (c) => {
         `auth_token=${encodeURIComponent(tokenStr)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${tokenStr}; Path=/; HttpOnly; SameSite=Lax` 
       ];
-      cookieVariations.forEach((cookie, index) => { c.header(\`Set-Cookie-\${index}\`, cookie); c.header('Set-Cookie', cookie); });
+      cookieVariations.forEach((cookie, index) => { c.header(`Set-Cookie-${index}`, cookie); c.header('Set-Cookie', cookie); });
 
     } catch (e) {
       if (db) await db.query('ROLLBACK');
