@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown, Layers, Edit3, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,6 +32,7 @@ const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('login');
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const profileInitial = (user?.email || 'C')
@@ -80,7 +81,7 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm border-b z-50">
+    <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.03)] z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -230,7 +231,7 @@ const Navbar = () => {
                 </Button>
                 <Button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 shadow-glow transition-all duration-300"
-                  onClick={() => window.open('https://calendly.com/creatorconnect/15min', '_blank')}
+                  onClick={() => navigate('/contact')}
                 >
                   Book a demo
                 </Button>
@@ -239,16 +240,42 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="lg:hidden flex items-center gap-2">
-            {user && <NotificationBell />}
+          <div className="lg:hidden flex items-center gap-1.5">
+            {!user ? (
+              <div className="flex items-center gap-1.5 mr-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2.5 text-xs font-semibold hover:bg-primary/5 transition-colors"
+                  onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+                >
+                  Login
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 px-3.5 text-xs font-semibold rounded-full bg-primary text-primary-foreground shadow-sm hover:shadow-md transition-all"
+                  onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }}
+                >
+                  Sign up
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mr-1">
+                <NotificationBell />
+                <Avatar className="h-8 w-8 rounded-full border border-border cursor-pointer shadow-sm hover:ring-2 hover:ring-primary/20 transition-all" onClick={() => setIsOpen(!isOpen)}>
+                  <AvatarImage src={user?.avatar} />
+                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">{profileInitial}</AvatarFallback>
+                </Avatar>
+              </div>
+            )}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2"
+              className="p-1.5 hover:bg-muted rounded-full transition-colors"
               aria-label="Toggle navigation menu"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-5 w-5 text-foreground/80" /> : <Menu className="h-5 w-5 text-foreground/80" />}
             </Button>
           </div>
         </div>
@@ -303,12 +330,12 @@ const Navbar = () => {
               <div className="pt-2 border-t">
                 {!user ? (
                   <div className="grid gap-3">
-                    <Button variant="outline" className="w-full" onClick={() => { setIsOpen(false); setAuthMode('login'); setIsAuthModalOpen(true); }}>Login</Button>
-                    <Button variant="default" className="w-full bg-primary/90 text-primary-foreground" onClick={() => { setIsOpen(false); setAuthMode('signup'); setIsAuthModalOpen(true); }}>Sign up</Button>
-                    <Button className="w-full bg-[#0f172a] text-white rounded-full" onClick={() => { setIsOpen(false); window.location.href = '/contact'; }}>Book a demo</Button>
+                    <Button className="w-full bg-[#0f172a] text-white rounded-full shadow-md hover:shadow-lg transition-all" onClick={() => { setIsOpen(false); navigate('/contact'); }}>Book a demo</Button>
                   </div>
                 ) : (
-                  <Button variant="destructive" className="w-full" onClick={() => { logout(); setIsOpen(false); }}>Log out</Button>
+                  <div className="grid gap-3">
+                    <Button variant="destructive" className="w-full" onClick={() => { logout(); setIsOpen(false); }}>Log out</Button>
+                  </div>
                 )}
               </div>
             </div>
