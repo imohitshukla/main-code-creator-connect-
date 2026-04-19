@@ -10,7 +10,8 @@ import {
   verifyOtp,
   forgotPassword,
   resetPassword,
-  logout
+  logout,
+  googleAuth
 } from '../controllers/authController.js';
 import { signup } from '../controllers/authController.js';
 import { client } from '../config/database.js';
@@ -68,6 +69,7 @@ auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyL
 auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
 auth.post('/logout', logout);
+auth.post('/google', googleAuth);
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(),

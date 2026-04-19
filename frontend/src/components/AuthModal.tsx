@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
 import { apiCall } from '@/utils/apiHelper';
 import { Building2, User } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -100,6 +101,29 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
         description: 'Please check your credentials and try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async (credentialResponse: any) => {
+    setIsLoading(true);
+    try {
+      const response = await apiCall('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialResponse.credential, role: userRole }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || data.error || 'Google Auth failed');
+      
+      login(data);
+      toast({ title: 'Authentication successful', description: 'Welcome to Creator Connect!' });
+      onClose();
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({ title: 'Google Auth failed', description: error.message || 'Something went wrong.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -440,6 +464,19 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
                 </form>
               ) : (
                 <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="flex flex-col gap-3 mb-4">
+                    <GoogleLogin
+                      onSuccess={handleGoogleAuth}
+                      onError={() => toast({ title: 'Google Login Failed', variant: 'destructive' })}
+                      theme="filled_blue"
+                      size="large"
+                      width="100%"
+                    />
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                      <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with email</span></div>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input
@@ -511,6 +548,21 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login', defaultRole = 'bran
                       </Label>
                     </div>
                   </RadioGroup>
+                </div>
+
+                <div className="flex flex-col gap-3 py-2">
+                  <GoogleLogin
+                     onSuccess={handleGoogleAuth}
+                     onError={() => toast({ title: 'Google Signup Failed', variant: 'destructive' })}
+                     theme="filled_blue"
+                     size="large"
+                     text="signup_with"
+                     width="100%"
+                  />
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or sign up manually</span></div>
+                  </div>
                 </div>
 
                 {userRole === 'brand' ? (

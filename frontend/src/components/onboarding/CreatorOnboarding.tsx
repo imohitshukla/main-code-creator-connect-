@@ -7,11 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { User, Users, Instagram, Youtube, Globe, DollarSign, BarChart, Target } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { User, Users, Instagram, Youtube, Globe, DollarSign, BarChart, Target, Eye } from 'lucide-react';
 
 const CreatorOnboarding = () => {
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -30,6 +32,8 @@ const CreatorOnboarding = () => {
         instagram_link: '',
         youtube_link: '',
         portfolio_link: '',
+        media_kit_url: '',    // New field for 1GB uploads
+        intro_video_url: '',  // New field for 1GB uploads
 
         // Performance
         total_followers: '',
@@ -93,6 +97,8 @@ const CreatorOnboarding = () => {
                             instagram_link: raw.instagram_link || user.instagram_handle || '',
                             youtube_link: raw.youtube_link || '',
                             portfolio_link: raw.portfolio_link || '',
+                            media_kit_url: raw.media_kit_url || '',
+                            intro_video_url: raw.intro_video_url || '',
 
                             // Load exact followers string
                             total_followers: raw.follower_count || user.followers_count || '',
@@ -161,6 +167,47 @@ const CreatorOnboarding = () => {
         reader.readAsDataURL(file);
     };
 
+    const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'intro_video_url' | 'media_kit_url') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 1GB check (1024 * 1024 * 1024)
+        if (file.size > 1073741824) {
+            toast({ title: "File too large", description: "Maximum file size is 1GB.", variant: "destructive" });
+            return;
+        }
+
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        if (!cloudName) {
+             toast({ title: "Configuration Missing", description: "VITE_CLOUDINARY_CLOUD_NAME is missing in your frontend environment.", variant: "destructive" });
+             return;
+        }
+
+        setIsLoading(true);
+        toast({ title: "Uploading Large File", description: "Please wait, this might take a minute..." });
+
+        try {
+            const uploadData = new FormData();
+            uploadData.append('file', file);
+            uploadData.append('upload_preset', 'creator_connect_unsigned');
+            
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+                method: 'POST',
+                body: uploadData,
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+            
+            handleChange(field, data.secure_url);
+            toast({ title: "Upload complete!", description: "File successfully attached." });
+        } catch (error: any) {
+             toast({ title: "Upload Details Error", description: error.message || "Failed to upload to Cloudinary", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -201,7 +248,22 @@ const CreatorOnboarding = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 bg-gray-50 min-h-screen relative">
+            
+            {/* Quick Public View Toggle */}
+            {user?.id && (
+                <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
+                    <Button 
+                        variant="default"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg flex items-center gap-2 rounded-full px-6 py-2 transition-all transform hover:scale-105"
+                        onClick={() => window.open(`/profile/${user.id}`, '_blank')}
+                    >
+                        <Eye className="w-4 h-4" />
+                        <span className="hidden sm:inline">View Public Profile</span>
+                    </Button>
+                </div>
+            )}
+
             {/* Header */}
             <div className="text-center space-y-4 mb-12">
                 <div className="inline-block px-4 py-1.5 rounded-full bg-gray-200 text-sm font-medium text-gray-600 mb-4">
@@ -417,6 +479,42 @@ const CreatorOnboarding = () => {
                                                 placeholder="Link to your past collaborations"
                                                 className="h-12 pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-all"
                                             />
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Direct Large File Uploads */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="media_kit_url" className="font-medium text-gray-700">PDF Media Kit (Up to 1GB)</Label>
+                                        <div className="flex items-center gap-3">
+                                            <Input
+                                                id="media_kit_url"
+                                                type="url"
+                                                value={formData.media_kit_url}
+                                                onChange={e => handleChange('media_kit_url', e.target.value)}
+                                                placeholder="Upload PDF or paste link"
+                                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white flex-1"
+                                            />
+                                            <Button variant="outline" type="button" className="shrink-0 h-12 px-4 shadow-sm" onClick={() => document.getElementById('file_media_kit')?.click()}>
+                                              Upload PDF
+                                            </Button>
+                                            <input type="file" id="file_media_kit" accept=".pdf" className="hidden" onChange={(e) => handleDirectUpload(e, 'media_kit_url')} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="intro_video_url" className="font-medium text-gray-700">Video Reel / Pitch (Up to 1GB)</Label>
+                                        <div className="flex items-center gap-3">
+                                            <Input
+                                                id="intro_video_url"
+                                                type="url"
+                                                value={formData.intro_video_url}
+                                                onChange={e => handleChange('intro_video_url', e.target.value)}
+                                                placeholder="Upload MP4 or paste link"
+                                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white flex-1"
+                                            />
+                                            <Button variant="outline" type="button" className="shrink-0 h-12 px-4 shadow-sm" onClick={() => document.getElementById('file_intro_video')?.click()}>
+                                              Upload Video
+                                            </Button>
+                                            <input type="file" id="file_intro_video" accept="video/*" className="hidden" onChange={(e) => handleDirectUpload(e, 'intro_video_url')} />
                                         </div>
                                     </div>
                                 </div>

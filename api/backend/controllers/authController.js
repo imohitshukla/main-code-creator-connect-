@@ -4,6 +4,7 @@ import twilio from 'twilio';
 import { client } from '../config/database.js';
 import { sendEmail } from '../utils/emailService.js';
 import { setCookie, getCookie } from 'hono/cookie'; // 🛡️ CRITICAL: Import Hono cookie helpers
+import { OAuth2Client } from 'google-auth-library';
 
 // Initialize Twilio client conditionally
 let twilioClient;
@@ -819,6 +820,128 @@ const logout = async (c) => {
   }
 };
 
+const googleAuth = async (c) => {
+  try {
+    const { token, role = 'creator' } = await c.req.json();
+    if (!token) return c.json({ error: 'Token missing' }, 400);
+
+    const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id';
+    const oAuth2Client = new OAuth2Client(googleClientId);
+
+    const ticket = await oAuth2Client.verifyIdToken({
+      idToken: token,
+      audience: googleClientId,
+    });
+    
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return c.json({ error: 'Invalid Google Token' }, 400);
+    }
+
+    const { email, name, picture } = payload;
+    let db;
+    let user;
+    let isNewUser = false;
+    let tokenStr;
+
+    try {
+      db = await client.connect();
+      await db.query('BEGIN');
+
+      // Check if user exists
+      const userResult = await db.query(
+        `SELECT 
+          u.id, u.email, u.role, u.avatar,
+          bp.company_name,
+          cp.name as creator_name
+         FROM users u
+         LEFT JOIN brand_profiles bp ON u.id = bp.user_id 
+         LEFT JOIN creator_profiles cp ON u.id = cp.user_id 
+         WHERE u.email = $1`,
+        [email]
+      );
+
+      if (userResult.rows.length > 0) {
+        user = userResult.rows[0];
+        // If avatar isn't explicitly set, maybe update to Google picture, but we'll leave it simple for now
+      } else {
+        isNewUser = true;
+
+        // Generate strong random password for Google-first auths
+        const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        const newUserRes = await db.query(
+          'INSERT INTO users (email, password, role, is_phone_verified, avatar) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+          [email, hashedPassword, role, true, picture] // true, since Google verified the email
+        );
+        const newUserId = newUserRes.rows[0].id;
+
+        if (role === 'creator') {
+           await db.query('INSERT INTO creator_profiles (user_id, name) VALUES ($1, $2)', [newUserId, name]);
+        } else {
+           await db.query('INSERT INTO brand_profiles (user_id, company_name) VALUES ($1, $2)', [newUserId, name]);
+        }
+        
+        user = { id: newUserId, email, role, avatar: picture, creator_name: role === 'creator' ? name : null, company_name: role === 'brand' ? name : null };
+      }
+
+      await db.query('COMMIT');
+
+      // Setup JWT and Cookie exactly like normal Login/Signup
+      tokenStr = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+      );
+
+      const { setCookie } = await import('hono/cookie');
+      const options = [
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
+        { httpOnly: true, secure: false, sameSite: 'Lax', path: '/', maxAge: 604800 }
+      ];
+
+      for (let i = 0; i < options.length; i++) {
+        try { await setCookie(c, 'auth_token', tokenStr, options[i]); } catch (e) {}
+      }
+
+      // Headers fallback
+      const cookieVariations = [
+        `auth_token=${encodeURIComponent(tokenStr)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${tokenStr}; Path=/; HttpOnly; SameSite=Lax` 
+      ];
+      cookieVariations.forEach((cookie, index) => { c.header(\`Set-Cookie-\${index}\`, cookie); c.header('Set-Cookie', cookie); });
+
+    } catch (e) {
+      if (db) await db.query('ROLLBACK');
+      throw e;
+    } finally {
+      if (db) db.release();
+    }
+
+    return c.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        name: user.creator_name || name,
+        company_name: user.company_name || (role === 'brand' ? name : null),
+        token: tokenStr
+      },
+      token: tokenStr,
+      message: isNewUser ? 'Account created via Google' : 'Login successful via Google'
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    return c.json({ error: 'Google Authentication failed', details: error.message }, 500);
+  }
+};
+
 export {
   registerCreator,
   registerBrand,
@@ -829,7 +952,8 @@ export {
   verifyOtp,
   forgotPassword,
   resetPassword,
-  logout
+  logout,
+  googleAuth
 };
 
 

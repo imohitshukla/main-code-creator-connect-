@@ -113,6 +113,10 @@ async function buildPublicCreatorResponse(c, user, creatorProfile) {
       collaboration_goals: displayGoals,
       budget_range: displayBudget
     },
+    media: {
+      media_kit: creatorProfile?.media_kit_url || '',
+      intro_video: creatorProfile?.intro_video_url || ''
+    },
     // Backwards compatibility: older frontends sometimes expect data.creator
     creator: undefined
   };
@@ -181,7 +185,9 @@ export const getCreators = async (c) => {
         cp.collaboration_goals,
         cp.instagram_link,
         cp.youtube_link,
-        cp.portfolio_link
+        cp.portfolio_link,
+        cp.media_kit_url,
+        cp.intro_video_url
       FROM users u
       LEFT JOIN creator_profiles cp ON cp.user_id = u.id
       WHERE ${where}
@@ -394,6 +400,8 @@ export const updateCreatorProfile = async (c) => {
     if (body.instagram_link !== undefined) profileUpdates.instagram_link = (body.instagram_link && String(body.instagram_link).trim()) || null;
     if (body.youtube_link !== undefined) profileUpdates.youtube_link = body.youtube_link || null;
     if (body.portfolio_link !== undefined) profileUpdates.portfolio_link = body.portfolio_link || null;
+    if (body.media_kit_url !== undefined) profileUpdates.media_kit_url = body.media_kit_url || null;
+    if (body.intro_video_url !== undefined) profileUpdates.intro_video_url = body.intro_video_url || null;
     if (body.total_followers !== undefined) profileUpdates.follower_count = body.total_followers ? String(body.total_followers).trim() : '0';
 
     if (Object.keys(profileUpdates).length > 0) {
