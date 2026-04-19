@@ -219,6 +219,16 @@ const Navbar = () => {
                   Login
                 </Button>
                 <Button
+                  variant="outline"
+                  className="text-base font-medium border-primary/20 hover:bg-primary/5"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setIsAuthModalOpen(true);
+                  }}
+                >
+                  Sign up
+                </Button>
+                <Button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 shadow-glow transition-all duration-300"
                   onClick={() => window.open('https://calendly.com/creatorconnect/15min', '_blank')}
                 >
@@ -294,6 +304,7 @@ const Navbar = () => {
                 {!user ? (
                   <div className="grid gap-3">
                     <Button variant="outline" className="w-full" onClick={() => { setIsOpen(false); setAuthMode('login'); setIsAuthModalOpen(true); }}>Login</Button>
+                    <Button variant="default" className="w-full bg-primary/90 text-primary-foreground" onClick={() => { setIsOpen(false); setAuthMode('signup'); setIsAuthModalOpen(true); }}>Sign up</Button>
                     <Button className="w-full bg-[#0f172a] text-white rounded-full" onClick={() => { setIsOpen(false); window.location.href = '/contact'; }}>Book a demo</Button>
                   </div>
                 ) : (

@@ -150,7 +150,7 @@ const MyDeals: React.FC = () => {
 
                                             <p className="text-gray-500 text-sm mt-1 line-clamp-1">{deal.deliverables}</p>
 
-                                            <div className="mt-3 flex items-center gap-3 text-xs text-gray-400">
+                                            <div className="mt-3 flex items-center gap-3 text-xs text-gray-600 font-medium">
                                                 <span>Updated {new Date(deal.updated_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                                                 <span>•</span>
                                                 <span>{progress}% complete</span>
