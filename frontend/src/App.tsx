@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { Analytics } from "@vercel/analytics/react";
 
 // All pages lazy-loaded for code-splitting
 const Home = lazy(() => import("./pages/Home"));
@@ -64,6 +65,7 @@ const App = () => (
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <div className="flex-1">
+            <Analytics />
             <Routes>
               <Route path="/" element={<Suspense fallback={<PageFallback />}><Home /></Suspense>} />
               <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
