@@ -73,7 +73,7 @@ const App = () => (
               <Route path="/platform" element={<Suspense fallback={<PageFallback />}><MarketingPlatformPage /></Suspense>} />
               <Route path="/campaign" element={<Suspense fallback={<PageFallback />}><Campaign /></Suspense>} />
               <Route path="/agency" element={<Suspense fallback={<PageFallback />}><MarketingAgencyPage /></Suspense>} />
-              <Route path="/filter" element={<Suspense fallback={<PageFallback />}><Filter /></Suspense>} />
+              <Route path="/filter/:category?" element={<Suspense fallback={<PageFallback />}><Filter /></Suspense>} />
               <Route path="/profile/:id" element={<Suspense fallback={<PageFallback />}><PublicProfile /></Suspense>} />
               <Route path="/stories" element={<Suspense fallback={<PageFallback />}><CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." /></Suspense>} />
 

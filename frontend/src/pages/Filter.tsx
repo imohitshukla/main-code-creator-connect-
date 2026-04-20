@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -43,15 +44,37 @@ function transformCreator(creator: any): Creator {
 }
 
 const Filter = () => {
+  const { category } = useParams<{ category?: string }>();
+  const navigate = useNavigate();
+  const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Travel', 'Lifestyle'];
+
+  const urlNiche = useMemo(() => {
+    if (!category) return 'All';
+    const found = niches.find(n => n.toLowerCase() === category.toLowerCase());
+    return found || 'All';
+  }, [category]);
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedNiche, setSelectedNiche] = useState('All');
+  const [selectedNiche, setSelectedNiche] = useState(urlNiche);
   const [followersRange, setFollowersRange] = useState([0]);
   const [engagementRange, setEngagementRange] = useState([0]);
   const [budgetRange, setBudgetRange] = useState([0]);
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const { toast } = useToast();
-  const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Travel', 'Lifestyle'];
+
+  useEffect(() => {
+    setSelectedNiche(urlNiche);
+  }, [urlNiche]);
+
+  const handleNicheChange = (newNiche: string) => {
+    setSelectedNiche(newNiche);
+    if (newNiche === 'All') {
+      navigate('/filter');
+    } else {
+      navigate(`/filter/${newNiche.toLowerCase()}`);
+    }
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), DEBOUNCE_MS);
@@ -101,7 +124,7 @@ const Filter = () => {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setSelectedNiche('All');
+    handleNicheChange('All');
     setFollowersRange([0]);
     setEngagementRange([0]);
     setBudgetRange([0]);
@@ -109,6 +132,11 @@ const Filter = () => {
 
   return (
     <main className="min-h-screen bg-gradient-subtle pt-24 pb-16 px-4">
+      <SEO 
+        title={urlNiche !== 'All' ? `Top ${urlNiche} Creators | Creator Connect` : "Creator Filter | Find The Perfect Influencer"} 
+        description={`Find the best ${urlNiche !== 'All' ? urlNiche : 'diverse'} creators and influencers for your brand's next campaign.`} 
+      />
+      
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-display font-bold text-foreground mb-4">
@@ -119,11 +147,29 @@ const Filter = () => {
           </p>
         </div>
 
+        {/* Dynamic Category Tabs */}
+        <div className="flex overflow-x-auto pb-4 mb-6 gap-2 snap-x scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          {niches.map(n => (
+            <Button
+              key={n}
+              variant={selectedNiche === n ? "default" : "outline"}
+              className={`rounded-full shrink-0 snap-start transition-all ${
+                selectedNiche === n 
+                  ? 'bg-primary text-primary-foreground shadow-md' 
+                  : 'bg-background hover:bg-muted font-normal text-muted-foreground'
+              }`}
+              onClick={() => handleNicheChange(n)}
+            >
+              {n}
+            </Button>
+          ))}
+        </div>
+
         {/* Desktop Filter Bar */}
         <div className="hidden md:block bg-background/50 backdrop-blur-md border border-border/50 rounded-xl p-6 mb-8 shadow-sm">
           <div className="grid grid-cols-12 gap-6 items-end">
             {/* Search */}
-            <div className="col-span-4 space-y-2">
+            <div className="col-span-7 lg:col-span-8 space-y-2">
               <Label>Search</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -137,21 +183,8 @@ const Filter = () => {
               </div>
             </div>
 
-            {/* Niche */}
-            <div className="col-span-3 space-y-2">
-              <Label>Niche</Label>
-              <select
-                aria-label="Select Niche"
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={selectedNiche}
-                onChange={(e) => setSelectedNiche(e.target.value)}
-              >
-                {niches.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
-
-            {/* Advanced Sliders Trigger (Desktop Dialog or Popover usually, but laying out inline for 'Advanced' feel) */}
-            <div className="col-span-5 flex items-center justify-end gap-2">
+            {/* Advanced Sliders Trigger */}
+            <div className="col-span-5 lg:col-span-4 flex items-center justify-end gap-2">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="gap-2">
@@ -288,17 +321,6 @@ const Filter = () => {
                 <SheetTitle>Filters</SheetTitle>
               </SheetHeader>
               <div className="py-6 space-y-6 overflow-y-auto">
-                <div className="space-y-2">
-                  <Label>Niche</Label>
-                  <select
-                    aria-label="Mobile Select Niche"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3"
-                    value={selectedNiche}
-                    onChange={(e) => setSelectedNiche(e.target.value)}
-                  >
-                    {niches.map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
                 <div className="space-y-4">
                   <Label>Min Followers: {followersRange[0].toLocaleString()}</Label>
                   <Slider value={followersRange} onValueChange={setFollowersRange} max={1000000} step={10000} />
