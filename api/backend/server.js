@@ -2,6 +2,8 @@ import 'dotenv/config';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { secureHeaders } from 'hono/secure-headers';
+import { csrf } from 'hono/csrf';
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
 import brandRoutes from './routes/brands.js';
@@ -24,17 +26,19 @@ import cronRoutes from './routes/cron.js';
 
 const app = new Hono();
 
+const allowedOrigins = [
+  "http://localhost:5173",                      // For local coding
+  "http://localhost:8080",                      // Vite default fallback
+  "http://localhost:3000",                      // React default
+  "https://main-code-creator-connect.onrender.com", // Old Render URL (Safety)
+  "https://www.creatorconnect.tech",            // 🟢 NEW: Your Website
+  "https://creatorconnect.tech"                 // 🟢 NEW: Your Website (no www)
+];
+
 // --- 🚀 UNIVERSAL CORS FIX ---
 // This allows the frontend to connect from ANY verified domain (Vercel, Custom Domain, etc.)
 app.use('*', cors({
-  origin: [
-    "http://localhost:5173",                      // For local coding
-    "http://localhost:8080",                      // Vite default fallback
-    "http://localhost:3000",                      // React default
-    "https://main-code-creator-connect.onrender.com", // Old Render URL (Safety)
-    "https://www.creatorconnect.tech",            // 🟢 NEW: Your Website
-    "https://creatorconnect.tech"                 // 🟢 NEW: Your Website (no www)
-  ],
+  origin: allowedOrigins,
   credentials: true, // Essential for cookies/sessions
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -43,6 +47,9 @@ app.use('*', cors({
 // Handle "Preflight" OPTIONS requests manually to prevent 404s/Auth errors
 app.options('*', cors());
 // -----------------------------
+
+app.use('*', secureHeaders());
+app.use('*', csrf({ origin: allowedOrigins }));
 app.use('*', logger());
 // Note: File uploads now go directly to Cloudinary CDN (no local disk storage needed)
 

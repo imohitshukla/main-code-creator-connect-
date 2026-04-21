@@ -86,8 +86,9 @@ const registerCreator = async (c) => {
 
       // 🔥 TRY EVERY COMBINATION
       const options = [
-        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: false, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 }
@@ -108,8 +109,8 @@ const registerCreator = async (c) => {
     //  NUCLEAR APPROACH 3: Manual header manipulation
     try {
       const cookieVariations = [
-        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${token}; Path=/` // Emergency minimal
       ];
@@ -223,8 +224,9 @@ const registerBrand = async (c) => {
       const { setCookie } = await import('hono/cookie');
 
       const options = [
-        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: false, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 }
@@ -244,8 +246,8 @@ const registerBrand = async (c) => {
     // Manual header fallback
     try {
       const cookieVariations = [
-        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${token}; Path=/`
       ];
@@ -359,8 +361,9 @@ const login = async (c) => {
       const { setCookie } = await import('hono/cookie');
 
       const options = [
-        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
+        { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: true, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: true, secure: false, sameSite: 'None', path: '/', maxAge: 604800 },
         { httpOnly: false, secure: true, sameSite: 'None', path: '/', domain: '.creatorconnect.tech', maxAge: 604800 },
@@ -383,8 +386,8 @@ const login = async (c) => {
     //  FALLBACK 2: Manual header with exact domain
     try {
       const cookieVariations = [
-        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
+        `auth_token=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${encodeURIComponent(token)}; Path=/; Domain=.creatorconnect.tech; Max-Age=604800`,
         `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax`, // Localhost friendly
         `auth_token=${token}; Path=/` // Emergency minimal
@@ -498,7 +501,7 @@ const verifyLoginOtp = async (c) => {
       const cookieOptions = {
         httpOnly: true,
         secure: true, // Always true for Render/Vercel
-        sameSite: 'None', // Required for cross-site (if any) or cross-subdomain in some contexts
+        sameSite: 'Lax', // Prioritize Lax, fallback is handled if needed
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
         domain: isProduction ? '.creatorconnect.tech' : undefined
@@ -509,12 +512,12 @@ const verifyLoginOtp = async (c) => {
       console.log('🍪 DEBUG: OTP - Hono setCookie successful for user:', user.id);
 
       // � FALLBACK 2: Manual header with exact domain
-      const cookieValue2 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
+      const cookieValue2 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Domain=.creatorconnect.tech' : ''}`;
       c.header('Set-Cookie', cookieValue2);
       console.log('🍪 DEBUG: OTP - Manual header set:', cookieValue2);
 
       // 🚨 FALLBACK 3: Emergency universal header
-      const cookieValue3 = `auth_token=${token}; HttpOnly; Secure; SameSite=None; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+      const cookieValue3 = `auth_token=${token}; HttpOnly; Secure; SameSite=Lax; Domain=.creatorconnect.tech; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
       c.header('Set-Cookie', cookieValue3);
       console.log('🍪 DEBUG: OTP - Emergency universal header set');
 

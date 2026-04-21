@@ -17,8 +17,11 @@ import { signup } from '../controllers/authController.js';
 import { client } from '../config/database.js';
 import jwt from 'jsonwebtoken';
 import { authMiddleware } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const auth = new Hono();
+
+const sensitiveRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
 
 const registerCreatorSchema = z.object({
   name: z.string().min(2).max(255),
@@ -64,9 +67,9 @@ const signupSchema = z.object({
 auth.post('/register/creator', zValidator('json', registerCreatorSchema), registerCreator);
 auth.post('/register/brand', zValidator('json', registerBrandSchema), registerBrand);
 auth.post('/signup', zValidator('json', signupSchema), signup);
-auth.post('/login', zValidator('json', loginSchema), login);
+auth.post('/login', zValidator('json', loginSchema), sensitiveRateLimit, login);
 auth.post('/verify-login-otp', zValidator('json', verifyLoginOtpSchema), verifyLoginOtp);
-auth.post('/send-otp', zValidator('json', sendOtpSchema), sendOtp);
+auth.post('/send-otp', zValidator('json', sendOtpSchema), sensitiveRateLimit, sendOtp);
 auth.post('/verify-otp', zValidator('json', verifyOtpSchema), verifyOtp);
 auth.post('/logout', logout);
 auth.post('/google', googleAuth);
@@ -81,7 +84,7 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(6),
 });
 
-auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), forgotPassword);
+auth.post('/forgot-password', zValidator('json', forgotPasswordSchema), sensitiveRateLimit, forgotPassword);
 auth.post('/reset-password', zValidator('json', resetPasswordSchema), resetPassword);
 
 // 🚨 CRITICAL: Add /me endpoint for session check
