@@ -22,6 +22,9 @@ import dashboardRoutes from './backend/routes/dashboard.js';
 import userRoutes from './backend/routes/users.js';
 import brandRoutes from './backend/routes/brands.js';
 import notificationRoutes from './backend/routes/notifications.js';
+import cronRoutes from './backend/routes/cron.js';
+import cron from 'node-cron';
+import { runEngagementRateUpdater } from './backend/services/engagementService.js';
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
@@ -141,6 +144,7 @@ app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/brands', brandRoutes);
 app.route('/api/notifications', notificationRoutes);
+app.route('/api/cron', cronRoutes);
 
 
 // File Uploads
@@ -189,6 +193,13 @@ initializeDatabase().then(() => {
       }, 14 * 60 * 1000); // 14 minutes
       console.log('🏓 Keep-alive pinger started (every 14 min)');
     }
+
+    // 🕒 Setup Weekly Cron Job (Every Sunday at Midnight)
+    cron.schedule('0 0 * * 0', async () => {
+      console.log('⏰ Running scheduled weekly engagement sync...');
+      await runEngagementRateUpdater();
+    });
+    console.log('🕒 Weekly engagement cron job scheduled (Runs every Sunday at 12:00 AM)');
   });
 });
 
