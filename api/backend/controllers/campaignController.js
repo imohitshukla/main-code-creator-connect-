@@ -128,3 +128,46 @@ export const deleteCampaign = async (c) => {
     return c.json({ error: 'Server error deleting campaign' }, 500);
   }
 };
+
+// Update campaign progress (e.g. status = 'closed')
+export const updateCampaignProgress = async (c) => {
+  try {
+    const user = c.get('user');
+    const campaignId = c.req.param('id');
+    const { status } = await c.req.json();
+
+    if (!status) {
+      return c.json({ error: 'Status is required' }, 400);
+    }
+
+    // Verify Ownership
+    const checkQuery = `
+      SELECT c.id 
+      FROM campaigns c
+      JOIN brand_profiles bp ON c.brand_id = bp.id
+      WHERE c.id = $1 AND bp.user_id = $2
+    `;
+    const checkRes = await pool.query(checkQuery, [campaignId, user.id]);
+
+    if (checkRes.rows.length === 0) {
+      return c.json({ error: 'Campaign not found or unauthorized' }, 404);
+    }
+
+    // Update status
+    // Note: status is an ENUM or text field in the db. 
+    // Usually 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED', 'CLOSED' etc.
+    const updateQuery = `
+      UPDATE campaigns 
+      SET status = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING *;
+    `;
+    const result = await pool.query(updateQuery, [status.toUpperCase(), campaignId]);
+
+    return c.json({ success: true, campaign: result.rows[0] });
+
+  } catch (error) {
+    console.error('Error updating campaign progress:', error);
+    return c.json({ error: 'Server error updating campaign' }, 500);
+  }
+};

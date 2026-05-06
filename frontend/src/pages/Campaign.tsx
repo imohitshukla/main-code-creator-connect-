@@ -43,6 +43,10 @@ const CampaignPage = () => {
   const [isLoadingPricing, setIsLoadingPricing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
   const fetchCampaigns = async () => {
     try {
       setIsLoading(true);
