@@ -37,7 +37,7 @@ const BrandDashboard: React.FC = () => {
       const response = await apiCall('/api/dashboard/brand');
       if (response.ok) {
         const data = await response.json();
-        setCampaigns(data.campaigns || []);
+        setCampaigns(data.recent_activity?.campaigns || []);
         if (data.stats) {
           setMetrics({
             activeCount: data.stats.active_campaigns,

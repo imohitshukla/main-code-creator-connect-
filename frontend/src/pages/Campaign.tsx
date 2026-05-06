@@ -318,19 +318,21 @@ const CampaignPage = () => {
         </div>
 
         {/* Add Campaign Button */}
-        <div className="mb-8 flex justify-center">
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            size="lg"
-            className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            {showForm ? 'Cancel' : 'Create New Campaign'}
-          </Button>
-        </div>
+        {user?.role === 'BRAND' && (
+          <div className="mb-8 flex justify-center">
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              size="lg"
+              className="bg-gradient-hero hover:shadow-glow transition-all duration-300"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              {showForm ? 'Cancel' : 'Create New Campaign'}
+            </Button>
+          </div>
+        )}
 
         {/* Campaign Creation Form */}
-        {showForm && (
+        {user?.role === 'BRAND' && showForm && (
           <Card className="mb-8 bg-gradient-card border-0 shadow-soft">
             <CardHeader>
               <div className="flex items-center gap-2 text-xl font-semibold text-foreground">
