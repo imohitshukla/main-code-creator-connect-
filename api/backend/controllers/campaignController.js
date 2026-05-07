@@ -171,3 +171,45 @@ export const updateCampaignProgress = async (c) => {
     return c.json({ error: 'Server error updating campaign' }, 500);
   }
 };
+
+// Apply to a campaign
+export const applyToCampaign = async (c) => {
+  try {
+    const user = c.get('user');
+    const campaignId = c.req.param('id');
+    const { proposal_text } = await c.req.json();
+
+    // Verify creator profile exists
+    const creatorRes = await pool.query('SELECT id FROM creator_profiles WHERE user_id = $1', [user.id]);
+    if (creatorRes.rows.length === 0) {
+      return c.json({ error: 'You must have a creator profile to apply' }, 403);
+    }
+    const creatorId = creatorRes.rows[0].id;
+
+    // Get campaign details to find the brand_id
+    const campaignRes = await pool.query('SELECT brand_id FROM campaigns WHERE id = $1 AND status = $2', [campaignId, 'ACTIVE']);
+    if (campaignRes.rows.length === 0) {
+      return c.json({ error: 'Campaign not found or no longer active' }, 404);
+    }
+    const brandId = campaignRes.rows[0].brand_id;
+
+    // Check if already applied
+    const checkApp = await pool.query('SELECT id FROM applications WHERE campaign_id = $1 AND creator_id = $2', [campaignId, creatorId]);
+    if (checkApp.rows.length > 0) {
+      return c.json({ error: 'You have already applied to this campaign' }, 400);
+    }
+
+    // Insert application
+    const insertQuery = `
+      INSERT INTO applications (campaign_id, creator_id, brand_id, cover_letter, status)
+      VALUES ($1, $2, $3, $4, 'PENDING')
+      RETURNING *;
+    `;
+    const result = await pool.query(insertQuery, [campaignId, creatorId, brandId, proposal_text]);
+
+    return c.json({ success: true, application: result.rows[0] }, 201);
+  } catch (error) {
+    console.error('Error applying to campaign:', error);
+    return c.json({ error: 'Server error applying to campaign' }, 500);
+  }
+};

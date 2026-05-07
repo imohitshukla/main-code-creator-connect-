@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
-import { createCampaign, getBrandCampaigns, getAllCampaigns, deleteCampaign, updateCampaignProgress } from '../controllers/campaignController.js';
+import { createCampaign, getBrandCampaigns, getAllCampaigns, deleteCampaign, updateCampaignProgress, applyToCampaign } from '../controllers/campaignController.js';
 
 const campaignRoutes = new Hono();
 
@@ -9,6 +9,9 @@ campaignRoutes.use('*', authMiddleware);
 
 // Public (Authenticated) Routes
 campaignRoutes.get('/', getAllCampaigns);
+
+// Creator-Only Routes
+campaignRoutes.post('/:id/apply', requireRole('creator'), applyToCampaign);
 
 // Brand-Only Routes
 campaignRoutes.post('/', requireRole('brand'), createCampaign);
