@@ -237,7 +237,7 @@ const CampaignPage = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          status: 'closed'
+          status: 'COMPLETED'
         })
       });
 
