@@ -62,7 +62,7 @@ const CampaignPage = () => {
           title: c.title,
           description: c.description,
           budget: c.budget_range,
-          requirements: c.niche,
+          requirements: c.requirements,
           deadline: new Date(c.created_at).toLocaleDateString(),
           applicants: 0, // Backend doesn't return this yet
           status: c.status,
