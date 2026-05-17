@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/campaigns/dashboard', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/dashboard`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

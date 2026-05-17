@@ -43,10 +43,10 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       const [creatorsRes, statsRes] = await Promise.all([
-        fetch('/api/admin/creators', {
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/creators`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('/api/admin/stats', {
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ]);
