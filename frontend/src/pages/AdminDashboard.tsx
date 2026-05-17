@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FraudDetection from '@/components/FraudDetection';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { getApiUrl } from '@/lib/utils';
 
 interface CreatorProfile {
   id: number;
@@ -43,10 +44,10 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       const [creatorsRes, statsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/admin/creators`, {
+        fetch(`${getApiUrl()}/api/admin/creators`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
+        fetch(`${getApiUrl()}/api/admin/stats`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ]);

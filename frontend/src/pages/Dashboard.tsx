@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import AnalyticsChart from '../components/AnalyticsChart';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../lib/utils';
 
 interface DashboardData {
   id: number;
@@ -28,7 +29,7 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/dashboard`, {
+      const response = await fetch(`${getApiUrl()}/api/campaigns/dashboard`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
