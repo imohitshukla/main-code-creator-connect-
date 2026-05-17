@@ -39,7 +39,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ conversationId, pa
     try {
       const response = await fetch(`${getApiUrl()}/api/messages/${conversationId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
       });
       const data = await response.json();
@@ -59,7 +59,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ conversationId, pa
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify({ conversationId, content: newMessage }),
       });

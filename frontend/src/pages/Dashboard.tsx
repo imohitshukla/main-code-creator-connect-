@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
     try {
       const response = await fetch(`${getApiUrl()}/api/campaigns/dashboard`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
       const data = await response.json();

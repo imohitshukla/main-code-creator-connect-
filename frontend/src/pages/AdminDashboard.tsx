@@ -45,10 +45,10 @@ const AdminDashboard = () => {
     try {
       const [creatorsRes, statsRes] = await Promise.all([
         fetch(`${getApiUrl()}/api/admin/creators`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         }),
         fetch(`${getApiUrl()}/api/admin/stats`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         })
       ]);
 

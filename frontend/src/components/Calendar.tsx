@@ -40,7 +40,7 @@ const Calendar = () => {
     try {
       const response = await fetch('/api/calendars', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
       if (response.ok) {
@@ -62,7 +62,7 @@ const Calendar = () => {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
         body: JSON.stringify(formData)
       });
@@ -91,7 +91,7 @@ const Calendar = () => {
       const response = await fetch(`/api/calendars/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
 

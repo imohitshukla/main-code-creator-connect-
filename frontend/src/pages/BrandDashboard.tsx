@@ -57,7 +57,7 @@ const BrandDashboard: React.FC = () => {
   const fetchPendingEscrowDeals = async () => {
     setEscrowLoading(true);
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('auth_token');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/my-deals`, {
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -28,7 +28,7 @@ const Messages: React.FC = () => {
   const { data: conversations, isLoading, error } = useQuery<Conversation[]>({
     queryKey: ['conversations'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${getApiUrl()}/api/messages/conversations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
