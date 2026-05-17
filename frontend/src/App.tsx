@@ -35,6 +35,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const MyDeals = lazy(() => import("./pages/MyDeals"));
 const DealDetails = lazy(() => import("./pages/DealDetails"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +112,7 @@ const App = () => (
                 {/* Deal Tracker Routes */}
                 <Route path="/my-deals" element={<Suspense fallback={<PageFallback />}><MyDeals /></Suspense>} />
                 <Route path="/deals/:id" element={<Suspense fallback={<PageFallback />}><DealDetails /></Suspense>} />
+                <Route path="/admin" element={<Suspense fallback={<PageFallback />}><AdminDashboard /></Suspense>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<Suspense fallback={<PageFallback />}><NotFound /></Suspense>} />

@@ -4,7 +4,8 @@ import {
   getDealById,
   updateDealStatus,
   terminateDeal,
-  getUserDeals
+  getUserDeals,
+  getDealTimeline
 } from '../controllers/dealController.js';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -18,5 +19,6 @@ deals.get('/my-deals', getUserDeals); // specific route before :id
 deals.get('/:id', getDealById);
 deals.patch('/:id/status', updateDealStatus);
 deals.post('/:id/terminate', terminateDeal);
+deals.get('/:id/timeline', getDealTimeline);
 
 export default deals;

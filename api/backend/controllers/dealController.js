@@ -203,6 +203,14 @@ export const updateDealStatus = async (c) => {
 
     const updatedDeal = await client.query(updateQuery, queryParams);
 
+    // 📝 LOG STAGE TRANSITION (If status changed)
+    if (deal.status !== status) {
+      await client.query(`
+        INSERT INTO deal_timeline_logs (deal_id, old_stage, new_stage, changed_by, metadata)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [id, deal.status, status, user.id, newMetadata]);
+    }
+
     return c.json({ success: true, deal: updatedDeal.rows[0] });
   } catch (error) {
     console.error('Error updating deal status:', error);
@@ -293,6 +301,42 @@ export const getUserDeals = async (c) => {
 
   } catch (error) {
     console.error('Error fetching user deals:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+};
+
+// Get Deal Timeline
+export const getDealTimeline = async (c) => {
+  try {
+    const id = c.req.param('id');
+    const user = c.get('user');
+
+    // Security check: Verify user is part of the deal or ADMIN
+    const dealCheck = await client.query(`
+      SELECT d.id 
+      FROM deals d
+      LEFT JOIN brand_profiles b ON d.brand_id = b.id
+      LEFT JOIN creator_profiles cr ON d.creator_id = cr.id
+      WHERE d.id = $1 AND ($2 = 'ADMIN' OR b.user_id = $3 OR cr.user_id = $3)
+    `, [id, user.role, user.id]);
+
+    if (dealCheck.rows.length === 0) {
+      return c.json({ error: 'Unauthorized or Deal not found' }, 403);
+    }
+
+    // Fetch timeline logs
+    const timeline = await client.query(`
+      SELECT t.*, u.email as changed_by_email
+      FROM deal_timeline_logs t
+      LEFT JOIN users u ON t.changed_by = u.id
+      WHERE t.deal_id = $1
+      ORDER BY t.timestamp ASC
+    `, [id]);
+
+    return c.json({ timeline: timeline.rows });
+
+  } catch (error) {
+    console.error('Error fetching deal timeline:', error);
     return c.json({ error: 'Internal server error' }, 500);
   }
 };
