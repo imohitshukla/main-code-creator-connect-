@@ -17,6 +17,23 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   console.warn('Twilio credentials missing. SMS features will be disabled.');
 }
 
+// 🛡️ ADMIN AUDIT: Non-blocking login session logger
+const logUserSession = async (c, user) => {
+  try {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    const device = c.req.header('user-agent') || 'unknown';
+    await client.query(
+      `INSERT INTO user_audit_logs (user_id, user_email, role, ip_address, device_info)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [user.id, user.email, user.role, ip, device]
+    );
+    console.log('📋 AUDIT: Login session recorded for', user.email);
+  } catch (error) {
+    // Non-blocking: never interrupt login
+    console.error('📋 AUDIT: Failed to log session (non-fatal):', error.message);
+  }
+};
+
 // ... (existing code) ...
 
 // Register Creator
@@ -424,6 +441,9 @@ const login = async (c) => {
     };
 
     console.log('✅ DEBUG: Login successful for user:', user.id);
+
+    // 📋 ADMIN AUDIT: Record login session (non-blocking)
+    logUserSession(c, { id: user.id, email: user.email, role: user.role });
 
     // 🛡️ PROFESSIONAL RESPONSE: Return success without OTP requirement
     return c.json({
@@ -924,6 +944,9 @@ const googleAuth = async (c) => {
     } finally {
       if (db) db.release();
     }
+
+    // 📋 ADMIN AUDIT: Record Google login session (non-blocking)
+    logUserSession(c, { id: user.id, email: user.email, role: user.role });
 
     return c.json({
       success: true,

@@ -651,6 +651,22 @@ export const sendProposal = async (c) => {
 
     console.log(`Proposal sent from brand ${userId} to creator ${creatorId}`);
 
+    // 📋 ADMIN PITCH TRACKER: Record pitch for admin oversight (non-blocking)
+    try {
+      await client.query(`
+        INSERT INTO admin_pitch_tracker (deal_id, brand_id, brand_name, creator_id, creator_name, initiated_by, status, payment_type, fixed_amount, product_name, product_mrp, currency)
+        VALUES ($1, $2, $3, $4, $5, 'brand', 'OFFER', $6, $7, $8, $9, 'INR')
+        ON CONFLICT (deal_id) DO NOTHING
+      `, [
+        dealId, brandProfileId, brandNameFinal,
+        creatorProfileId, creator.name || 'Unknown',
+        compensationType || 'CASH', numericAmount,
+        productName || null, productMrp ? parseFloat(productMrp) : null
+      ]);
+    } catch (trackerErr) {
+      console.error('📋 PITCH TRACKER: Insert failed (non-fatal):', trackerErr.message);
+    }
+
     return c.json({
       success: true,
       message: 'Proposal sent and Deal created successfully',

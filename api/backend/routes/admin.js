@@ -5,17 +5,25 @@ import {
   updateCreatorVerification,
   getCreatorFraudHistory,
   bulkFraudCheck,
-  getSystemHealth
+  getSystemHealth,
+  getPlatformOverview,
+  getAuditLogs,
+  getPitchMatrix
 } from '../controllers/adminController.js';
 import { authMiddleware, requireRole } from '../middleware/auth.js';
 
 const adminRoutes = new Hono();
 
-// Apply auth middleware to all admin routes
+// Apply auth + ADMIN role check to ALL admin routes
 adminRoutes.use('*', authMiddleware);
 adminRoutes.use('*', requireRole('ADMIN'));
 
-// Admin-only routes (would need additional admin role check in production)
+// ─── NEW: Founder Oversight Endpoints ───
+adminRoutes.get('/platform-overview', getPlatformOverview);
+adminRoutes.get('/audit-logs', getAuditLogs);
+adminRoutes.get('/pitch-matrix', getPitchMatrix);
+
+// ─── Existing Endpoints (preserved) ───
 adminRoutes.get('/creators', getAllCreators);
 adminRoutes.get('/stats', getAdminStats);
 adminRoutes.put('/creators/:creatorId/verification', updateCreatorVerification);

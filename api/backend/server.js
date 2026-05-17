@@ -98,10 +98,14 @@ app.onError((err, c) => {
 const PORT = process.env.PORT || 5000;
 
 import { serve } from '@hono/node-server';
+import { migrateAdminTables } from './migrations/migrate_admin_tables.js';
 
-serve({
-  fetch: app.fetch,
-  port: PORT
-}, (info) => {
-  console.log(`Server is running on port ${info.port}`);
+// Run idempotent migrations before starting server
+migrateAdminTables().then(() => {
+  serve({
+    fetch: app.fetch,
+    port: PORT
+  }, (info) => {
+    console.log(`Server is running on port ${info.port}`);
+  });
 });

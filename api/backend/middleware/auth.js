@@ -44,7 +44,7 @@ const authMiddleware = async (c, next) => {
     c.set('userId', user.id);
     c.set('userRole', user.role);
     c.set('user', user); // Set full user object
-    c.set('isAdmin', user.role === 'admin');
+    c.set('isAdmin', user.role.toLowerCase() === 'admin');
     console.log('✅ AUTH: Token verified for user:', user.email);
     await next();
 
@@ -56,7 +56,7 @@ const authMiddleware = async (c, next) => {
 
 const requireRole = (role) => async (c, next) => {
   const userRole = c.get('userRole');
-  if (userRole !== role) {
+  if (!userRole || userRole.toUpperCase() !== role.toUpperCase()) {
     return c.json({ error: 'Forbidden - Insufficient permissions' }, 403);
   }
   await next();

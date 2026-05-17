@@ -58,7 +58,23 @@ export const createDeal = async (c) => {
 
     } catch (notifyError) {
       console.error("Failed to send notification:", notifyError);
-      // Don't fail the request, just log it.
+    }
+
+    // 📋 ADMIN PITCH TRACKER: Record deal for admin oversight (non-blocking)
+    try {
+      const brandNameRes = await client.query('SELECT company_name FROM brand_profiles WHERE id = $1', [brand_id]);
+      const creatorNameRes = await client.query('SELECT name FROM creator_profiles WHERE id = $1', [creator_id]);
+      await client.query(`
+        INSERT INTO admin_pitch_tracker (deal_id, brand_id, brand_name, creator_id, creator_name, initiated_by, status, payment_type, fixed_amount, currency)
+        VALUES ($1, $2, $3, $4, $5, 'brand', 'OFFER', 'CASH', $6, $7)
+        ON CONFLICT (deal_id) DO NOTHING
+      `, [
+        newDeal.rows[0].id, brand_id, brandNameRes.rows[0]?.company_name || 'Unknown',
+        creator_id, creatorNameRes.rows[0]?.name || 'Unknown',
+        amount || 0, currency || 'INR'
+      ]);
+    } catch (trackerErr) {
+      console.error('📋 PITCH TRACKER: Insert failed (non-fatal):', trackerErr.message);
     }
 
     return c.json({ success: true, deal: newDeal.rows[0] }, 201);
@@ -209,6 +225,18 @@ export const updateDealStatus = async (c) => {
         INSERT INTO deal_timeline_logs (deal_id, old_stage, new_stage, changed_by, metadata)
         VALUES ($1, $2, $3, $4, $5)
       `, [id, deal.status, status, user.id, newMetadata]);
+    }
+
+    // 📋 ADMIN PITCH TRACKER: Update status (non-blocking)
+    try {
+      const updatedAmount = updatedDeal.rows[0].amount;
+      await client.query(`
+        UPDATE admin_pitch_tracker
+        SET status = $1, fixed_amount = COALESCE($2, fixed_amount), updated_at = CURRENT_TIMESTAMP
+        WHERE deal_id = $3
+      `, [status, updatedAmount, id]);
+    } catch (trackerErr) {
+      console.error('📋 PITCH TRACKER: Update failed (non-fatal):', trackerErr.message);
     }
 
     return c.json({ success: true, deal: updatedDeal.rows[0] });

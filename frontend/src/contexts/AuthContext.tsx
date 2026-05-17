@@ -4,7 +4,7 @@ import { apiCall } from '../utils/apiHelper';
 interface User {
   id: number;
   email: string;
-  role: 'BRAND' | 'CREATOR' | 'PENDING';
+  role: 'BRAND' | 'CREATOR' | 'ADMIN' | 'PENDING';
   name?: string;
   token?: string;
   avatar?: string;
