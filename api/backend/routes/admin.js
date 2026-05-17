@@ -7,12 +7,13 @@ import {
   bulkFraudCheck,
   getSystemHealth
 } from '../controllers/adminController.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, requireRole } from '../middleware/auth.js';
 
 const adminRoutes = new Hono();
 
 // Apply auth middleware to all admin routes
 adminRoutes.use('*', authMiddleware);
+adminRoutes.use('*', requireRole('ADMIN'));
 
 // Admin-only routes (would need additional admin role check in production)
 adminRoutes.get('/creators', getAllCreators);

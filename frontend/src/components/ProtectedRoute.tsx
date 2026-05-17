@@ -28,6 +28,11 @@ const ProtectedRoute = () => {
         return <Navigate to="/dashboard" replace />;
     }
 
+    // Admin Protection
+    if (window.location.pathname.startsWith('/admin') && user.role !== 'ADMIN' && user.role !== 'admin') {
+        return <Navigate to="/dashboard" replace />;
+    }
+
     return <Outlet />;
 };
 
