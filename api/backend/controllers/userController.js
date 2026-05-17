@@ -38,7 +38,14 @@ export const getCurrentUser = async (c) => {
     const userId = c.get('userId');
 
     const result = await client.query(
-      'SELECT id, email, name, role, image, created_at FROM users WHERE id = $1',
+      `SELECT 
+        u.id, u.email, u.role, u.avatar, u.created_at,
+        bp.company_name,
+        cp.name
+       FROM users u
+       LEFT JOIN brand_profiles bp ON u.id = bp.user_id
+       LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+       WHERE u.id = $1`,
       [userId]
     );
 

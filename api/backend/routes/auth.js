@@ -99,7 +99,14 @@ auth.get('/me', authMiddleware, async (c) => {
   // 2. Query DB for fresh data (avatar, name etc. are NOT in JWT — they're set after login)
   try {
     const { rows } = await client.query(
-      'SELECT id, email, role, name, avatar, profile_image, company_name, phone_number, portfolio_link FROM users WHERE id = $1',
+      `SELECT 
+        u.id, u.email, u.role, u.avatar, u.phone_number,
+        bp.company_name,
+        cp.name, cp.portfolio_link
+       FROM users u
+       LEFT JOIN brand_profiles bp ON u.id = bp.user_id
+       LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+       WHERE u.id = $1`,
       [jwtUser.id]
     );
 

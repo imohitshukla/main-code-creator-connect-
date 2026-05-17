@@ -41,7 +41,7 @@ const cookieAuthMiddleware = async (c, next) => {
     
     // 🚨 CRITICAL: Fetch full user from database and set in context
     const userResult = await client.query(
-      'SELECT id, email, role, name, username, avatar, company_name, phone_number, portfolio_link FROM users WHERE id = $1',
+      'SELECT id, email, role FROM users WHERE id = $1',
       [decoded.id]
     );
     
