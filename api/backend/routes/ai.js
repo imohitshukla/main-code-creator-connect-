@@ -4,7 +4,10 @@ import {
   smartMatchCreators,
   detectFraud,
   getPricingRecommendation,
-  analyzeContent
+  analyzeContent,
+  getCreatorIntelligenceReport,
+  getCachedCreatorReport,
+  compareCreators
 } from '../controllers/aiController.js';
 
 const app = new Hono();
@@ -26,6 +29,13 @@ app.post('/pricing', getPricingRecommendation);
 
 // Content analysis for visual content
 app.post('/content-analysis', analyzeContent);
+
+// Creator intelligence reports
+app.post('/creator-intel/:creatorId', getCreatorIntelligenceReport);
+app.get('/creator-intel/:creatorId/cached', getCachedCreatorReport);
+
+// Compare 2-3 creators
+app.post('/compare', compareCreators);
 
 // Bulk fraud detection for admin
 app.post('/bulk-fraud-check', async (c) => {

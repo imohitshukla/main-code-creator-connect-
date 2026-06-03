@@ -25,6 +25,8 @@ import notificationRoutes from './backend/routes/notifications.js';
 import cronRoutes from './backend/routes/cron.js';
 import cron from 'node-cron';
 import { runEngagementRateUpdater } from './backend/services/engagementService.js';
+import { migrateAnalyticsCache } from './backend/migrations/migrate_analytics_cache.js';
+
 
 const app = new Hono();
 const port = process.env.PORT || 10000;
@@ -172,12 +174,14 @@ app.onError((err, c) => {
 });
 
 // Start Server
-initializeDatabase().then(() => {
-  serve({
-    fetch: app.fetch,
-    port: port,
-    hostname: '0.0.0.0'
-  }, (info) => {
+initializeDatabase()
+  .then(() => migrateAnalyticsCache())
+  .then(() => {
+    serve({
+      fetch: app.fetch,
+      port: port,
+      hostname: '0.0.0.0'
+    }, (info) => {
     console.log(`✅ Server running on port ${info.port}`);
 
     // ─── Keep-alive: ping self every 14 minutes to prevent Render free-tier cold starts ───

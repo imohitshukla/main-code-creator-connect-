@@ -4,6 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { getApiUrl } from '@/lib/utils';
 import { apiCall } from '@/utils/apiHelper';
 import SmartAvatar from '@/components/SmartAvatar';
+import { useAuth } from '@/contexts/AuthContext';
+import CreatorIntelReport from '@/components/CreatorIntelReport';
+
 
 /* ── Share helpers ────────────────────────────────────────────── */
 const getProfileUrl = (id: string | number) => {
@@ -60,6 +63,7 @@ type PublicCreator = {
 
 export default function PublicProfile() {
   const { id } = useParams();
+  const { user } = useAuth();
   const location = useLocation() as { state?: { creator?: PublicCreator } };
   const stateCreator = location.state?.creator ?? null;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -476,6 +480,17 @@ export default function PublicProfile() {
           </div>
         </div>
       </div>
+
+      {/* AI Insights Panel (only visible to logged-in BRAND or ADMIN users, or creators viewing their own page) */}
+      {creator && (user?.role === 'BRAND' || user?.role === 'ADMIN' || (user?.role === 'CREATOR' && user?.id === creator?.id)) && (
+        <div className="mt-8">
+          <CreatorIntelReport 
+            creatorId={id} 
+            creatorName={creator.name} 
+            niche={creator.niche} 
+          />
+        </div>
+      )}
 
       {/* Book Creator / Request Collaboration Modal */}
       {isModalOpen && (

@@ -10,6 +10,12 @@ import CreatorCard, { Creator } from '@/components/CreatorCard';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl } from '@/lib/utils';
 import SEO from '@/components/SEO';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiCall } from '@/utils/apiHelper';
+import { Sparkles, BrainCircuit } from 'lucide-react';
+import CreatorCompare from '@/components/CreatorCompare';
+
+
 import {
   Sheet,
   SheetContent,
@@ -39,17 +45,33 @@ function transformCreator(creator: any): Creator {
     social_links: creator.social_links,
     portfolio_links: creator.portfolio_links,
     details: creator.details,
-    contact: creator.contact
+    contact: creator.contact,
+    matchScore: creator.matchScore,
+    explanation: creator.explanation
   };
+}
+
+function parseFollowers(raw: any) {
+  if (!raw) return 0;
+  const s = String(raw).replace(/,/g, '').trim().toLowerCase();
+  if (s.endsWith('k')) return parseFloat(s) * 1000;
+  if (s.endsWith('m')) return parseFloat(s) * 1000000;
+  return parseFloat(s) || 0;
 }
 
 const Filter = () => {
   const { category } = useParams<{ category?: string }>();
   const navigate = useNavigate();
-  const niches = ['All', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Travel', 'Lifestyle'];
+  const { user } = useAuth();
+  const [latestCampaign, setLatestCampaign] = useState<any>(null);
+  const [sortBy, setSortBy] = useState<'followers' | 'engagement' | 'matchScore'>('followers');
+  const [selectedForCompare, setSelectedForCompare] = useState<(string | number)[]>([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const niches = ['All', 'AI Recommended', 'Fitness', 'Nutrition', 'Photography', 'Gaming', 'Fashion', 'Technology', 'Travel', 'Lifestyle'];
 
   const urlNiche = useMemo(() => {
     if (!category) return 'All';
+    if (category === 'ai-recommended') return 'AI Recommended';
     const found = niches.find(n => n.toLowerCase() === category.toLowerCase());
     return found || 'All';
   }, [category]);
@@ -64,15 +86,45 @@ const Filter = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (user?.role === 'BRAND') {
+      fetchCampaigns();
+    }
+  }, [user]);
+
+  const fetchCampaigns = async () => {
+    try {
+      const response = await apiCall('/api/campaigns');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.campaigns && data.campaigns.length > 0) {
+          // Find the latest active campaign to use as brief context
+          const active = data.campaigns.find((c: any) => c.status === 'ACTIVE' || c.status === 'DRAFT' || c.status === 'OFFER');
+          setLatestCampaign(active || data.campaigns[0]);
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching campaigns for smart matching:', e);
+    }
+  };
+
+  useEffect(() => {
     setSelectedNiche(urlNiche);
+    if (urlNiche === 'AI Recommended') {
+      setSortBy('matchScore');
+    }
   }, [urlNiche]);
 
   const handleNicheChange = (newNiche: string) => {
     setSelectedNiche(newNiche);
-    if (newNiche === 'All') {
+    if (newNiche === 'AI Recommended') {
+      navigate('/filter/ai-recommended');
+      setSortBy('matchScore');
+    } else if (newNiche === 'All') {
       navigate('/filter');
+      if (sortBy === 'matchScore') setSortBy('followers');
     } else {
       navigate(`/filter/${newNiche.toLowerCase()}`);
+      if (sortBy === 'matchScore') setSortBy('followers');
     }
   };
 
@@ -89,6 +141,22 @@ const Filter = () => {
   const { data: creators = [], isLoading, error, isFetching } = useQuery({
     queryKey,
     queryFn: async () => {
+      if (selectedNiche === 'AI Recommended') {
+        const response = await apiCall('/api/ai/smart-match', {
+          method: 'POST',
+          body: JSON.stringify({
+            campaignDescription: latestCampaign?.description || 'Looking for high engagement creators for product promotion.',
+            targetAudience: latestCampaign?.requirements || 'General D2C audience',
+            budget: latestCampaign?.budget_range || '₹25,000',
+            niche: latestCampaign?.niche || '',
+            brief: latestCampaign?.title || 'Matching search'
+          })
+        });
+        if (!response.ok) throw new Error('Failed to fetch AI matches');
+        const data = await response.json();
+        return (data.matches || []).map(transformCreator);
+      }
+
       const params = new URLSearchParams();
       if (selectedNiche !== 'All') params.append('niche', selectedNiche);
       if (followersRange[0] > 0) params.append('minFollowers', followersRange[0].toString());
@@ -104,6 +172,24 @@ const Filter = () => {
     gcTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
+
+  const sortedCreators = useMemo(() => {
+    return [...creators].sort((a, b) => {
+      if (sortBy === 'matchScore') {
+        const scoreA = a.matchScore || 0;
+        const scoreB = b.matchScore || 0;
+        return scoreB - scoreA;
+      }
+      if (sortBy === 'engagement') {
+        const erA = parseFloat(String(a.audience?.engagement || '').replace(/%/g, '')) || 0;
+        const erB = parseFloat(String(b.audience?.engagement || '').replace(/%/g, '')) || 0;
+        return erB - erA;
+      }
+      const fA = parseFollowers(a.followers);
+      const fB = parseFollowers(b.followers);
+      return fB - fA;
+    });
+  }, [creators, sortBy]);
 
   useEffect(() => {
     if (error) {
@@ -341,8 +427,25 @@ const Filter = () => {
 
         {/* Results Grid */}
         <div className="min-h-[500px]">
-          <div className="mb-4 text-sm text-muted-foreground">
-            Found {creators.length} creator{creators.length !== 1 ? 's' : ''}
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/30 pb-4">
+            <div className="text-sm text-muted-foreground">
+              Found {sortedCreators.length} creator{sortedCreators.length !== 1 ? 's' : ''}
+            </div>
+            <div className="flex items-center gap-2">
+              <label htmlFor="sort-by-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sort By</label>
+              <select
+                id="sort-by-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="p-2 border rounded-lg bg-background text-sm font-medium focus:ring-1 focus:ring-primary outline-none"
+              >
+                <option value="followers">Reach (Followers)</option>
+                <option value="engagement">Engagement Rate</option>
+                {selectedNiche === 'AI Recommended' && (
+                  <option value="matchScore">Best Match (AI Score)</option>
+                )}
+              </select>
+            </div>
           </div>
 
           {isLoading ? (
@@ -351,14 +454,53 @@ const Filter = () => {
                 <div key={i} className="h-[430px] w-full bg-slate-100 animate-pulse rounded-xl" />
               ))}
             </div>
-          ) : creators.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {creators.map((creator) => (
-                <CreatorCard
-                  key={creator.id}
-                  creator={creator}
-                  onContact={handleContact}
-                />
+          ) : sortedCreators.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+              {sortedCreators.map((creator) => (
+                <div key={creator.id} className="relative group flex flex-col gap-2">
+                  <div className="relative flex-1">
+                    {user?.role === 'BRAND' && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedForCompare(prev => 
+                            prev.includes(creator.id) 
+                              ? prev.filter(id => id !== creator.id) 
+                              : prev.length < 3 ? [...prev, creator.id] : prev
+                          );
+                        }}
+                        className={`absolute top-3 left-3 z-30 px-3 py-1.5 rounded-lg border font-bold text-xxs shadow-md transition-all duration-300 ${
+                          selectedForCompare.includes(creator.id)
+                            ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
+                            : 'bg-white/95 text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {selectedForCompare.includes(creator.id) ? '✓ Selected' : '+ Compare'}
+                      </button>
+                    )}
+                    {creator.matchScore && (
+                      <div className="absolute top-3 right-3 z-30 bg-indigo-600/90 text-white font-black text-xxs px-2.5 py-1.5 rounded-full shadow-md flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        <span>{Math.round(creator.matchScore * 100)}% Match</span>
+                      </div>
+                    )}
+                    <CreatorCard
+                      creator={creator}
+                      onContact={handleContact}
+                    />
+                  </div>
+                  {/* AI Match explanation tooltip */}
+                  {selectedNiche === 'AI Recommended' && creator.explanation && (
+                    <div className="p-3.5 bg-indigo-50/40 border border-indigo-100/50 rounded-xl text-xxs text-indigo-950 font-normal leading-relaxed relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-600/5 rounded-bl-full pointer-events-none"></div>
+                      <p className="flex items-center gap-1 font-extrabold text-indigo-900 uppercase tracking-wider mb-1">
+                        <BrainCircuit className="h-3.5 w-3.5 text-indigo-600" /> AI Insights
+                      </p>
+                      {creator.explanation}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           ) : (
@@ -381,6 +523,47 @@ const Filter = () => {
             </div>
           )}
         </div>
+
+        {/* Floating Compare Panel */}
+        {selectedForCompare.length >= 2 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md border border-slate-100 shadow-2xl p-4 rounded-2xl flex items-center gap-6 animate-in slide-in-from-bottom duration-300">
+            <div className="text-xs text-slate-800 font-bold">
+              Compare {selectedForCompare.length} selected creators
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => setShowComparisonModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xxs px-4 py-2"
+              >
+                Compare Now 🚀
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setSelectedForCompare([])}
+                className="rounded-xl border-slate-200 text-xxs px-3 py-2 text-slate-600 hover:bg-slate-50"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Comparison Modal */}
+        {showComparisonModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="w-full max-w-4xl my-8">
+              <CreatorCompare 
+                creatorIds={selectedForCompare} 
+                brandContext={latestCampaign ? {
+                  campaignDescription: latestCampaign.description,
+                  targetAudience: latestCampaign.requirements,
+                  budget: latestCampaign.budget_range
+                } : undefined}
+                onClose={() => setShowComparisonModal(false)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
