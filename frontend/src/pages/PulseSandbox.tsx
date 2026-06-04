@@ -18,19 +18,19 @@ import {
 
 // Logs to simulate scraping progress
 const LOG_PHASES = [
-  "[sys] Establishing secure connection to profile crawler API...",
-  "[sys] Handshake successful. Resolving target profile headers...",
-  "[sys] Fetching historical feed nodes (last 50 media documents)...",
-  "[sys] Processing 50 media node datasets...",
-  "[sys] Parsing comments block (sample size 1,000 interactions)...",
-  "[sys] Spawning Python worker process (pulse_analyzer.py)...",
-  "[sys] Calculating comment-to-like ratio variance (bot validation)...",
-  "[sys] Fitting exponential content decay curves (shelf-life modeling)...",
-  "[sys] Running lexical NLP sentiment analysis model...",
-  "[sys] Evaluating cross-platform migration conversion funnel...",
-  "[sys] Telemetry block compiled. Sending to OpenAI (gpt-4o)...",
-  "[sys] AI analysis report synthesized.",
-  "[sys] Formatting dashboard datasets. Launching clinical dashboard..."
+  "[sys] Connecting to profile API...",
+  "[sys] Fetching target profile...",
+  "[sys] Fetching recent posts...",
+  "[sys] Analyzing post engagement data...",
+  "[sys] Reading comments (sample size 1,000)...",
+  "[sys] Spawning analyzer script...",
+  "[sys] Checking for automated bot activity...",
+  "[sys] Checking how long posts stay active...",
+  "[sys] Analyzing comment sentiment (love, links, complaints)...",
+  "[sys] Checking cross-platform overlap...",
+  "[sys] Sending data to AI for report generation...",
+  "[sys] AI report generated.",
+  "[sys] Displaying dashboard..."
 ];
 
 const SUGGESTED_CREATORS = [
@@ -165,8 +165,8 @@ export default function PulseSandbox() {
   return (
     <PageTransition className="min-h-screen bg-[#070a13] text-slate-100 font-sans pb-20 pt-24">
       <SEO
-        title="The Pulse — Enterprise Creator Telemetry Sandbox"
-        description="Clinical, zero-financial audience intelligence engine sandbox. Drop a URL and analyze engagement authenticity, comment sentiment NLP, and post half-life decay rates."
+        title="Data Science Sandbox — Creator Connect"
+        description="Audit any Instagram or YouTube creator's profile. See clean metrics on audience quality, comment sentiment, and reach without pricing or budget details."
         path="/pulse"
       />
 
@@ -174,14 +174,11 @@ export default function PulseSandbox() {
         
         {/* Premium Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-4">
-            <Sparkles className="w-3.5 h-3.5" /> Data Science Sandbox
-          </div>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent mb-4">
-            The Pulse Analytics Engine
+            Data Science Sandbox
           </h1>
           <p className="text-base md:text-lg text-slate-400">
-            Audit any Instagram or YouTube creator. Our microservice executes mathematical sweeps, sentiment NLP calculations, and decay modeling—completely isolated from campaign budgets.
+            Audit any Instagram or YouTube creator. Get a simple, real-time report on audience quality, comment sentiment, and content reach—isolated from pricing and budgets.
           </p>
         </div>
 
@@ -217,13 +214,13 @@ export default function PulseSandbox() {
                       onClick={() => handleAnalyze()}
                       className="rounded-xl px-6 py-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-glow hover:scale-[1.01]"
                     >
-                      Run Telemetry Sweep <ArrowRight className="w-4 h-4 ml-2" />
+                      Run Analysis <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-850">
-                  <span className="text-xs text-slate-500 block mb-3 font-semibold uppercase tracking-wider">Click one to test instantly:</span>
+                  <span className="text-xs text-slate-400 block mb-3 font-semibold uppercase tracking-wider">Or test with these examples:</span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {SUGGESTED_CREATORS.map((c) => (
                       <button
@@ -231,7 +228,7 @@ export default function PulseSandbox() {
                         onClick={() => handleAnalyze(c.url)}
                         className="p-3 text-left rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors text-xs flex justify-between items-center group font-medium"
                       >
-                        <span className="text-slate-350 font-mono">{c.name}</span>
+                        <span className="text-slate-300 font-mono">{c.name}</span>
                         <span className="text-indigo-400 flex items-center gap-1 group-hover:underline">
                           Run
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -291,7 +288,7 @@ export default function PulseSandbox() {
               <Button
                 variant="outline"
                 onClick={handleReset}
-                className="rounded-xl border-slate-800 text-slate-350 hover:bg-slate-800 hover:text-white"
+                className="rounded-xl border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Analyze New Creator
@@ -304,7 +301,7 @@ export default function PulseSandbox() {
               {/* Radial Digital Health Score Gauge */}
               <div className="col-span-1 md:col-span-4 bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 flex flex-col items-center justify-center text-center shadow-lg relative group">
                 <div className="absolute inset-0 bg-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-6 block">Digital Health Score</span>
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-6 block">Health Score</span>
                 <div className="relative flex items-center justify-center">
                   <svg className="w-40 h-40 transform -rotate-90">
                     <circle cx="80" cy="80" r="68" className="stroke-slate-900 fill-none" strokeWidth="8" />
@@ -362,7 +359,7 @@ export default function PulseSandbox() {
                 <div className="bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 shadow-md space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Content Half-Life</span>
+                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Post Relevance Half-Life</span>
                       <span className="text-2xl font-extrabold text-white mt-1 block">
                         {data.pulseMetrics.decay_rate.half_life_hours} Hrs
                       </span>
@@ -381,7 +378,7 @@ export default function PulseSandbox() {
                 <div className="bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 shadow-md space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Cross-Platform Overlap</span>
+                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Platform Overlap</span>
                       <span className="text-2xl font-extrabold text-white mt-1 block">
                         {data.pulseMetrics.cross_platform.overlap_ratio}%
                       </span>
@@ -400,7 +397,7 @@ export default function PulseSandbox() {
                 <div className="bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 shadow-md space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Audience Semantics</span>
+                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Comment Sentiment</span>
                       <span className="text-2xl font-extrabold text-white mt-1 block">
                         {data.pulseMetrics.sentiment.transactional}% Commercial
                       </span>
@@ -425,7 +422,7 @@ export default function PulseSandbox() {
               {/* Engagement decay line chart */}
               <div className="col-span-1 lg:col-span-7 bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 shadow-lg space-y-6">
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm uppercase tracking-wider">Engagement Shelf-Life & Velocity Decay</h3>
+                  <h3 className="font-bold text-slate-100 text-sm uppercase tracking-wider">Engagement Over Time</h3>
                   <p className="text-xs text-slate-400 mt-1">Calculates relative engagement degradation over 120 hours following post-publication.</p>
                 </div>
                 <div className="h-64 w-full font-mono text-xs">
@@ -453,7 +450,7 @@ export default function PulseSandbox() {
               {/* Sentiment Pie chart */}
               <div className="col-span-1 lg:col-span-5 bg-[#0c1224] p-6 rounded-2xl border border-slate-800/80 shadow-lg space-y-6 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm uppercase tracking-wider">Semantic Comment Classification</h3>
+                  <h3 className="font-bold text-slate-100 text-sm uppercase tracking-wider">Comment Categories</h3>
                   <p className="text-xs text-slate-400 mt-1">NLP categorizations of user interactions sorted by conversational archetype.</p>
                 </div>
                 <div className="h-48 w-full flex items-center justify-center">
@@ -479,7 +476,7 @@ export default function PulseSandbox() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xxs font-mono text-slate-450 border-t border-slate-850 pt-4">
+                <div className="grid grid-cols-2 gap-2 text-xxs font-mono text-slate-400 border-t border-slate-850 pt-4">
                   {getSentimentData().map((entry, index) => (
                     <div key={entry.name} className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[index] }} />
@@ -502,7 +499,7 @@ export default function PulseSandbox() {
                   Lead Data Scientist AI
                 </span>
               </div>
-              <div className="p-8 prose prose-invert max-w-none prose-sm leading-relaxed text-slate-350 font-normal">
+              <div className="p-8 prose prose-invert max-w-none prose-sm leading-relaxed text-slate-300 font-normal">
                 <div className="markdown-body space-y-4">
                   <ReactMarkdown 
                     components={{
@@ -523,7 +520,7 @@ export default function PulseSandbox() {
               {/* Disclaimer info */}
               <div className="bg-slate-950 px-6 py-4 border-t border-slate-800/80 flex items-center gap-2.5 text-xxs text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-indigo-500 shrink-0" />
-                <span>Clinical sandbox evaluation complete. No campaign budgets, pricing metrics, or rate variables were referenced or analyzed.</span>
+                <span>Analysis complete. No pricing, budget details, or rates were used.</span>
               </div>
             </div>
 

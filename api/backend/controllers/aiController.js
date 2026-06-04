@@ -955,22 +955,22 @@ export const getPulseAnalysis = async (c) => {
         messages: [
           {
             role: "system",
-            content: `You are an elite Lead Data Scientist at an enterprise digital analytics firm. Your job is to analyze raw social media telemetry data and provide a clinical, unbiased, and highly technical audit of a creator's audience health.
+            content: `You are a helpful data analyst. Analyze the creator's social media stats and write a simple, clinical, and unbiased report about their audience health.
 
 Rules of Engagement:
 - No Financials: You must absolutely never estimate, predict, or discuss the creator's pricing, monetary value, or campaign costs.
-- Clinical Tone: Do not use marketing buzzwords like "superstar," "amazing," or "viral." Use statistical terminology: "variance," "outliers," "saturation," "cohort," and "retention."
-- The Objective: Synthesize the provided JSON data block to identify anomalies (e.g., bot activity, engagement spikes), define the core demographic cohort, and evaluate the community's semantic sentiment.
+- Simple Wording: Do not use complex marketing or statistical jargon (like "variance", "saturation", "volatility", "parasocial", "demographic", "cohort"). Use simple, plain, and direct language that anyone can understand.
+- The Objective: Analyze the provided stats to identify any bot activity, what the audience comments about, and evaluate the community's general sentiment.
 
 Output Structure:
-Provide a 3-part markdown report containing:
-I. Telemetry Overview: A hard look at their engagement stability and standard deviations across recent content.
-II. Sentiment & Cohort Analysis: What the audience actually cares about based on comment semantics.
-III. Risk Assessment: Any red flags regarding algorithmic dependency, shadowbanning, or irregular follower-to-engagement ratios.`
+Provide a 3-part report containing:
+I. Overview: How stable their post likes and comments are.
+II. Sentiment Analysis: What the audience comments about (categorized into positive feedback/support, questions/links, critical/negative comments).
+III. Risk Assessment: Any red flags (like bots, quick drop in views, etc.)`
           },
           {
             role: "user",
-            content: `Analyze the following creator telemetry metrics:\n\n${telemetryText}\n\nReturn the 3-part markdown report.`
+            content: `Analyze the following creator metrics:\n\n${telemetryText}\n\nReturn the 3-part report.`
           }
         ],
         max_tokens: 800,
@@ -1097,22 +1097,20 @@ function generateFallbackClinicalReport(metrics, platform, handle) {
   const crit = metrics.sentiment.critical;
   const overlap = metrics.cross_platform.overlap_ratio;
 
-  return `# Telemetry Report: Audit for @${handle} (${platform})
+  return `# Analysis Report for @${handle} (${platform})
 
-## I. Telemetry Overview
-Our data science engine performed a telemetry sweep of the creator's recent media nodes. The follower-based interaction distributions reveal an average engagement profile with likes averaging ${metrics.authenticity_details.likes_mean} and comments averaging ${metrics.authenticity_details.comments_mean} per post. Standard deviation analysis of the comments-to-likes ratio yields a coefficient of variation indicating ${isBot ? 'concerningly uniform ratios' : 'healthy organic fluctuations'}. The calculated authenticity index stands at ${auth}/100. Engagement volatility indices suggest that post traction patterns align with ${isBot ? 'inorganic seeding algorithms rather than spontaneous user interactions' : 'standard user-driven interest spikes'}.
+## I. Overview
+We analyzed the recent posts for this creator. On average, their posts get ${metrics.authenticity_details.likes_mean} likes and ${metrics.authenticity_details.comments_mean} comments. The likes and comments are ${isBot ? 'very similar on every post, which is unusual' : 'changing naturally from post to post'}. Their audience authenticity score is ${auth}/100.
 
-## II. Sentiment & Cohort Analysis
-Semantic classification of a 1,000-comment dataset categorization model divides user feedback into three dominant cohorts:
-- **Parasocial engagement** represents ${para}% of community interaction. Feedback is primarily descriptive and affective, focusing on creator identity rather than product detail.
-- **Transactional signals** comprise ${trans}% of comments, signaling active purchase intent, product inquiries, and link requests. This represents a ${trans > 25 ? 'strong' : 'moderate'} commercial conversion pipeline.
-- **Critical discourse** is measured at ${crit}%, indicating minimal community pushback or product controversy.
-
-The primary user cohort exhibits high saturation in visual lifestyle interest vectors, with secondary cohorts clustering around digital search behaviors.
+## II. Sentiment Analysis
+We looked at the comments from the audience and grouped them into three main types:
+- **Support and Adoration**: ${para}% of the comments are positive and supportive (like "love this" or emojis).
+- **Questions and Link Requests**: ${trans}% of the comments ask questions about products, links, or where to buy things. This shows ${trans > 25 ? 'strong' : 'moderate'} interest in buying recommended items.
+- **Complaints or Critiques**: ${crit}% of the comments are critical or unhappy.
 
 ## III. Risk Assessment
-- **Algorithmic Dependency & Decay**: Content decay curves show an engagement half-life of ${hl} hours, indicating a ${hl > 36 ? 'sustained algorithmic reach' : 'rapid velocity drop-off'}. Evergreening potential is classified as ${longTail}.
-- **Audience Anomalies**: The ratio variance is ${isBot ? 'suspiciously narrow. High probability of bot activity flagged.' : 'within standard deviation parameters. Risk of automated follower manipulation is low.'}
-- **Cross-Platform Funnel Loss**: Migration overlap analysis between short-form and long-form audiences indicates a ${overlap}% cross-link conversion. Channel migration efficiency is operating at ${metrics.cross_platform.migration_efficiency}.`;
+- **How Long Posts Stay Active**: Posts get most of their activity within the first ${hl} hours. After that, engagement drops.
+- **Bot Check**: The comment patterns show ${isBot ? 'a high risk of automated bot activity because the interaction is too uniform.' : 'a low risk of fake comments or bot activity.'}
+- **Other Platforms**: There is an estimated ${overlap}% overlap with their other social media channels.`;
 }
 
