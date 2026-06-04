@@ -346,23 +346,21 @@ export const getCreatorIntelligenceReport = async (c) => {
       - Posting Frequency: ${postingFreq.postsPerWeek} posts/week (Consistency: ${postingFreq.consistency}/1.0)
       - Monthly Growth: ${growth.monthlyGrowthRate}% (${growth.trend})
       - Audience Quality Score: ${quality.score}/1.0
-      - Estimated Value Range: ₹${valuation.minPrice} - ₹${valuation.maxPrice}
       - Top Performing Post: ${recentPosts[0] ? `"${recentPosts[0].title}" (${recentPosts[0].views} views)` : 'N/A'}
 
       CAMPAIGN BRIEF (if available):
       - Description: ${brandContext?.campaignDescription || 'General marketing evaluation'}
-      - Budget: ${brandContext?.budget || 'N/A'}
       - Target Audience: ${brandContext?.targetAudience || 'N/A'}
 
       Write exactly 3 paragraphs:
-      1. Creator Strengths: Evaluate engagement and consistency. Reference specific numbers.
+      1. Creator Strengths: Evaluate engagement, consistency, and growth patterns. Reference specific numbers.
       2. Campaign/Brand Fit: Assess how well this profile aligns with D2C campaigns.
-      3. Strategic Strategy: Actionable pricing, negotiation tips, and recommendation.
+      3. Audience & Content Alignment: Actionable optimization recommendations for the campaign deliverables.
       
-      Do not output any markdown formatting, headers, or bullet points. Just return 3 paragraphs.
+      CRITICAL: Do NOT mention any pricing, budgets, rates, or cost details under any circumstances. Keep the focus entirely on hardcore analytics and content alignment. Do not output any markdown formatting, headers, or bullet points. Just return 3 paragraphs.
     `;
 
-    let summaryText = `Creator ${profile.name} is a ${tier} influencer on ${primaryPlatform} with an engagement rate of ${erResults.rate}%. Their posting frequency is ${postingFreq.postsPerWeek} posts per week. Their estimated post value is in the range of ₹${valuation.minPrice} to ₹${valuation.maxPrice}.`;
+    let summaryText = `Creator ${profile.name} is a ${tier} influencer on ${primaryPlatform} with a verified engagement rate of ${erResults.rate}% (compared to a tier benchmark of ${quality.benchmark}%). They maintain a posting frequency of ${postingFreq.postsPerWeek} posts per week with a consistency score of ${Math.round(postingFreq.consistency * 100)}%. Their overall audience quality score is ${Math.round(quality.score * 100)}%, showcasing strong profile suitability.`;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -522,7 +520,6 @@ export const compareCreators = async (c) => {
       CAMPAIGN:
       - Description: ${brandContext?.campaignDescription || 'N/A'}
       - Audience: ${brandContext?.targetAudience || 'N/A'}
-      - Budget: ${brandContext?.budget || 'N/A'}
 
       CREATORS:
       ${creatorsData.map(c => `
@@ -532,11 +529,10 @@ export const compareCreators = async (c) => {
         Engagement Rate: ${c.er}%
         Posting Consistency: ${c.consistency}/1.0
         Growth Rate: ${c.growthRate}%/month
-        Recommended Price: ₹${c.pricing}
         Scorecard Index: ${c.score}/100
       `).join('\n')}
 
-      Write a professional analysis comparing these creators. Detail who represents the best engagement, who represents the best financial value (CPM), and who matches the campaign best. Include a clear final recommendation. Limit to 3 paragraphs.
+      Write a professional analysis comparing these creators. Detail who represents the best engagement, who has the most consistent posting pattern, and who matches the campaign best. Focus entirely on performance statistics and brand alignment. Do NOT reference budgets, pricing, CPM values, or negotiation costs. Include a clear final recommendation. Limit to 3 paragraphs.
     `;
 
     let comparisonNarrative = 'Comparison analysis completed.';
