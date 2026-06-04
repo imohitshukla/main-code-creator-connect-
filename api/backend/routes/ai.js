@@ -7,13 +7,15 @@ import {
   analyzeContent,
   getCreatorIntelligenceReport,
   getCachedCreatorReport,
-  compareCreators
+  compareCreators,
+  getPulseAnalysis
 } from '../controllers/aiController.js';
 
 const app = new Hono();
 
 // Public routes (limited AI features for discovery)
 app.post('/smart-match', smartMatchCreators);
+app.post('/pulse', getPulseAnalysis);
 
 // Protected routes (require authentication)
 app.use('*', authMiddleware);

@@ -157,6 +157,12 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
+                  <Link to="/pulse" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5")}>
+                    The Pulse <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Beta</span>
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
                   <NavigationMenuTrigger className="bg-transparent text-base font-medium">Resources</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
@@ -307,6 +313,10 @@ const Navbar = () => {
                 <Link to="/stories" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">
                   <span className="bg-[#dcfce7] text-[#14532d] text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">New</span>
                   Customer Stories
+                </Link>
+                <Link to="/pulse" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-semibold rounded-lg hover:bg-muted transition-colors text-indigo-600">
+                  <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded mr-2 uppercase tracking-wide">Sandbox</span>
+                  The Pulse
                 </Link>
                 <Link to="/campaign" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Campaign Management</Link>
                 <Link to="/brand-dashboard" onClick={() => setIsOpen(false)} className="flex items-center py-2.5 px-3 text-base font-medium rounded-lg hover:bg-muted transition-colors">Analytics</Link>

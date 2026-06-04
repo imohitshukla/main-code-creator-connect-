@@ -36,6 +36,7 @@ const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const MyDeals = lazy(() => import("./pages/MyDeals"));
 const DealDetails = lazy(() => import("./pages/DealDetails"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const PulseSandbox = lazy(() => import("./pages/PulseSandbox"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/agency" element={<Suspense fallback={<PageFallback />}><MarketingAgencyPage /></Suspense>} />
               <Route path="/filter/:category?" element={<Suspense fallback={<PageFallback />}><Filter /></Suspense>} />
               <Route path="/profile/:id" element={<Suspense fallback={<PageFallback />}><PublicProfile /></Suspense>} />
+              <Route path="/pulse" element={<Suspense fallback={<PageFallback />}><PulseSandbox /></Suspense>} />
               <Route path="/stories" element={<Suspense fallback={<PageFallback />}><CMSPage title="Customer Stories" subtitle="See how brands are winning with Creator Connect." /></Suspense>} />
 
               {/* Resources & Support */}
