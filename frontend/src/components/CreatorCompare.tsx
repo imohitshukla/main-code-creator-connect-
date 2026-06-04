@@ -77,7 +77,6 @@ export default function CreatorCompare({ creatorIds, onClose, brandContext }: Cr
   // Helpers to find the maximum in each row to highlight
   const maxScore = Math.max(...creators.map((c: any) => c.score));
   const maxER = Math.max(...creators.map((c: any) => c.er));
-  const minPrice = Math.min(...creators.map((c: any) => c.pricing));
   const maxGrowth = Math.max(...creators.map((c: any) => c.growthRate));
 
   // Audience overlap percentage (usually 1st vs 2nd creator in array)
@@ -179,18 +178,7 @@ export default function CreatorCompare({ creatorIds, onClose, brandContext }: Cr
                 ))}
               </tr>
 
-              {/* Pricing */}
-              <tr>
-                <td className="p-4 font-semibold text-slate-800">Est. Recommended Rate</td>
-                {creators.map((c: any) => (
-                  <td key={c.id} className="p-4">
-                    <span className={c.pricing === minPrice ? 'text-indigo-600 font-extrabold' : 'text-slate-800 font-semibold'}>
-                      ₹{c.pricing.toLocaleString()}
-                      {c.pricing === minPrice && <span className="text-xxs font-bold ml-1 bg-indigo-50 px-1.5 py-0.5 rounded text-indigo-700">Best Value</span>}
-                    </span>
-                  </td>
-                ))}
-              </tr>
+
             </tbody>
           </table>
         </div>

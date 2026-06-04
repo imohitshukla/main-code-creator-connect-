@@ -240,25 +240,6 @@ export default function CreatorIntelReport({ creatorId, creatorName, niche }: Cr
           </div>
         </div>
 
-        {/* Pricing Guide Card */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
-          <div className="absolute right-0 top-0 opacity-10 transform translate-x-6 -translate-y-6">
-            <DollarSign className="w-48 h-48" />
-          </div>
-          <div className="space-y-2 relative z-10 text-center md:text-left">
-            <h4 className="font-bold text-lg flex items-center justify-center md:justify-start gap-1">
-              <DollarSign className="h-5 w-5" /> Estimated Post Value
-            </h4>
-            <p className="text-indigo-100 text-xs max-w-sm">
-              CPM valuation range computed dynamically based on niche benchmarks and verified engagement statistics.
-            </p>
-          </div>
-          <div className="text-center bg-white/10 backdrop-blur-md rounded-xl p-4 min-w-[200px] border border-white/20 relative z-10">
-            <span className="text-xxs text-indigo-100 uppercase tracking-widest block font-bold">Recommended Price</span>
-            <span className="text-2xl font-extrabold block mt-0.5">₹{(valuation?.recommended || 0).toLocaleString()}</span>
-            <span className="text-xxs text-indigo-100 block mt-1">Range: ₹{(valuation?.minPrice || 0).toLocaleString()} - ₹{(valuation?.maxPrice || 0).toLocaleString()}</span>
-          </div>
-        </div>
 
         {/* AI Analysis Summary */}
         <div className="space-y-4">

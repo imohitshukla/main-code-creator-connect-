@@ -317,7 +317,7 @@ export const getCreatorIntelligenceReport = async (c) => {
     const erResults = computeEngagementRate(recentPosts, primaryFollowers);
     const postingFreq = computePostingFrequency(recentPosts);
     const growth = computeGrowthVelocity(primaryFollowers, primaryPlatform);
-    const quality = computeAudienceQuality(erResults.rate, primaryFollowers, primaryPlatform);
+    const quality = computeAudienceQuality(erResults.rate, primaryFollowers, primaryPlatform, erResults.volatility);
     const valuation = estimatePostValue(erResults.rate, primaryFollowers, profile.niche, primaryPlatform);
     
     const scorecard = generateCreatorScorecard(
@@ -326,7 +326,9 @@ export const getCreatorIntelligenceReport = async (c) => {
       postingFreq.postsPerWeek,
       postingFreq.consistency,
       growth.monthlyGrowthRate,
-      quality.score
+      quality.score,
+      erResults.viewBasedER,
+      erResults.volatility
     );
 
     const tier = getCreatorTier(primaryFollowers);
@@ -484,7 +486,7 @@ export const compareCreators = async (c) => {
           const er = computeEngagementRate(posts, followers);
           const freq = computePostingFrequency(posts);
           const growth = computeGrowthVelocity(followers, 'instagram');
-          const quality = computeAudienceQuality(er.rate, followers, 'instagram');
+          const quality = computeAudienceQuality(er.rate, followers, 'instagram', er.volatility);
           const valuation = estimatePostValue(er.rate, followers, creator.niche, 'instagram');
           
           scorecard = {
@@ -495,7 +497,7 @@ export const compareCreators = async (c) => {
             growth,
             valuation,
             quality,
-            scorecard: generateCreatorScorecard(er.rate, followers, freq.postsPerWeek, freq.consistency, growth.monthlyGrowthRate, quality.score)
+            scorecard: generateCreatorScorecard(er.rate, followers, freq.postsPerWeek, freq.consistency, growth.monthlyGrowthRate, quality.score, er.viewBasedER, er.volatility)
           };
         }
 
