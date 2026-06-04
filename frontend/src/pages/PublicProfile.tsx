@@ -78,6 +78,7 @@ export default function PublicProfile() {
   // Share state
   const [shareTooltip, setShareTooltip] = useState<string | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'intel'>('overview');
 
   const handleShare = useCallback(
     (platform: SharePlatform, creatorName: string, creatorId: number) => {
@@ -418,79 +419,106 @@ export default function PublicProfile() {
           </div>
         </div>
 
-        {/* Deep-dive portfolio info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10">
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Audience & Performance</h2>
-            <div className="text-sm text-gray-700 space-y-2">
-              <p>
-                <span className="font-semibold">Audience breakdown: </span>
-                {audienceText}
-              </p>
-              <p>
-                <span className="font-semibold">Collaboration goals: </span>
-                {creator.details?.collaboration_goals || 'Open to a variety of brand collaborations.'}
-              </p>
-              <p>
-                <span className="font-semibold">Budget range: </span>
-                {creator.details?.budget_range || 'Flexible / on request.'}
-              </p>
-            </div>
+        {/* Tab Navigation */}
+        {creator && (user?.role === 'BRAND' || user?.role === 'ADMIN' || (user?.role === 'CREATOR' && user?.id === creator?.id)) ? (
+          <div className="flex border-b border-gray-100 bg-gray-50/50 px-10">
+            <button
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              className={`py-4 px-6 font-bold text-sm transition-all border-b-2 -mb-[1px] ${
+                activeTab === 'overview'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-gray-400 hover:text-gray-900'
+              }`}
+            >
+              👤 Overview & Contact
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('intel')}
+              className={`py-4 px-6 font-bold text-sm transition-all border-b-2 -mb-[1px] flex items-center gap-1.5 ${
+                activeTab === 'intel'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-400 hover:text-gray-900'
+              }`}
+            >
+              <span>✨</span> CreatorConnect Pulse
+            </button>
           </div>
+        ) : null}
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Links & Social</h2>
-            <div className="flex flex-wrap gap-3 text-sm">
-              {hasLink(instagramUrl) && (
-                <a
-                  href={instagramUrl!.startsWith('http') ? instagramUrl : `https://${instagramUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-2 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium"
-                >
-                  Instagram
-                </a>
-              )}
-              {hasLink(youtubeUrl) && (
-                <a
-                  href={youtubeUrl!.startsWith('http') ? youtubeUrl : `https://${youtubeUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 font-medium"
-                >
-                  YouTube
-                </a>
-              )}
-              {hasLink(portfolioUrl) && (
-                <a
-                  href={portfolioUrl!.startsWith('http') ? portfolioUrl : `https://${portfolioUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-2 rounded-full bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium"
-                >
-                  Portfolio / Media Kit
-                </a>
-              )}
-              {!hasAnyLink && (
-                <p className="text-gray-600 text-sm">
-                  This creator hasn&apos;t added external links yet.
+        {/* Tab Content */}
+        {activeTab === 'overview' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Audience & Performance</h2>
+              <div className="text-sm text-gray-700 space-y-2">
+                <p>
+                  <span className="font-semibold">Audience breakdown: </span>
+                  {audienceText}
                 </p>
-              )}
+                <p>
+                  <span className="font-semibold">Collaboration goals: </span>
+                  {creator.details?.collaboration_goals || 'Open to a variety of brand collaborations.'}
+                </p>
+                <p>
+                  <span className="font-semibold">Budget range: </span>
+                  {creator.details?.budget_range || 'Flexible / on request.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Links & Social</h2>
+              <div className="flex flex-wrap gap-3 text-sm">
+                {hasLink(instagramUrl) && (
+                  <a
+                    href={instagramUrl!.startsWith('http') ? instagramUrl : `https://${instagramUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium"
+                  >
+                    Instagram
+                  </a>
+                )}
+                {hasLink(youtubeUrl) && (
+                  <a
+                    href={youtubeUrl!.startsWith('http') ? youtubeUrl : `https://${youtubeUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 font-medium"
+                  >
+                    YouTube
+                  </a>
+                )}
+                {hasLink(portfolioUrl) && (
+                  <a
+                    href={portfolioUrl!.startsWith('http') ? portfolioUrl : `https://${portfolioUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 rounded-full bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium"
+                  >
+                    Portfolio / Media Kit
+                  </a>
+                )}
+                {!hasAnyLink && (
+                  <p className="text-gray-600 text-sm">
+                    This creator hasn&apos;t added external links yet.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-10 bg-slate-50/30">
+            <CreatorIntelReport 
+              creatorId={id} 
+              creatorName={creator.name} 
+              niche={creator.niche} 
+            />
+          </div>
+        )}
       </div>
-
-      {/* AI Insights Panel (only visible to logged-in BRAND or ADMIN users, or creators viewing their own page) */}
-      {creator && (user?.role === 'BRAND' || user?.role === 'ADMIN' || (user?.role === 'CREATOR' && user?.id === creator?.id)) && (
-        <div className="mt-8">
-          <CreatorIntelReport 
-            creatorId={id} 
-            creatorName={creator.name} 
-            niche={creator.niche} 
-          />
-        </div>
-      )}
 
       {/* Book Creator / Request Collaboration Modal */}
       {isModalOpen && (

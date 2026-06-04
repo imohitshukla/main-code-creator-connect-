@@ -463,7 +463,7 @@ export const compareCreators = async (c) => {
 
     for (const id of creatorIds) {
       const creatorQuery = await client.query(`
-        SELECT cp.id, cp.niche, cp.instagram_link, cp.youtube_link, cp.follower_count, cp.engagement_rate, cp.analytics_summary, u.name
+        SELECT cp.id, cp.user_id, cp.niche, cp.instagram_link, cp.youtube_link, cp.follower_count, cp.engagement_rate, cp.analytics_summary, u.name
         FROM creator_profiles cp
         JOIN users u ON cp.user_id = u.id
         WHERE cp.id = $1 OR cp.user_id = $1
@@ -477,7 +477,7 @@ export const compareCreators = async (c) => {
         // If no report cached, run lightweight stats calculation
         if (!scorecard) {
           const igHandle = parseInstagramHandle(creator.instagram_link || creator.name);
-          const freshData = igHandle ? await getCachedOrScrape(id, 'instagram', igHandle) : null;
+          const freshData = igHandle ? await getCachedOrScrape(creator.user_id, 'instagram', igHandle) : null;
           const followers = freshData ? freshData.follower_count : 1000;
           const posts = freshData ? freshData.recent_posts : [];
           
@@ -803,7 +803,7 @@ export const analyzeContent = async (c) => {
     
     // Fetch creator details
     const creatorQuery = await client.query(`
-      SELECT cp.id, cp.niche, cp.instagram_link, u.name
+      SELECT cp.id, cp.user_id, cp.niche, cp.instagram_link, u.name
       FROM creator_profiles cp
       JOIN users u ON cp.user_id = u.id
       WHERE cp.id = $1 OR cp.user_id = $1
@@ -817,7 +817,7 @@ export const analyzeContent = async (c) => {
     const igHandle = parseInstagramHandle(creator.instagram_link || creator.name);
     
     // Fetch recent posts
-    const freshData = igHandle ? await getCachedOrScrape(creator.id, 'instagram', igHandle) : null;
+    const freshData = igHandle ? await getCachedOrScrape(creator.user_id, 'instagram', igHandle) : null;
     const posts = freshData ? freshData.recent_posts : [];
 
     if (posts.length === 0) {

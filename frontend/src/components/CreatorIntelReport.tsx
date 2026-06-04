@@ -5,6 +5,21 @@ import { Card, CardContent, CardHeader } from './ui/card';
 import { Sparkles, BarChart3, TrendingUp, DollarSign, RefreshCw, ShieldAlert, Award, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+function getCreatorTier(followers: any): string {
+  const f = typeof followers === 'string' ? parseFloat(followers.replace(/[^0-9.]/g, '')) : (parseInt(followers, 10) || 0);
+  let val = f;
+  if (typeof followers === 'string') {
+    const s = followers.trim().toLowerCase();
+    if (s.endsWith('k')) val = f * 1000;
+    if (s.endsWith('m')) val = f * 1000000;
+  }
+  if (val < 10000) return 'Nano';
+  if (val < 50000) return 'Micro';
+  if (val < 100000) return 'Mid-tier';
+  if (val < 500000) return 'Macro';
+  return 'Mega';
+}
+
 interface CreatorIntelReportProps {
   creatorId: string | number;
   creatorName: string;
@@ -53,8 +68,8 @@ export default function CreatorIntelReport({ creatorId, creatorName, niche }: Cr
         setReport(data);
         setHasCached(true);
         toast({
-          title: 'Report Generated!',
-          description: `AI marketing intelligence report for ${creatorName} is ready.`,
+          title: 'Pulse Report Ready!',
+          description: `AI marketing Pulse analytics for ${creatorName} are ready.`,
         });
       } else {
         const errData = await res.json();
@@ -91,16 +106,16 @@ export default function CreatorIntelReport({ creatorId, creatorName, niche }: Cr
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-slate-800">Generate Creator Intelligence Report</h3>
+            <h3 className="text-xl font-bold text-slate-800">CreatorConnect Pulse</h3>
             <p className="text-slate-500 max-w-md text-sm leading-relaxed">
-              Unlock Perplexity-grade marketing intelligence: verified mathematical analytics, engagement benchmarks, CPM valuations, and fraud audits.
+              Unlock premium CreatorConnect Pulse analytics: verified mathematical analytics, engagement benchmarks, CPM valuations, and fraud audits.
             </p>
           </div>
           <Button 
             onClick={generateReport}
             className="rounded-xl px-8 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-glow hover:scale-[1.02] transition-all duration-300"
           >
-            Generate AI Intelligence Report ✨
+            Launch Pulse Agent ✨
           </Button>
         </CardContent>
       </Card>
@@ -123,7 +138,7 @@ export default function CreatorIntelReport({ creatorId, creatorName, niche }: Cr
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800 text-lg">AI Marketing Intelligence</h3>
+            <h3 className="font-bold text-slate-800 text-lg">CreatorConnect Pulse</h3>
             <p className="text-xs text-slate-500 flex items-center gap-1">
               Verified metrics as of {new Date(scrapedAt).toLocaleDateString()}
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>
