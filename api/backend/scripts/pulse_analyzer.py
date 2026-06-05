@@ -1,15 +1,32 @@
-#!/usr/bin/env python3
 import sys
 import json
 import math
+import os
 from datetime import datetime
 import statistics
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-def calculate_authenticity(posts, follower_count):
+try:
+    import pickle
+    import pandas as pd
+    XGB_AVAILABLE = True
+except ImportError:
+    XGB_AVAILABLE = False
+
+try:
+    from transformers import pipeline
+    # Load a tiny, fast model so we don't crash or hang during testing
+    sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", truncation=True, max_length=512)
+    BERT_AVAILABLE = True
+except Exception as e:
+    BERT_AVAILABLE = False
+
+def calculate_authenticity(posts, follower_count, profile_data=None):
     """
     Calculates the Audience Authenticity Score.
     Analyzes the variance in likes-to-comments across posts.
     Low variance/standard deviation suggests automated bot activity.
+    Now hybridized with an XGBoost ML model.
     """
     if not posts or len(posts) < 2:
         return 100, {
@@ -37,35 +54,74 @@ def calculate_authenticity(posts, follower_count):
     ratio_stddev = statistics.stdev(ratios) if len(ratios) > 1 else 0
     
     # Bot detection heuristic:
-    # 1. Extremely low variation in comments-to-likes ratio indicates bots comment exactly in line with likes.
-    # 2. Extremely low comment volatility.
     bot_flag = False
     reasons = []
     
-    # Typical organic variation is usually > 0.015. Very low variation means robotic behavior.
+    # ML Prediction (Hybrid Layer)
+    ml_bot_probability = 0.0
+    if XGB_AVAILABLE and profile_data:
+        try:
+            model_path = os.path.join(os.path.dirname(__file__), 'ml', 'xgboost_bot_model.pkl')
+            if os.path.exists(model_path):
+                with open(model_path, 'rb') as f:
+                    xgb_model = pickle.load(f)
+                
+                # Construct features exactly as trained
+                handle = profile_data.get('handle', '')
+                nums_length_username = sum(c.isdigit() for c in handle) / max(1, len(handle)) if handle else 0
+                bio = profile_data.get('bio', '')
+                description_length = len(bio)
+                
+                features = pd.DataFrame([{
+                    'nums_length_username': nums_length_username,
+                    'description_length': description_length,
+                    'external_URL': profile_data.get('external_url', 0),
+                    'private': profile_data.get('private', 0),
+                    'num_posts': len(posts),
+                    'num_followers': follower_count,
+                    'num_follows': profile_data.get('follows', 0)
+                }])
+                
+                # Predict probability of being fake (1)
+                ml_prob = xgb_model.predict_proba(features)[0][1]
+                ml_bot_probability = ml_prob
+                
+                if ml_prob > 0.65:
+                    bot_flag = True
+                    reasons.append(f"XGBoost Bot Detection triggered (Confidence: {ml_prob*100:.1f}%)")
+        except Exception as e:
+            # Fall back silently to heuristics if ML fails
+            pass
+            
+    # Fallback / Ensemble heuristics:
     if ratio_mean > 0.01 and ratio_stddev < 0.005:
         bot_flag = True
-        reasons.append("Suspiciously uniform comment-to-like ratio (low variance)")
+        if "Suspiciously uniform comment-to-like ratio (low variance)" not in reasons:
+            reasons.append("Suspiciously uniform comment-to-like ratio (low variance)")
     
     if comments_mean > 50 and comments_stddev / comments_mean < 0.08:
         bot_flag = True
-        reasons.append("Uniform comment count across posts (robotic distribution)")
+        if "Uniform comment count across posts (robotic distribution)" not in reasons:
+            reasons.append("Uniform comment count across posts (robotic distribution)")
+
+    N = len(posts) if posts else 0
+    shrinkage = 1 - math.exp(-0.2 * N) if N > 0 else 0
 
     # Compute authenticity score (out of 100)
     score = 100
     if bot_flag:
-        score -= 45
+        score -= 45 * shrinkage
     
     # Penalize for extremely low comment counts (under 0.5% of likes)
     if ratio_mean < 0.005:
-        score -= 15
+        score -= 15 * shrinkage
         reasons.append("Abnormally low comment-to-like engagement ratio")
         
     # Scale score based on standard deviation
     if ratio_stddev > 0:
         cv = ratio_stddev / (ratio_mean + 0.001)
         if cv < 0.15: # Very low volatility
-            score -= 10
+            score -= 10 * shrinkage
             reasons.append("Low interaction variance")
             
     score = max(10, min(100, score))
@@ -85,11 +141,47 @@ def calculate_authenticity(posts, follower_count):
         "description": description
     }
 
-def run_sentiment_nlp(niche, authenticity_score):
+def run_sentiment_nlp(posts, niche, authenticity_score):
     """
-    Simulates NLP analysis on 1,000 comments using keyword lexicons.
-    Adjusts sentiment distributions based on creator niche and authenticity score.
+    Analyzes true sentiment using VADER on comments or captions.
+    Also retains original metrics logic for fallback.
     """
+    analyzer = SentimentIntensityAnalyzer()
+    
+    comments = []
+    for p in posts:
+        if isinstance(p.get("comments"), list):
+            comments.extend(p.get("comments"))
+        elif p.get("title"):
+            comments.append({"text": str(p.get("title"))})
+        elif p.get("caption"):
+            comments.append({"text": str(p.get("caption"))})
+            
+    if comments:
+        scores = []
+        if BERT_AVAILABLE:
+            try:
+                # Use BERT Semantic Engine
+                texts = [c.get('text', '')[:512] for c in comments if isinstance(c, dict) and c.get('text')]
+                if texts:
+                    results = sentiment_pipeline(texts)
+                    # Convert POSITIVE/NEGATIVE to VADER-like compound [-1, 1]
+                    for r in results:
+                        if r['label'] == 'POSITIVE':
+                            scores.append(r['score'])
+                        else:
+                            scores.append(-r['score'])
+            except Exception as e:
+                # Fallback to VADER
+                scores = [analyzer.polarity_scores(c.get('text', ''))['compound'] for c in comments if isinstance(c, dict) and c.get('text')]
+        else:
+            # Fallback to VADER
+            scores = [analyzer.polarity_scores(c.get('text', ''))['compound'] for c in comments if isinstance(c, dict) and c.get('text')]
+            
+        avg_sentiment = sum(scores) / len(scores) if scores else 0.0
+    else:
+        avg_sentiment = 0.0
+
     niche = (niche or "general").lower()
     
     # Base ratios depending on niche
@@ -136,50 +228,55 @@ def run_sentiment_nlp(niche, authenticity_score):
         "transactional": round((base_transactional / norm_total) * 100, 1),
         "parasocial": round((base_parasocial / norm_total) * 100, 1),
         "critical": round((base_critical / norm_total) * 100, 1),
-        "general": round((general / norm_total) * 100, 1)
+        "general": round((general / norm_total) * 100, 1),
+        "polarity": round(avg_sentiment, 4)
     }
 
-def calculate_decay_rate(posts):
+def calculate_dvi(posts):
     """
-    Calculates post relevance half-life and engagement decay.
-    Fits post engagement against age.
+    Calculates post relevance half-life and Distribution Velocity Index (DVI).
     """
     if not posts:
         return {
             "half_life_hours": 24.0,
             "decay_coefficient": 0.028,
-            "long_tail_value": "Unknown"
+            "long_tail_value": "Unknown",
+            "dvi_score": 0.0
         }
 
     now = datetime.now()
     ages = []
     engagements = []
+    norm_engagements = []
     
     for p in posts:
         pub_str = p.get("publishedAt")
         if not pub_str:
             continue
         try:
-            # Parse ISO date
-            pub_date = datetime.strptime(pub_str.replace("Z", ""), "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            try:
-                pub_date = datetime.strptime(pub_str.replace("Z", ""), "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                continue
+            # Parse ISO date natively to handle offsets like +00:00 correctly
+            clean_date = pub_str.replace('Z', '+00:00')
+            pub_date = datetime.fromisoformat(clean_date).replace(tzinfo=None)
+        except Exception:
+            continue
                 
         age_hours = (now - pub_date).total_seconds() / 3600.0
         # Only look at posts older than 6 hours to let initial spike stabilize
         if age_hours > 6:
             ages.append(age_hours)
-            engagements.append(p.get("likes", 0) + p.get("comments", 0))
+            engagement = p.get("likes", 0) + p.get("comments", 0)
+            engagements.append(engagement)
+            norm_engagements.append(engagement / math.log(age_hours + 2))
+
+    dvi_score = sum(norm_engagements) / len(norm_engagements) if norm_engagements else 0.0
 
     if len(ages) < 3 or max(engagements) == 0:
         # Default fallback: 18 hours decay for short-form Reels, 48 hours for YouTube
         return {
             "half_life_hours": 22.5,
             "decay_coefficient": 0.031,
-            "long_tail_value": "Medium"
+            "long_tail_value": "Medium",
+            "dvi_score": round(dvi_score, 2)
         }
         
     # Fit basic decay rate: E = E0 * e^(-k * age)
@@ -218,7 +315,8 @@ def calculate_decay_rate(posts):
     return {
         "half_life_hours": round(half_life, 1),
         "decay_coefficient": round(decay_k, 4),
-        "long_tail_value": long_tail
+        "long_tail_value": long_tail,
+        "dvi_score": round(dvi_score, 2)
     }
 
 def calculate_cross_platform(posts, platform, follower_count):
@@ -259,17 +357,31 @@ def main():
         platform = data.get("platform", "instagram")
         niche = data.get("niche", "general")
         
+        # Add profile data dictionary for ML
+        profile_data = {
+            'handle': data.get('handle', ''),
+            'bio': data.get('bio', ''),
+            'external_url': data.get('external_url', 0),
+            'private': data.get('private', 0),
+            'follows': data.get('follows', 0)
+        }
+        
         # Calculations
-        auth_score, auth_details = calculate_authenticity(posts, follower_count)
-        sentiment = run_sentiment_nlp(niche, auth_score)
-        decay = calculate_decay_rate(posts)
+        auth_score, auth_details = calculate_authenticity(posts, follower_count, profile_data)
+        sentiment = run_sentiment_nlp(posts, niche, auth_score)
+        dvi = calculate_dvi(posts)
         cross_platform = calculate_cross_platform(posts, platform, follower_count)
         
-        # Overall Digital Health Score combining authenticity, consistency, and decay quality
+        # Evergreen Bonus replaces the decay penalty logic
+        evergreen_bonus = min(50, (dvi["half_life_hours"] / 24.0) * 10)
+        # NLP score mapped from [-1, 1] to [0, 100]
+        nlp_score = (sentiment.get("polarity", 0.0) + 1) * 50
+        
+        # Overall Digital Health Score combining authenticity, evergreen distribution, and sentiment
         health_score = round(
             auth_score * 0.4 + 
-            (100 - min(50, decay["half_life_hours"] - 12) if decay["half_life_hours"] > 12 else 70) * 0.3 +
-            (100 - sentiment["critical"] * 3) * 0.3
+            (50 + evergreen_bonus) * 0.3 +
+            nlp_score * 0.3
         )
         health_score = max(20, min(99, health_score))
         
@@ -278,7 +390,7 @@ def main():
             "authenticity_score": auth_score,
             "authenticity_details": auth_details,
             "sentiment": sentiment,
-            "decay_rate": decay,
+            "decay_rate": dvi, # Returning DVI data mapped to original decay_rate key for backwards compatibility
             "cross_platform": cross_platform
         }
         
@@ -303,12 +415,14 @@ def main():
                 "transactional": 20.0,
                 "parasocial": 60.0,
                 "critical": 10.0,
-                "general": 10.0
+                "general": 10.0,
+                "polarity": 0.0
             },
             "decay_rate": {
                 "half_life_hours": 24.0,
                 "decay_coefficient": 0.028,
-                "long_tail_value": "Medium"
+                "long_tail_value": "Medium",
+                "dvi_score": 0.0
             },
             "cross_platform": {
                 "overlap_ratio": 12.0,
