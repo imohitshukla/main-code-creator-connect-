@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { MoveRight, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
@@ -70,12 +71,12 @@ function Hero() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in-delay-2">
             <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-primary/25 transition-all gap-2">
-              <a href="https://calendly.com/creatorconnect/15min" target="_blank" rel="noopener noreferrer">
-                Book a 15-min Demo <MoveRight className="w-5 h-5" />
-              </a>
+              <Link to="/contact">
+                Book a Demo <MoveRight className="w-5 h-5" />
+              </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full">
-              <a href="/filter">Browse Creators</a>
+              <Link to="/filter">Browse Creators</Link>
             </Button>
           </div>
         </div>

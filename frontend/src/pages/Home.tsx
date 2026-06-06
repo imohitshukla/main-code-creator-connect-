@@ -6,9 +6,6 @@ import { CreatorList } from '@/components/CreatorList';
 import SEO from '@/components/SEO';
 import { HeroDemo } from '@/components/ui/demo';
 
-// ✏️ Replace with your actual Calendly link
-const CALENDLY_URL = 'https://calendly.com/creatorconnect/15min';
-
 const Home = () => {
   return (
     <PageTransition className="min-h-screen bg-background">
@@ -129,12 +126,12 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-lg rounded-full shadow-xl hover:scale-105 transition-transform">
-              <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
-                Book a 15-min Demo — It's Free
-              </a>
+              <Link to="/contact">
+                Book a Demo — It's Free
+              </Link>
             </Button>
           </div>
-          <p className="text-sm text-primary-foreground/50 mt-6">No commitment. Book for tomorrow.</p>
+          <p className="text-sm text-primary-foreground/50 mt-6">Get in touch with us today.</p>
         </div>
       </section>
       </main>
