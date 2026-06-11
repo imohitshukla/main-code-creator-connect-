@@ -59,9 +59,14 @@ def calculate_authenticity(posts, follower_count, profile_data=None):
     
     # ML Prediction (Hybrid Layer)
     ml_bot_probability = 0.0
+    ml_real_confident  = False   # True when XGBoost is confident this is a real account
     if XGB_AVAILABLE and profile_data:
         try:
-            model_path = os.path.join(os.path.dirname(__file__), 'ml', 'xgboost_bot_model.pkl')
+            # Path: pulse_analyzer.py lives in analytical-models/;
+            # the model is one level up inside ml-models/
+            model_path = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), '..', 'ml-models', 'xgboost_bot_model.pkl')
+            )
             if os.path.exists(model_path):
                 with open(model_path, 'rb') as f:
                     xgb_model = pickle.load(f)
@@ -85,6 +90,7 @@ def calculate_authenticity(posts, follower_count, profile_data=None):
                 # Predict probability of being fake (1)
                 ml_prob = xgb_model.predict_proba(features)[0][1]
                 ml_bot_probability = ml_prob
+                ml_real_confident  = ml_prob < 0.35   # XGBoost is confident this is a real account
                 
                 if ml_prob > 0.65:
                     bot_flag = True
@@ -94,10 +100,17 @@ def calculate_authenticity(posts, follower_count, profile_data=None):
             pass
             
     # Fallback / Ensemble heuristics:
-    if ratio_mean > 0.01 and ratio_stddev < 0.005:
+    # Use relative Coefficient of Variation (CV = stddev/mean) instead of an absolute
+    # threshold so large organic creators (whose ratios are consistent but not robotic)
+    # are not mis-flagged.  CV < 0.15 means variance is < 15% of the mean — robotic.
+    # IMPORTANT: If XGBoost is confident the account is real (ml_real_confident),
+    # trust the ML model over the heuristic to avoid false positives on creators
+    # who happen to have very consistent engagement (e.g. tech reviewers, niched YouTubers).
+    ratio_cv = ratio_stddev / (ratio_mean + 0.001)
+    if ratio_mean > 0.01 and ratio_cv < 0.15 and not ml_real_confident:
         bot_flag = True
-        if "Suspiciously uniform comment-to-like ratio (low variance)" not in reasons:
-            reasons.append("Suspiciously uniform comment-to-like ratio (low variance)")
+        if "Suspiciously uniform comment-to-like ratio (CV < 15%)" not in reasons:
+            reasons.append(f"Suspiciously uniform comment-to-like ratio (CV={ratio_cv:.3f}, < 0.15 threshold)")
     
     if comments_mean > 50 and comments_stddev / comments_mean < 0.08:
         bot_flag = True
@@ -300,14 +313,16 @@ def calculate_dvi(posts):
     # Calculate decay rate (bounded to sensible boundaries)
     ratio = max(0.05, min(0.99, mean_late / (mean_early + 1)))
     decay_k = -math.log(ratio) / age_diff
-    decay_k = max(0.002, min(0.1, decay_k)) # bound k
+    # Bounds: lower = 0.002/hr (~14.4 day half-life, evergreen)
+    #          upper = 0.15/hr  (~4.6 hr half-life, extreme viral spike)
+    decay_k = max(0.002, min(0.15, decay_k))
     
     half_life = math.log(2) / decay_k
-    half_life = max(8.0, min(168.0, half_life)) # bound to 8 hrs to 7 days
+    half_life = max(8.0, min(120.0, half_life)) # bound to 8 hrs to 5 days
     
-    if half_life > 48.0:
+    if half_life > 72.0:
         long_tail = "High (Searchable & Evergreen)"
-    elif half_life > 20.0:
+    elif half_life > 24.0:
         long_tail = "Medium (Standard Algorithmic Shelf-life)"
     else:
         long_tail = "Low (Viral spike & Quick decay)"
