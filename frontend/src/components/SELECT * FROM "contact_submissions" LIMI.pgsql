@@ -1,1 +1,0 @@
-SELECT * FROM "contact_submissions" LIMIT 1000;ß
