@@ -1,0 +1,17 @@
+# Pulse Engine — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# NLP / Sentiment Analysis
+vaderSentiment>=3.3.2
+
+# BERT-based transformer sentiment (optional — used if GPU/CPU available)
+transformers>=4.40.0
+torch>=2.0.0
+
+# Machine Learning — XGBoost Bot Detection Model
+xgboost>=2.0.0
+scikit-learn>=1.4.0
+pandas>=2.0.0
+
+# Serialization
+pickle5; python_version < "3.8"

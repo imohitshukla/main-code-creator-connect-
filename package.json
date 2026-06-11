@@ -1,26 +1,30 @@
 {
-  "name": "niche-connect-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "testEmail.js",
+  "name": "creator-connect",
+  "version": "2.0.0",
+  "description": "CreatorConnect — Influencer Marketing Platform (Monorepo)",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/pulse-engine"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:frontend":  "cd apps/frontend && npm run dev",
+    "dev:backend":   "cd apps/backend-core && node server.js",
+    "dev:pulse":     "cd services/pulse-engine && echo 'Pulse Engine runs as part of backend-core (spawned via child_process)'",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "install:all": "npm install && cd apps/frontend && npm install && cd ../backend-core && npm install",
+    "lint:frontend": "cd apps/frontend && npm run lint",
+    "test": "echo \"No top-level test suite yet\""
   },
+  "keywords": ["influencer", "marketing", "monorepo", "creator-connect"],
+  "author": "CreatorConnect",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/imohitshukla/main-code-creator-connect-.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/imohitshukla/main-code-creator-connect-/issues"
   },
-  "homepage": "https://github.com/imohitshukla/main-code-creator-connect-#readme",
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "nodemailer": "^7.0.11",
-    "razorpay": "^2.9.6",
-    "resend": "^6.9.1"
-  }
+  "homepage": "https://github.com/imohitshukla/main-code-creator-connect-#readme"
 }

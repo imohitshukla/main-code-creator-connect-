@@ -1,0 +1,10 @@
+{
+  "posts": [
+    {"likes": 100, "comments": 10, "publishedAt": "2026-06-04T10:00:00+00:00"},
+    {"likes": 120, "comments": 12, "publishedAt": "2026-06-03T10:00:00+00:00"},
+    {"likes": 80, "comments": 8, "publishedAt": "2026-06-02T10:00:00+00:00"}
+  ],
+  "follower_count": 5000,
+  "platform": "instagram",
+  "niche": "tech"
+}
