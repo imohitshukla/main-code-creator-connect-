@@ -37,7 +37,7 @@ function Hero() {
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-7xl max-w-4xl tracking-tight text-center font-bold text-foreground leading-[1.1]">
               <span className="text-foreground">A marketplace for</span>
-              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1 text-primary">
+              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1 text-primary min-h-[1.2em]">
                 &nbsp;
                 {titles.map((title, index) => (
                   <motion.span

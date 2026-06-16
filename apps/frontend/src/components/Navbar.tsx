@@ -86,12 +86,12 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           {/* Logo */}
-          <div className="mr-8">
+          <div className="mr-4 lg:mr-8 shrink-0">
             <Logo />
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center flex-1">
+          <div className="hidden lg:flex items-center flex-1 justify-center xl:gap-2">
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
@@ -192,7 +192,7 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2 lg:gap-4 shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
                 <NotificationBell />
