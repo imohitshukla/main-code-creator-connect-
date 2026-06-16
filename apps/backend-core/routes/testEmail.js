@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import transporter from '../../../utils/sendEmail.js'
+import transporter from '../utils/sendEmail.js'
 
 const app = new Hono()
 

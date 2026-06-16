@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { Conversation, Message } = require('../models/index.cjs');
+const { Conversation, Message } = require('../db/models/index.cjs');
 
 /**
  * Shared helper function to log deal events as system messages

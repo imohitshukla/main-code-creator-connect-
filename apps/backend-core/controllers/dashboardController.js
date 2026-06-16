@@ -1,7 +1,7 @@
 import { client } from '../config/database.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { User, CreatorProfile, BrandProfile } = require('../models/index.cjs');
+const { User, CreatorProfile, BrandProfile } = require('../db/models/index.cjs');
 
 // Get role-specific dashboard data
 export const getDashboard = async (c) => {
