@@ -2,6 +2,13 @@ import { client } from '../config/database.js';
 import { getCachedOrScrape, parseInstagramHandle } from './creatorDataService.js';
 import { computeEngagementRate } from './analyticsEngine.js';
 
+// ⚠️  CRITICAL SAFETY GUARD
+// If no real API key is configured the data service falls back to *deterministic mock data*.
+// Writing that mock data back into the database would silently corrupt every creator's real
+// follower count and engagement rate.  We therefore refuse to run the sync job in mock mode.
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
+const IS_MOCK_MODE = !RAPIDAPI_KEY || RAPIDAPI_KEY === 'your_rapidapi_key_here' || RAPIDAPI_KEY.startsWith('dummy');
+
 /**
  * Normalizes and formats raw follower number to a string (e.g., '10.5k', '1.2M')
  */
@@ -46,6 +53,17 @@ async function fetchSocialMetrics(creator, forceRefresh = false) {
  */
 export const runEngagementRateUpdater = async (forceRefresh = false) => {
     const summary = { processed: 0, updated: 0, errors: 0, details: [] };
+
+    // ── Safety guard: refuse to run in mock mode ──────────────────────────────
+    // Without a real RapidAPI key the data service generates *fake* follower counts
+    // derived from the creator's database ID (e.g. id=3 → ~15k fake followers).
+    // Writing those numbers back to NeonDB would permanently corrupt real creator data.
+    if (IS_MOCK_MODE) {
+        console.warn('[EngUpdater] ⚠️  RAPIDAPI_KEY is not configured or is a placeholder.');
+        console.warn('[EngUpdater] 🛑  Skipping sync job — mock data must NEVER be written to the database.');
+        summary.details.push({ warning: 'Sync skipped: RAPIDAPI_KEY not set. Configure a real key to enable live sync.' });
+        return summary;
+    }
     
     try {
         console.log(`\n[EngUpdater] 🔄 Starting API Sync Job (Followers & Engagement) [forceRefresh=${forceRefresh}]...`);
@@ -73,8 +91,30 @@ export const runEngagementRateUpdater = async (forceRefresh = false) => {
 
         for (const creator of creators) {
             try {
-                const { engagement_rate, follower_count } = await fetchSocialMetrics(creator, forceRefresh);
-                
+                const freshData = await fetchSocialMetrics(creator, forceRefresh);
+
+                // ── Additional mock-data guard ────────────────────────────────
+                // fetchSocialMetrics calls getCachedOrScrape which can silently fall back
+                // to mock data even when IS_MOCK_MODE is false (e.g. API timeout).
+                // Detect mock responses by inspecting the raw_data flag and skip the
+                // DB write to avoid overwriting real data with synthetic numbers.
+                // NOTE: getCachedOrScrape returns the cached row which may include raw_data.
+                // We expose isMock via the returned object when possible.
+                if (freshData && freshData._isMock) {
+                    console.warn(`[EngUpdater] ⚠️  Mock data detected for ${creator.name} — skipping DB write.`);
+                    summary.details.push({ id: creator.id, name: creator.name, warning: 'Skipped: mock data returned (API unavailable)' });
+                    continue;
+                }
+
+                const { engagement_rate, follower_count } = freshData;
+
+                // Sanity-check: never write zero or obviously wrong data
+                if (!follower_count || follower_count === '0' || follower_count === 0) {
+                    console.warn(`[EngUpdater] ⚠️  Zero follower count for ${creator.name} — skipping DB write.`);
+                    summary.details.push({ id: creator.id, name: creator.name, warning: 'Skipped: zero follower count returned' });
+                    continue;
+                }
+
                 await client.query('BEGIN');
                 
                 // Update profile

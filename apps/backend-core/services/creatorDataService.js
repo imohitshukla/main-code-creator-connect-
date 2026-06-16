@@ -62,39 +62,74 @@ export async function scrapeInstagramProfile(handle, creatorId) {
   }
 
   try {
-    console.log(`[creatorDataService] Scrapes Instagram handle: @${cleanHandle}`);
-    const response = await axios.get('https://instagram-data-scraper-api.p.rapidapi.com/v1/profile', {
-      params: { username: cleanHandle },
-      headers: {
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'instagram-data-scraper-api.p.rapidapi.com'
-      },
-      timeout: 15000
-    });
+    console.log(`[creatorDataService] Fetching profile for @${cleanHandle} via Instagram Scraper Stable API`);
 
-    const data = response.data;
-    // Map response structure to normalized schema
-    const followers = data.follower_count || data.followers || 1000;
-    const following = data.following_count || data.following || 100;
-    const postCount = data.media_count || data.posts || 10;
-    
-    // Build normalized recent posts (Timeline)
-    const recentPosts = (data.recent_posts || []).slice(0, 30).map((post, idx) => ({
-      id: post.id || `ig_post_${idx}`,
-      title: post.caption || post.title || `Instagram Post #${idx + 1}`,
-      likes: post.likes || post.like_count || 0,
-      comments: post.comments || post.comment_count || 0,
-      views: post.views || post.view_count || (post.like_count ? post.like_count * 10 : 0),
-      publishedAt: post.taken_at || post.published_at || new Date(Date.now() - idx * 2 * 24 * 60 * 60 * 1000).toISOString()
-    }));
+    // ── Step 1: Fetch profile info (follower_count, bio, following, post_count) ────
+    const profileRes = await axios.get(
+      'https://instagram-scraper-stable-api.p.rapidapi.com/ig_get_fb_profile.php',
+      {
+        params: { username_or_url: cleanHandle },
+        headers: {
+          'x-rapidapi-key':  RAPIDAPI_KEY,
+          'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
+        },
+        timeout: 15000
+      }
+    );
+
+    const profile = profileRes.data?.data || profileRes.data || {};
+    const followers     = profile.followers        || profile.follower_count  || 1000;
+    const following     = profile.following        || profile.following_count || 0;
+    const postCount     = profile.posts_count      || profile.media_count     || 10;
+    const bio           = profile.biography        || profile.bio             || '';
+    const externalUrl   = !!(profile.external_url  || profile.website);
+    const isPrivate     = !!(profile.is_private);
+
+    // ── Step 2: Fetch recent posts (likes, comments per post) ─────────────────
+    let recentPosts = [];
+    try {
+      const postsRes = await axios.get(
+        'https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php',
+        {
+          params: { username_or_url: cleanHandle, amount: 30 },
+          headers: {
+            'x-rapidapi-key':  RAPIDAPI_KEY,
+            'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
+          },
+          timeout: 15000
+        }
+      );
+
+      const rawPosts = postsRes.data?.data || postsRes.data?.posts || [];
+      recentPosts = rawPosts.slice(0, 30).map((post, idx) => ({
+        id:          post.id         || post.pk            || `ig_post_${idx}`,
+        title:       post.caption    || post.title         || `Instagram Post #${idx + 1}`,
+        likes:       post.like_count || post.likes         || 0,
+        comments:    post.comment_count || post.comments   || 0,
+        views:       post.view_count || post.views         || 0,
+        publishedAt: post.taken_at_timestamp
+          ? new Date(post.taken_at_timestamp * 1000).toISOString()
+          : post.taken_at || post.published_at
+            || new Date(Date.now() - idx * 2 * 24 * 60 * 60 * 1000).toISOString()
+      }));
+    } catch (postsErr) {
+      console.warn(`[creatorDataService] Could not fetch posts for @${cleanHandle}: ${postsErr.message}`);
+    }
 
     return {
-      follower_count: followers,
-      following_count: following,
-      post_count: postCount,
-      recent_posts: recentPosts,
-      raw_data: data
+      follower_count:   followers,
+      following_count:  following,
+      post_count:       postCount,
+      bio,
+      external_url:     externalUrl,
+      is_private:       isPrivate,
+      recent_posts:     recentPosts,
+      raw_data: {
+        profile: profileRes.data,
+        isMock:  false
+      }
     };
+
   } catch (error) {
     console.error(`[creatorDataService] Instagram scrape error for @${cleanHandle}:`, error.message);
     // Graceful fallback to mock data on API failures to prevent complete crash
