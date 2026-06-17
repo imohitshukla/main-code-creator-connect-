@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { client } from '../config/database.js';
 
+const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
-const IS_MOCK_MODE = !RAPIDAPI_KEY || RAPIDAPI_KEY === 'your_rapidapi_key_here' || RAPIDAPI_KEY.startsWith('dummy');
+const IS_MOCK_MODE = (!APIFY_API_TOKEN || APIFY_API_TOKEN === 'your_apify_token_here') && (!RAPIDAPI_KEY || RAPIDAPI_KEY.startsWith('dummy'));
 
 if (IS_MOCK_MODE) {
-  console.log('🌐 [creatorDataService] ⚠️ RAPIDAPI_KEY is not configured or is a placeholder. Using realistic mock data fallback.');
+  console.log('🌐 [creatorDataService] ⚠️ APIFY_API_TOKEN is not configured. Using realistic mock data fallback.');
 }
 
 /**
@@ -51,7 +52,7 @@ export function parseYouTubeIdentifier(input) {
 }
 
 /**
- * Scrapes Instagram profile data using RapidAPI or returns mock fallback
+ * Scrapes Instagram profile data using Apify or returns mock fallback
  */
 export async function scrapeInstagramProfile(handle, creatorId) {
   const cleanHandle = parseInstagramHandle(handle);
@@ -62,76 +63,50 @@ export async function scrapeInstagramProfile(handle, creatorId) {
   }
 
   try {
-    console.log(`[creatorDataService] Fetching profile for @${cleanHandle} via Instagram Scraper Stable API`);
+    console.log(`[creatorDataService] Fetching profile for @${cleanHandle} via Apify Instagram Scraper`);
 
-    // ── Step 1: Fetch profile info (follower_count, bio, following, post_count) ────
-    const profileRes = await axios.get(
-      'https://instagram-scraper-stable-api.p.rapidapi.com/ig_get_fb_profile.php',
-      {
-        params: { username_or_url: cleanHandle },
-        headers: {
-          'x-rapidapi-key':  RAPIDAPI_KEY,
-          'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
-        },
-        timeout: 15000
-      }
+    const response = await axios.post(
+      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_TOKEN}`,
+      { usernames: [cleanHandle] },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 60000 }
     );
 
-    const profile = profileRes.data?.data || profileRes.data || {};
-    const followers     = profile.followers        || profile.follower_count  || 1000;
-    const following     = profile.following        || profile.following_count || 0;
-    const postCount     = profile.posts_count      || profile.media_count     || 10;
-    const bio           = profile.biography        || profile.bio             || '';
-    const externalUrl   = !!(profile.external_url  || profile.website);
-    const isPrivate     = !!(profile.is_private);
+    const data = response.data;
+    if (!data || data.length === 0) {
+      throw new Error("No data returned from Apify");
+    }
 
-    // ── Step 2: Fetch recent posts (likes, comments per post) ─────────────────
+    const profile = data[0];
+    
+    // ── Map Apify output to our standard format ─────────────────
     let recentPosts = [];
-    try {
-      const postsRes = await axios.get(
-        'https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php',
-        {
-          params: { username_or_url: cleanHandle, amount: 30 },
-          headers: {
-            'x-rapidapi-key':  RAPIDAPI_KEY,
-            'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
-          },
-          timeout: 15000
-        }
-      );
-
-      const rawPosts = postsRes.data?.data || postsRes.data?.posts || [];
-      recentPosts = rawPosts.slice(0, 30).map((post, idx) => ({
-        id:          post.id         || post.pk            || `ig_post_${idx}`,
-        title:       post.caption    || post.title         || `Instagram Post #${idx + 1}`,
-        likes:       post.like_count || post.likes         || 0,
-        comments:    post.comment_count || post.comments   || 0,
-        views:       post.view_count || post.views         || 0,
-        publishedAt: post.taken_at_timestamp
-          ? new Date(post.taken_at_timestamp * 1000).toISOString()
-          : post.taken_at || post.published_at
-            || new Date(Date.now() - idx * 2 * 24 * 60 * 60 * 1000).toISOString()
+    if (profile.latestPosts && Array.isArray(profile.latestPosts)) {
+      recentPosts = profile.latestPosts.slice(0, 30).map((post, idx) => ({
+        id:          post.id         || post.shortCode || `ig_post_${idx}`,
+        title:       post.caption    || `Instagram Post #${idx + 1}`,
+        likes:       post.likesCount || 0,
+        comments:    post.commentsCount || 0,
+        views:       post.videoViewCount || post.playCount || 0,
+        publishedAt: post.timestamp || new Date(Date.now() - idx * 2 * 24 * 60 * 60 * 1000).toISOString()
       }));
-    } catch (postsErr) {
-      console.warn(`[creatorDataService] Could not fetch posts for @${cleanHandle}: ${postsErr.message}`);
     }
 
     return {
-      follower_count:   followers,
-      following_count:  following,
-      post_count:       postCount,
-      bio,
-      external_url:     externalUrl,
-      is_private:       isPrivate,
+      follower_count:   profile.followersCount || 1000,
+      following_count:  profile.followsCount || 0,
+      post_count:       profile.postsCount || 10,
+      bio:              profile.biography || '',
+      external_url:     !!profile.externalUrl,
+      is_private:       !!profile.isPrivate,
       recent_posts:     recentPosts,
       raw_data: {
-        profile: profileRes.data,
+        profile: profile,
         isMock:  false
       }
     };
 
   } catch (error) {
-    console.error(`[creatorDataService] Instagram scrape error for @${cleanHandle}:`, error.message);
+    console.error(`[creatorDataService] Apify scrape error for @${cleanHandle}:`, error.response?.data || error.message);
     // Graceful fallback to mock data on API failures to prevent complete crash
     return generateMockData(creatorId || 101, 'instagram', cleanHandle);
   }
