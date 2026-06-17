@@ -43,7 +43,8 @@ async function fetchSocialMetrics(creator, forceRefresh = false) {
 
     return {
         engagement_rate: analytics.rate,
-        follower_count: formattedFollowers
+        follower_count: formattedFollowers,
+        raw_data: freshData.raw_data
     };
 }
 
@@ -100,7 +101,15 @@ export const runEngagementRateUpdater = async (forceRefresh = false) => {
                 // DB write to avoid overwriting real data with synthetic numbers.
                 // NOTE: getCachedOrScrape returns the cached row which may include raw_data.
                 // We expose isMock via the returned object when possible.
-                if (freshData && freshData._isMock) {
+                let isMock = false;
+                if (freshData && freshData.raw_data) {
+                    if (typeof freshData.raw_data === 'string') {
+                        isMock = freshData.raw_data.includes('"isMock":true');
+                    } else {
+                        isMock = freshData.raw_data.isMock === true;
+                    }
+                }
+                if (isMock) {
                     console.warn(`[EngUpdater] ⚠️  Mock data detected for ${creator.name} — skipping DB write.`);
                     summary.details.push({ id: creator.id, name: creator.name, warning: 'Skipped: mock data returned (API unavailable)' });
                     continue;

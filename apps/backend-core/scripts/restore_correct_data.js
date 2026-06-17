@@ -49,9 +49,9 @@ async function restoreData() {
   let notFound = 0;
 
   for (const creator of CORRECT_DATA) {
-    // Find user by name
+    // Find user by name ignoring spaces
     const userRes = await client.query(
-      `SELECT id FROM users WHERE name ILIKE $1 AND role = 'creator' LIMIT 1`,
+      `SELECT id FROM users WHERE TRIM(name) ILIKE $1 AND role = 'creator' LIMIT 1`,
       [creator.name]
     );
 
