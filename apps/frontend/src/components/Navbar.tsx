@@ -95,7 +95,7 @@ const Navbar = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="bg-transparent text-base font-medium">All-in-One Platform</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="bg-transparent text-sm lg:px-3 font-medium">All-in-One Platform</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                       <li className="row-span-3">
@@ -145,25 +145,25 @@ const Navbar = () => {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link to="/agency" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
+                  <Link to="/agency" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-sm lg:px-3 font-medium")}>
                     Agency Services
                   </Link>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link to="/filter" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-medium")}>
+                  <Link to="/filter" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-sm lg:px-3 font-medium")}>
                     Influencer Discovery
                   </Link>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link to="/pulse" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-base font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5")}>
+                  <Link to="/pulse" className={cn(navigationMenuTriggerStyle(), "bg-transparent text-sm lg:px-3 font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5")}>
                     The Pulse <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Beta</span>
                   </Link>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="bg-transparent text-base font-medium">Resources</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="bg-transparent text-sm lg:px-3 font-medium">Resources</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {[
@@ -217,7 +217,7 @@ const Navbar = () => {
               <>
                 <Button
                   variant="ghost"
-                  className="text-base font-medium"
+                  className="text-sm font-medium px-3"
                   onClick={() => {
                     setAuthMode('login');
                     setIsAuthModalOpen(true);
@@ -227,7 +227,7 @@ const Navbar = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-base font-medium border-primary/20 hover:bg-primary/5"
+                  className="text-sm font-medium border-primary/20 hover:bg-primary/5 px-4"
                   onClick={() => {
                     setAuthMode('signup');
                     setIsAuthModalOpen(true);
@@ -236,7 +236,7 @@ const Navbar = () => {
                   Sign up
                 </Button>
                 <Button
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 shadow-glow transition-all duration-300"
+                  className="text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-5 shadow-glow transition-all duration-300"
                   onClick={() => navigate('/contact')}
                 >
                   Book a demo
